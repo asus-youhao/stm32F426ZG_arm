@@ -20,6 +20,7 @@
 | 2026-06-25 | [雙臂配置與控制規劃](./changes/2026-06-25-dual-arm-config-and-plan.md) | 關節表、CoE 說明、雙臂控制工作分解 |
 | 2026-06-25 | [協定與模式 HTML 速覽](./changes/2026-06-25-protocols-modes-html.md) | 新增可瀏覽的協定/控制模式速覽頁 |
 | 2026-06-25 | [F746 CANopen 韌體](./changes/2026-06-25-f746-canopen-firmware.md) | 雙臂雙 CAN channel CANopen 通訊骨架 |
+| 2026-06-25 | [CubeMX 整合 + WP2 bring-up](./changes/2026-06-25-cubemx-integration-wp2-bringup.md) | 接線範本與單軸 bring-up 測試 |
 
 ## 設計文件
 
@@ -30,4 +31,6 @@
 | [EYOU PHU Motor Analysis](./design/eyou-phu-motor-analysis.md) | EYOU PHU 關節選型與 CAN 類型判定（依原廠 datasheet） |
 | [CANopen vs EtherCAT](./design/canopen-vs-ethercat.md) | CANopen / EtherCAT / CoE 比較與通訊選型 |
 | [Dual-Arm Control Plan](./design/dual-arm-control-plan.md) | 雙臂控制工作分解（joint/task-space 1kHz、整合） |
+| [CubeMX 整合說明](./design/firmware-cubemx-integration.md) | F746 CubeMX 設定與韌體接線 |
+| [WP2 單軸 Bring-up](./design/wp2-single-axis-bringup.md) | SDO 驗證 + 單軸轉動測試流程 |
 | [協定與模式速覽 (HTML)](./eyou-phu-protocols.html) | 可瀏覽的 EYOU PHU 協定/控制模式速覽 |
