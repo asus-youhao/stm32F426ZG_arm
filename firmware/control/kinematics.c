@@ -38,6 +38,7 @@ void kin_fk(const arm_kin_t *k, const float q[ARM_DOF], pose_t *out)
 {
     float T[16], Ti[16], Tmp[16];
     mat4_identity(T);
+    T[3]=k->base_p[0]; T[7]=k->base_p[1]; T[11]=k->base_p[2];  /* 基座位移 */
     for (int i=0;i<ARM_DOF;i++){
         dh_transform(&k->dh[i], q[i], Ti);
         mat4_mul(T, Ti, Tmp);
@@ -53,18 +54,16 @@ void kin_jacobian(const arm_kin_t *k, const float q[ARM_DOF], float J[6*ARM_DOF]
 {
     /* 逐軸累積變換,取每軸的 z 軸與原點,末端位置 pe。 */
     float T[16], Ti[16], Tmp[16];
-    float z[ARM_DOF][3], o[ARM_DOF][3];
-    float o0[3]={0,0,0}, z0[3]={0,0,1};
 
-    mat4_identity(T);
     /* 先求末端位置 */
     pose_t pe; kin_fk(k, q, &pe);
 
-    /* base frame */
-    float zprev[3]={z0[0],z0[1],z0[2]};
-    float oprev[3]={o0[0],o0[1],o0[2]};
+    /* base frame：z 軸 (0,0,1)、原點為基座 */
+    float zprev[3]={0,0,1};
+    float oprev[3]={k->base_p[0],k->base_p[1],k->base_p[2]};  /* 基座為起點 */
 
     mat4_identity(T);
+    T[3]=k->base_p[0]; T[7]=k->base_p[1]; T[11]=k->base_p[2];
     for (int i=0;i<ARM_DOF;i++){
         /* J 第 i 欄使用「第 i 關節前的座標系」之 z, o（即目前 T 的 z 與 origin） */
         /* zprev/oprev 為 0..i-1 累積後的 z/origin */
@@ -84,7 +83,6 @@ void kin_jacobian(const arm_kin_t *k, const float q[ARM_DOF], float J[6*ARM_DOF]
         memcpy(T, Tmp, sizeof(T));
         zprev[0]=T[2]; zprev[1]=T[6]; zprev[2]=T[10];
         oprev[0]=T[3]; oprev[1]=T[7]; oprev[2]=T[11];
-        (void)z; (void)o;
     }
 }
 

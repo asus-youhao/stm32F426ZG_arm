@@ -24,6 +24,7 @@
 | 2026-06-25 | [WP3 Joint-space 控制器](./changes/2026-06-25-wp3-joint-space.md) | 軌跡插值 + 14 軸 1kHz 設定點 |
 | 2026-06-25 | [WP4 Task-space 控制器](./changes/2026-06-25-wp4-task-space.md) | FK/Jacobian/DLS-IK + 笛卡爾控制 |
 | 2026-06-25 | [WP5 雙臂整合](./changes/2026-06-25-wp5-dual-arm-integration.md) | L4 協同 + L1–L4 全棧串接 |
+| 2026-06-25 | [假硬體模擬器(C)](./changes/2026-06-25-sim-fake-hardware.md) | PC 全棧 + 模擬 PHU 從站資料流 |
 
 ## 設計文件
 
@@ -39,4 +40,5 @@
 | [WP3 Joint-space](./design/wp3-joint-space.md) | 軌跡插值與 joint-space 控制器 |
 | [WP4 Task-space](./design/wp4-task-space.md) | 運動學/Jacobian/IK 與笛卡爾控制 |
 | [WP5 雙臂整合](./design/wp5-dual-arm-integration.md) | L4 協同與全棧串接 |
+| [假硬體模擬器](./design/sim-fake-hardware.md) | PC 模擬 PHU 從站 + 全棧資料流 |
 | [協定與模式速覽 (HTML)](./eyou-phu-protocols.html) | 可瀏覽的 EYOU PHU 協定/控制模式速覽 |
