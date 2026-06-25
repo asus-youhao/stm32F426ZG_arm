@@ -31,6 +31,7 @@
 | 2026-06-25 | [前端統一接後端(WS)](./changes/2026-06-25-ws-unified-frontend.md) | host_ui/can_monitor 連同一 Python 假硬體 |
 | 2026-06-25 | [修復 500Hz/看門狗/可建置](./changes/2026-06-25-fix-500hz-watchdog-buildable.md) | 三項嚴重問題修復 + CMake 目標建置 |
 | 2026-06-25 | [單元測試](./changes/2026-06-25-unit-tests.md) | trajectory/kinematics/IK/協定/CANopen 測試 |
+| 2026-06-26 | [F746 Makefile bring-up 專案](./changes/2026-06-26-f746-makefile-bringup-build.md) | 可編譯/可燒的 Nucleo-F746ZG bring-up + CAN 時序修正 |
 
 ## 設計文件
 
