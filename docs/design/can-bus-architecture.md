@@ -37,6 +37,25 @@
 
 結論:**需要 1 kHz 等級力矩/電流閉迴路 → 用 CAN-FD(H7/G4)**;若 MCU 只做較低頻位置命令下發 + 狀態彙整 → F746 雙路 Classic CAN 勉強可行。
 
+## 3.5 CANopen 支援
+
+**CANopen 是上層軟體協定(CiA 301),不是晶片硬體功能**;只要有 CAN 控制器 + CANopen 軟體堆疊即可運行。
+
+```
+應用層 ── CANopen (CiA 301 / 馬達用 CiA 402) ← 軟體 stack
+       ── CAN / CAN-FD                        ← 硬體控制器
+```
+
+| MCU            | 傳統 CANopen | CANopen FD (CiA 1301) |
+| -------------- | ------------ | --------------------- |
+| STM32F746ZG    | ✅(bxCAN)   | ❌(無 CAN-FD 硬體）   |
+| STM32H743ZI    | ✅           | ✅(FDCAN)            |
+| STM32G4        | ✅           | ✅(FDCAN)            |
+
+- **STM32F746 支援傳統 CANopen,但不支援 CANopen FD**(後者需 CAN-FD 硬體)。
+- ST 無官方 CANopen stack,需第三方:**CANopenNode**(開源,首選)或商用(emotas / port / Micro CANopen)。
+- 若伺服驅動器為 CANopen(CiA 402)介面:F746 傳統 CANopen 可接,但 14 軸高頻頻寬吃緊;要 CANopen FD 兼顧高頻則需 H743 / G4。
+
 ## 4. 匯流排拓樸(建議)
 
 ```

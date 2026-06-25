@@ -15,6 +15,7 @@
 | 2026-06-25 | [初始化專案文件與 Git Flow](./changes/2026-06-25-init-project-docs.md) | 建立 CLAUDE.md、Git Flow 與文件規範 |
 | 2026-06-25 | [STM32F746ZG 雙臂低階控制](./changes/2026-06-25-stm32f746zg-dual-arm-control.md) | 新增雙臂低階控制需求/架構文件 |
 | 2026-06-25 | [CAN/CAN-FD 匯流排架構](./changes/2026-06-25-can-bus-architecture.md) | 評估 CAN-FD 支援與雙臂頻寬/拓樸 |
+| 2026-06-25 | [CANopen 支援說明](./changes/2026-06-25-canopen-support-note.md) | 補充 CANopen / CANopen FD 支援情況 |
 
 ## 設計文件
 
