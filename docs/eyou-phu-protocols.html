@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EYOU PHU 馬達 — 支援協定與控制模式</title>
+<style>
+  :root{
+    --bg:#0f1419; --card:#1a212b; --line:#2b3543; --txt:#e6edf3;
+    --mut:#9aa7b4; --accent:#4fd1c5; --accent2:#f6ad55; --good:#48bb78; --warn:#f56565;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+    line-height:1.6;padding:0 0 60px}
+  header{background:linear-gradient(135deg,#13303a,#1a212b);padding:32px 24px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 6px;font-size:1.6rem}
+  header p{margin:0;color:var(--mut)}
+  main{max-width:1040px;margin:0 auto;padding:0 20px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:22px 0}
+  h2{font-size:1.2rem;margin:0 0 14px;color:var(--accent);border-left:4px solid var(--accent);padding-left:10px}
+  h3{font-size:1rem;color:var(--accent2);margin:18px 0 8px}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#222c38;color:var(--accent)}
+  tr:nth-child(even) td{background:#19202a}
+  code{background:#0b0f14;padding:1px 6px;border-radius:4px;color:var(--accent2);font-size:.88em}
+  .tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.78rem;font-weight:600}
+  .t-can{background:#234e52;color:#7fe6da}
+  .t-ecat{background:#3b3056;color:#c4b0ff}
+  .t-rec{background:#1c4532;color:#9ae6b4}
+  .pill{font-weight:700}
+  .good{color:var(--good)} .warn{color:var(--warn)} .mut{color:var(--mut)}
+  .reco{border:1px solid var(--good);background:#15241b;border-radius:10px;padding:14px 16px;margin-top:12px}
+  .reco h3{color:var(--good);margin-top:0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  ul{margin:6px 0 6px 0;padding-left:20px}
+  .star{color:var(--accent2)}
+  footer{max-width:1040px;margin:20px auto 0;padding:0 20px;color:var(--mut);font-size:.82rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>EYOU PHU 馬達 — 支援協定與控制模式</h1>
+  <p>人形雙臂（每臂 7-DoF，共 14 軸） · 依原廠手冊 v1.06 / 規格書 v1.14 整理</p>
+</header>
+<main>
+
+  <section>
+    <h2>1 · 支援的通訊協定</h2>
+    <p>同一套 <b>CiA 402 物件字典</b>可在兩種傳輸層運作；硬體連接埠同時具備 CAN FD 與 EtherCAT。</p>
+    <table>
+      <tr><th>協定</th><th>傳輸層</th><th>速率</th><th>同步</th><th>適用</th></tr>
+      <tr>
+        <td><span class="tag t-can">CANopen</span></td>
+        <td>CAN（本關節為 Classic CAN 2.0B）</td>
+        <td>預設 <code>1 Mbps</code>，可選 500k/250k/125k/100k/50k/20k</td>
+        <td>軟體 SYNC（抖動較大）</td>
+        <td>單關節 bring-up、低頻測試</td>
+      </tr>
+      <tr>
+        <td><span class="tag t-ecat">EtherCAT (CoE)</span></td>
+        <td>工業乙太網 100 Mbps（菊鏈）</td>
+        <td>高吞吐，單週期可更新 14 軸</td>
+        <td><b class="good">硬體 DC 分散式時鐘（抖動極低）</b></td>
+        <td>高頻多軸同步、力控、<b>1 kHz+</b></td>
+      </tr>
+    </table>
+    <p class="mut">※ 實體接口為 <b>CAN FD（In/Out）</b> + <b>EtherCAT（In/Out）</b> + STO + 電源；但 CANopen 協定依手冊以傳統 CAN 速率（≤1 Mbps）運作。CoE = CANopen over EtherCAT（手冊 §1.2 明載）。</p>
+  </section>
+
+  <section>
+    <h2>2 · 支援的控制模式（CiA 402，物件 <code>0x6060</code>）</h2>
+    <h3>輪廓模式 Profile（驅動器本地規劃軌跡，通訊需求低）</h3>
+    <table>
+      <tr><th>模式</th><th>縮寫</th><th><code>0x6060</code></th><th>說明</th><th>主指令</th></tr>
+      <tr><td>輪廓位置 Profile Position</td><td class="pill">PP</td><td>1</td><td>主站給目標點+輪廓參數，驅動器自規劃點到點</td><td>目標位置 <code>0x607A</code></td></tr>
+      <tr><td>輪廓速度 Profile Velocity</td><td class="pill">PV</td><td>3</td><td>主站給目標速度，模組內部生成平滑曲線</td><td>目標速度 <code>0x60FF</code></td></tr>
+      <tr><td>輪廓轉矩 Profile Torque</td><td class="pill">PT</td><td>4</td><td>主站給目標轉矩，依斜率維持</td><td>目標轉矩 <code>0x6071</code></td></tr>
+      <tr><td>回零 Homing</td><td class="pill">HM</td><td>6</td><td>僅支援方式 35：以當前位置為機械零點</td><td><code>0x6098</code></td></tr>
+    </table>
+
+    <h3>循環同步模式 Cyclic Synchronous（主站每週期下指令，<b>適合 1 kHz 集中控制</b>）</h3>
+    <table>
+      <tr><th>模式</th><th>縮寫</th><th><code>0x6060</code></th><th>說明</th><th>主指令</th></tr>
+      <tr style="outline:2px solid #2f855a"><td>循環同步位置 Cyclic Sync Position</td><td class="pill star">CSP</td><td>8</td><td>主站每週期送目標位置，關節內部做位置/速度/轉矩三閉環</td><td><code>0x607A</code>（+速度/轉矩前饋）</td></tr>
+      <tr><td>循環同步速度 Cyclic Sync Velocity</td><td class="pill">CSV</td><td>9</td><td>主站每週期送目標速度，內部速度+轉矩環</td><td><code>0x60FF</code></td></tr>
+      <tr style="outline:2px solid #2f855a"><td>循環同步轉矩 Cyclic Sync Torque</td><td class="pill star">CST</td><td>10</td><td>主站每週期送目標轉矩（阻抗/順應控制基礎）</td><td><code>0x6071</code></td></tr>
+      <tr style="outline:2px solid #2f855a"><td>循環同步力控 Cyclic Sync Force</td><td class="pill star">CSF</td><td>13</td><td><b>力控關節專屬</b>：每週期送目標轉矩+前饋，閉環力控</td><td><code>0x6071</code>+<code>0x60B2</code></td></tr>
+    </table>
+    <p class="mut">★ = 人形雙臂高頻控制建議使用的模式。Profile 模式（PP/PV/PT）讓驅動器本地規劃，不適合 1 kHz 集中式整機/雙臂協同控制。</p>
+  </section>
+
+  <section>
+    <h2>3 · 人形雙臂該用哪一種 Mode？</h2>
+
+    <div class="reco">
+      <h3>✅ 建議：以 EtherCAT(CoE)+DC 同步，跑循環同步模式</h3>
+      <div class="grid">
+        <div>
+          <h3>位置型任務 → <span class="pill star">CSP (8)</span></h3>
+          <ul>
+            <li>主站（1 kHz）做 joint-space / task-space 軌跡規劃，每週期下目標位置</li>
+            <li>剛性高、軌跡跟隨精準</li>
+            <li>適合：抓取、定位、雙手協同搬運的位置同步</li>
+          </ul>
+        </div>
+        <div>
+          <h3>順應/力控任務 → <span class="pill star">CST (10) / CSF (13)</span></h3>
+          <ul>
+            <li>主站送目標轉矩，實現 <b>笛卡爾阻抗 / 順應控制</b></li>
+            <li>人機互動安全、接觸柔順、可吸收外力</li>
+            <li>適合：插拔、貼合、雙手夾持同物件的內力控制</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <h3>實務建議組合（人形雙臂）</h3>
+    <table>
+      <tr><th>情境</th><th>建議模式</th><th>傳輸層</th></tr>
+      <tr><td>初期單關節 bring-up / 校正</td><td>PP / HM</td><td><span class="tag t-can">CANopen</span></td></tr>
+      <tr><td>單臂 / 雙臂 1 kHz 位置控制（剛性）</td><td><b>CSP</b></td><td><span class="tag t-ecat">EtherCAT</span></td></tr>
+      <tr><td>task-space 阻抗 / 順應 / 安全互動</td><td><b>CST 或 CSF</b></td><td><span class="tag t-ecat">EtherCAT</span></td></tr>
+      <tr><td>雙手夾持同物件（內力/協同）</td><td><b>CST/CSF + 位置疊加</b></td><td><span class="tag t-ecat">EtherCAT</span></td></tr>
+    </table>
+
+    <div class="reco" style="border-color:#dd6b20;background:#27201a">
+      <h3 style="color:var(--accent2)">📌 一句話結論</h3>
+      <p style="margin:0">人形雙臂高頻控制 → <b>走 EtherCAT(CoE)+DC，主用 <span class="star">CSP</span>（位置）並依任務切到 <span class="star">CST / CSF</span>（轉矩/力控阻抗）</b>。
+      CANopen（Classic CAN ≤1 Mbps）保留給單軸 bring-up 與低頻測試。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>4 · 你的雙臂關節配置（每臂 7 軸 · 共 14 軸）</h2>
+    <table>
+      <tr><th>Joint</th><th>部位</th><th>型號</th><th>介面</th></tr>
+      <tr><td>J1 / J2</td><td>肩 Shoulder</td><td>PHU20 (PHU-20H-90)</td><td>CAN FD / EtherCAT</td></tr>
+      <tr><td>J3</td><td>肩 Yaw</td><td>PHU17 (PHU-17H-80)</td><td>CAN FD / EtherCAT</td></tr>
+      <tr><td>J4</td><td>手肘 Elbow</td><td>PHU17 (PHU-17H-80)</td><td>CAN FD / EtherCAT</td></tr>
+      <tr><td>J5 / J6 / J7</td><td>手腕 Wrist ×3</td><td>PHU14 (PHU-14H-70)</td><td>CAN FD / EtherCAT</td></tr>
+    </table>
+    <p class="mut">每臂：PHU20 ×2、PHU17 ×2、PHU14 ×3 = 7 軸。</p>
+  </section>
+
+</main>
+<footer>
+  資料來源：<code>EYou-PHU&amp;RHU系列关节CANopen与EtherCAT通信手册 v1.06 (§1.2, §4)</code>、<code>PHU系列规格书 v1.14</code>。
+  本頁為專案內部整理，最終參數以原廠手冊為準。
+</footer>
+</body>
+</html>

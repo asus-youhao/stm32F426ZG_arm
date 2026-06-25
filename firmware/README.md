@@ -1,0 +1,54 @@
+# Firmware — STM32F746ZG 雙臂 CANopen 通訊
+
+本目錄為 **STM32F746ZG** 韌體,負責透過 **雙路 bxCAN(CAN1 / CAN2)** 以 **CANopen（CiA 301/402）** 控制 EYOU PHU 雙臂關節。
+
+## 架構：雙手不同 CAN channel
+
+STM32F746 內建 **2 路獨立 bxCAN**,因此左/右臂各佔一條獨立匯流排:
+
+```
+            STM32F746ZG
+   ┌───────────────────────────┐
+   │  bxCAN1 ──► 左臂 7 軸       │  Node-ID 1..7  @1Mbps
+   │  bxCAN2 ──► 右臂 7 軸       │  Node-ID 1..7  @1Mbps
+   └───────────────────────────┘
+```
+
+- 兩條 bus 頻寬獨立、故障隔離。
+- 各 bus 上節點 ID 1..7（J1 肩…J7 腕）。
+- 預設 1 Mbps（對應關節 OD 0x26A1 預設值）。
+
+> ⚠️ 頻寬提醒:Classic CAN 1 Mbps 帶 7 軸,1 kHz PDO 力控會吃緊（見 `docs/design/can-bus-architecture.md`）。本層先完成 CANopen bring-up 與位置控制；高頻力控之後可改走 EtherCAT（見 `docs/design/canopen-vs-ethercat.md`）。
+
+## 目錄
+
+```
+firmware/
+├── README.md
+├── canopen/              # 輕量 CANopen 主站
+│   ├── canopen.h         # 共用型別、COB-ID、回傳碼
+│   ├── co_bxcan.h/.c     # STM32 bxCAN 硬體層（CAN1/CAN2 @1Mbps）
+│   ├── co_sdo.h/.c       # SDO client（讀寫物件字典）
+│   ├── co_nmt.h/.c       # NMT 控制 + Heartbeat 監看
+│   ├── co_pdo.h/.c       # PDO 收發（cyclic CSP）
+│   └── cia402.h/.c       # CiA 402 狀態機 + 模式/目標
+└── app/
+    ├── dual_arm.h/.c     # 雙臂設定（CAN1=左、CAN2=右、各 7 軸）
+    └── app_main.c        # 初始化 + 1kHz 控制迴圈骨架
+```
+
+## 整合到 STM32CubeMX 專案
+
+1. 用 CubeIDE/CubeMX 建立 STM32F746ZG 專案,啟用 **CAN1、CAN2**（bxCAN）。
+2. 腳位範例（依實際板子調整）:
+   - CAN1: `PD0=CAN1_RX`, `PD1=CAN1_TX`（或 PA11/PA12、PB8/PB9）
+   - CAN2: `PB12=CAN2_RX`, `PB13=CAN2_TX`（或 PB5/PB6）
+3. APB1 時脈設定下,1 Mbps 位元時序見 `co_bxcan.c`（以 APB1=45 MHz 為例:Prescaler=5, BS1=6TQ, BS2=2TQ, SJW=1）。請依你的時脈樹重算。
+4. 把 `firmware/canopen` 與 `firmware/app` 加入 Include path 與 source。
+5. 在 `HAL_CAN_RxFifo0MsgPendingCallback` 轉呼叫 `co_bxcan_on_rx()`。
+6. 主程式呼叫 `app_main_init()` 與 1 kHz `app_main_tick()`。
+
+## 備註
+
+- 本套為**輕量手寫主站**,適合 bring-up 與理解協定。
+- 若要量產等級 / 完整 CiA 301,建議改用開源 **CANopenNode** 移植到 bxCAN;本層介面刻意貼近其概念以便日後切換。
