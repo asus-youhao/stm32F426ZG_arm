@@ -26,6 +26,7 @@
 | 2026-06-25 | [WP5 雙臂整合](./changes/2026-06-25-wp5-dual-arm-integration.md) | L4 協同 + L1–L4 全棧串接 |
 | 2026-06-25 | [假硬體模擬器(C)](./changes/2026-06-25-sim-fake-hardware.md) | PC 全棧 + 模擬 PHU 從站資料流 |
 | 2026-06-25 | [WP6 安全 + WP7 上位機](./changes/2026-06-25-wp6-safety-wp7-host.md) | 安全狀態機/急停 + 命令遙測協定 |
+| 2026-06-25 | [Python 假硬體](./changes/2026-06-25-python-fake-hardware.md) | 馬達讀寫 + 扭矩/電流 + URDF-ready |
 
 ## 設計文件
 
