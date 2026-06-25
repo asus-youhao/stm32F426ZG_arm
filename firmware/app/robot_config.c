@@ -23,7 +23,7 @@ static arm_kin_t s_left = {{
     { 0.0f,  -PI_F/2,  0.28f,   0.0f },   /* J5 腕（前臂） */
     { 0.0f,   PI_F/2,  0.0f,    0.0f },   /* J6 腕 */
     { 0.0f,   0.0f,    0.08f,   0.0f },   /* J7 腕（末端） */
-}};
+}, { 0.0f, 0.20f, 0.0f }};                /* 左肩基座：世界 +Y 0.20m */
 static arm_kin_t s_right; /* 右臂於 init 複製左臂（實機可鏡像） */
 
 static ik_cfg_t s_ik = {
@@ -40,7 +40,8 @@ static int s_inited = 0;
 static void ensure_init(void)
 {
     if (s_inited) return;
-    s_right = s_left;  /* 佔位：右臂同左臂（實機請填鏡像 DH） */
+    s_right = s_left;                 /* 佔位：右臂同左臂 DH（實機請填鏡像 DH） */
+    s_right.base_p[1] = -0.20f;       /* 右肩基座：世界 -Y 0.20m（與左臂分開 0.4m） */
     for (int j=0;j<JS_TOTAL_JOINTS;j++){
         s_js[j].counts_per_rad = CPR_19BIT;
         s_js[j].q_min = -PI_F;       /* 佔位限位 ±180° */

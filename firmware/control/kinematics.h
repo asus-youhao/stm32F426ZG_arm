@@ -20,7 +20,8 @@ typedef struct {
 } dh_t;
 
 typedef struct {
-    dh_t dh[ARM_DOF];   /* 7 軸 DH 參數 */
+    dh_t  dh[ARM_DOF];  /* 7 軸 DH 參數 */
+    float base_p[3];    /* 基座(肩根)在世界座標的位置（左右臂分開） */
 } arm_kin_t;
 
 typedef struct {
