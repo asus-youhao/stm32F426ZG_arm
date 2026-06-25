@@ -90,6 +90,7 @@ int main(void)
     printf("\n[5] CAN 流量統計（frame 數）\n");
     printf("    左臂 bus(CAN1): TX=%lu  RX=%lu\n", g_sim_tx_count[0], g_sim_rx_count[0]);
     printf("    右臂 bus(CAN2): TX=%lu  RX=%lu\n", g_sim_tx_count[1], g_sim_rx_count[1]);
+    printf("    PDO 下發丟幀(頻寬不足偵測): %lu\n", (unsigned long)dual_arm_tx_drops());
     printf("\n=== 模擬結束 ===\n");
     return 0;
 }

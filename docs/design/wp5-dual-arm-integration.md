@@ -17,7 +17,7 @@ da_ctrl_tick_1khz (L4)
    ├─ task_space×2 (L3 IK 單步) → js_set_setpoint
    └─ joint_space (L2) → counts
    ▼
-dual_arm_set_target + dual_arm_tick_1khz (L1 CSP 下發 PDO)
+dual_arm_set_target + dual_arm_tick (L1 CSP 下發 PDO)
 ```
 
 ## 2. 協同模式（`da_mode_t`）

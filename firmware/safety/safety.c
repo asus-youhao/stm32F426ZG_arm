@@ -42,7 +42,9 @@ bool safety_update(uint32_t now_ms)
     bool any_fault = false, any_stale = false, all_enabled = true;
     for (int j=0;j<SAFETY_JOINTS;j++){
         if (s_sw[j] & SW_FAULT_BIT) any_fault = true;
-        if (s_last_ms[j]==0 ||
+        /* last_ms==0 表示此軸尚未收過任何回授（啟動初期）→ 不視為失聯,
+           待第一筆回授後才納入看門狗。已活過再失聯則會被偵測。 */
+        if (s_last_ms[j] != 0 &&
             (now_ms - s_last_ms[j]) > s_cfg.comms_timeout_ms) any_stale = true;
         if ((s_sw[j] & SW_OP_MASK) != SW_OP_ENABLED) all_enabled = false;
     }

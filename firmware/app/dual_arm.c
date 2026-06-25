@@ -124,7 +124,10 @@ void dual_arm_set_safe_stop(bool on, uint16_t safe_cw)
     s_safe_cw = safe_cw;
 }
 
-void dual_arm_tick_1khz(void)
+static uint32_t s_tx_drops = 0;
+uint32_t dual_arm_tx_drops(void) { return s_tx_drops; }
+
+void dual_arm_tick(void)
 {
     /* 1) 收進回授 */
     dual_arm_pump_rx();
@@ -134,6 +137,11 @@ void dual_arm_tick_1khz(void)
         const joint_cfg_t *jc = &g_joints[i];
         joint_state_t *js = &g_jstate[i];
 
+        /* 新鮮度：序號變動才算「本 tick 真的收到新 TPDO」（看門狗用） */
+        uint32_t seq = co_pdo_feedback_seq(jc->bus, jc->node_id);
+        js->fb_fresh = (seq != js->fb_seq);
+        js->fb_seq = seq;
+
         uint16_t sw; int32_t pa;
         if (co_pdo_get_feedback(jc->bus, jc->node_id, &sw, &pa)) {
             js->statusword = sw;
@@ -141,9 +149,12 @@ void dual_arm_tick_1khz(void)
             js->enabled = (cia402_decode(sw) == DS_OPERATION_ENABLED);
         }
 
+        co_status_t st;
+
         /* WP6 安全停止覆寫：強制安全控制字、目標維持實際位置 */
         if (s_safe_stop) {
-            (void)co_pdo_send_csp(jc->bus, jc->node_id, s_safe_cw, js->pos_actual);
+            st = co_pdo_send_csp(jc->bus, jc->node_id, s_safe_cw, js->pos_actual);
+            if (st == CO_ERR_TX) s_tx_drops++;
             continue;
         }
 
@@ -154,6 +165,7 @@ void dual_arm_tick_1khz(void)
         /* 尚未使能：維持目標 = 實際,避免跳動 */
         int32_t tgt = js->enabled ? js->target_pos : js->pos_actual;
 
-        (void)co_pdo_send_csp(jc->bus, jc->node_id, js->controlword, tgt);
+        st = co_pdo_send_csp(jc->bus, jc->node_id, js->controlword, tgt);
+        if (st == CO_ERR_TX) s_tx_drops++;   /* mailbox 滿 → 頻寬不足 */
     }
 }

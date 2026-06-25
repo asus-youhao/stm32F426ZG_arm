@@ -16,6 +16,7 @@ typedef struct {
     uint16_t statusword;
     int32_t  pos_actual;
     bool     valid;
+    uint32_t seq;        /* 每收到一個 TPDO 遞增,供新鮮度/看門狗判斷 */
 } fb_t;
 static fb_t s_fb[CO_BUS_COUNT][MAX_NODE];
 
@@ -48,7 +49,14 @@ void co_pdo_process_frame(co_bus_t bus, const co_frame_t *f)
                        | ((uint32_t)f->data[4] << 16)
                        | ((uint32_t)f->data[5] << 24));
         fb->valid = true;
+        fb->seq++;
     }
+}
+
+uint32_t co_pdo_feedback_seq(co_bus_t bus, uint8_t node)
+{
+    if (bus >= CO_BUS_COUNT || node >= MAX_NODE) return 0;
+    return s_fb[bus][node].seq;
 }
 
 bool co_pdo_get_feedback(co_bus_t bus, uint8_t node,
