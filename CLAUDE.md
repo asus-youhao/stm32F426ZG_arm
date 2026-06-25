@@ -42,8 +42,13 @@
 .
 ├── CLAUDE.md          # 本檔案：Claude Code 工作指引
 ├── README.md          # 專案說明
+├── firmware/          # STM32F746 韌體
+│   ├── canopen/       # 輕量 CANopen 主站（bxCAN/SDO/NMT/PDO/CiA402）
+│   └── app/           # 雙臂設定與 1kHz 控制迴圈
+├── doc_EYOU/          # EYOU 原廠 datasheet（PDF）
 └── docs/              # 所有文件（每次改動都要在此記錄）
     ├── README.md      # 文件索引
+    ├── design/        # 設計/選型文件
     └── changes/       # 變更紀錄，每筆改動一份 markdown
 ```
 
