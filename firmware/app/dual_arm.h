@@ -27,6 +27,8 @@ typedef struct {
     uint16_t statusword;     /* 回授狀態字 */
     uint16_t controlword;    /* 目前送出的控制字 */
     bool     enabled;        /* 是否已進入 OPERATION_ENABLED */
+    uint32_t fb_seq;         /* 上次處理過的回授序號 */
+    bool     fb_fresh;       /* 本 tick 是否收到「新」TPDO 回授（看門狗用） */
 } joint_state_t;
 
 /* 全部 14 軸（左 0..6, 右 7..13） */
@@ -36,8 +38,11 @@ extern joint_state_t      g_jstate[ARM_COUNT * JOINTS_PER_ARM];
 /** @brief 初始化兩條 bus + 全部關節（NMT、模式 CSP、PDO 映射、使能）。 */
 co_status_t dual_arm_init(void);
 
-/** @brief 1 kHz 週期呼叫：送 RPDO(目標) + 收 TPDO(回授) + 維持使能。 */
-void dual_arm_tick_1khz(void);
+/** @brief 控制週期呼叫：送 RPDO(目標) + 收 TPDO(回授) + 維持使能。 */
+void dual_arm_tick(void);
+
+/** @brief 累計 PDO 下發丟幀數（co_bxcan_send 回 CO_ERR_TX,通常 mailbox 滿 → 頻寬不足）。 */
+uint32_t dual_arm_tx_drops(void);
 
 /** @brief 把所有收到的 CAN frame 分派給 NMT/PDO 處理（於 tick 內或背景呼叫）。 */
 void dual_arm_pump_rx(void);

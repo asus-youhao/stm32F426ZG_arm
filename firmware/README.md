@@ -18,7 +18,17 @@ STM32F746 內建 **2 路獨立 bxCAN**,因此左/右臂各佔一條獨立匯流�
 - 各 bus 上節點 ID 1..7（J1 肩…J7 腕）。
 - 預設 1 Mbps（對應關節 OD 0x26A1 預設值）。
 
-> ⚠️ 頻寬提醒:Classic CAN 1 Mbps 帶 7 軸,1 kHz PDO 力控會吃緊（見 `docs/design/can-bus-architecture.md`）。本層先完成 CANopen bring-up 與位置控制；高頻力控之後可改走 EtherCAT（見 `docs/design/canopen-vs-ethercat.md`）。
+> ⚠️ **控制頻率 = 500 Hz（非 1 kHz）**。Classic CAN @1Mbps 每軸每週期 1 RPDO+1 TPDO，
+> 單臂 7 軸 = 14 frame/週期；500 Hz → 7000 frame/s（接近 Classic CAN 上限 ~7000–8000）。
+> **1 kHz（14000/s）會超載丟幀**，要 1 kHz 須改走 EtherCAT。詳見 `app/control_rate.h`、
+> `docs/design/can-bus-architecture.md`、`canopen-vs-ethercat.md`。
+> PDO 下發丟幀已有偵測：`dual_arm_tx_drops()`。
+
+## 建置
+
+- **HOST 模擬（PC 驗證控制邏輯）**：`cmake -S . -B build && cmake --build build && ./build/phu_sim_demo`
+  （或 `cd sim && make`）
+- **TARGET 韌體（可燒錄 .bin）**：需 arm-none-eabi + CubeMX HAL，見 `target/README.md`。
 
 ## 目錄
 

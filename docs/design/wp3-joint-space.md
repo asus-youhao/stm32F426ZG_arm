@@ -33,7 +33,7 @@
 int32_t cnt[JS_TOTAL_JOINTS];
 js_tick_1khz(cnt);                       // 產生 counts 目標
 for (int j=0;j<14;j++) dual_arm_set_target(j, cnt[j]);
-dual_arm_tick_1khz();                    // PDO 下發 + 收回授
+dual_arm_tick();                    // PDO 下發 + 收回授
 // 回授回灌：
 for (int j=0;j<14;j++) js_update_feedback(j, g_jstate[j].pos_actual);
 ```

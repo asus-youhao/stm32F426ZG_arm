@@ -1,12 +1,13 @@
 /**
  * @file    app_main.c
- * @brief   應用進入點：整合 L1–L4 全棧 + 1 kHz 控制迴圈
+ * @brief   應用進入點：整合 L1–L4 全棧 + 500 Hz 控制迴圈
  *
- * 資料流（每 1 kHz tick）：
+ * 資料流（每 500 Hz tick = 2 ms）：
  *   回授 g_jstate(counts) → joint_space/task_space 回灌
  *   → da_ctrl_tick_1khz()（L4 協同 → L3 IK → L2 軌跡 → counts）
- *   → dual_arm_set_target() + dual_arm_tick_1khz()（L1 CSP 下發）
+ *   → dual_arm_set_target() + dual_arm_tick()（L1 CSP 下發）
  *
+ * 頻率選 500 Hz 的原因見 control_rate.h（Classic CAN 頻寬限制）。
  * 整合：見 docs/design/firmware-cubemx-integration.md。
  */
 #include "dual_arm.h"          /* L1 */
@@ -15,6 +16,7 @@
 #include "dual_arm_ctrl.h"     /* L4 */
 #include "safety.h"            /* WP6 */
 #include "robot_config.h"
+#include "control_rate.h"
 #include "stm32f7xx_hal.h"
 #include <string.h>
 
@@ -27,8 +29,8 @@ void app_main_init(void)
     /* L1：bxCAN + CANopen + CiA402（雙 channel） */
     if (dual_arm_init() != CO_OK) return;
 
-    /* L2：joint_space（14 軸設定） */
-    js_init(0.001f, robot_js_cfg());
+    /* L2：joint_space（14 軸設定,500 Hz） */
+    js_init(CONTROL_DT, robot_js_cfg());
 
     /* L3：兩臂 task_space（DH + IK + joint_space 起始索引） */
     ts_init(&s_left,  robot_left_kin(),  robot_ik_cfg(), 0, robot_q_init());
@@ -44,7 +46,7 @@ void app_main_init(void)
     s_ready = true;
 }
 
-/** @brief 1 kHz 控制 tick（由 TIM6 ISR 呼叫）。 */
+/** @brief 500 Hz 控制 tick（由 TIM6 ISR 呼叫,週期 CONTROL_DT_US=2000us）。 */
 void app_main_tick(void)
 {
     if (!s_ready) return;
@@ -58,10 +60,12 @@ void app_main_tick(void)
     }
     da_ctrl_sync_feedback(&s_dc, q_fb);
 
-    /* 2) WP6 安全：彙整狀態,決定是否允許運動 */
+    /* 2) WP6 安全：只在「真的收到新 TPDO」的軸更新看門狗時間戳,
+       否則某軸失聯時 last_ms 會被持續刷新而永遠偵測不到（修正前的 bug）。 */
     uint32_t now = HAL_GetTick();
     for (int j = 0; j < 14; j++)
-        safety_report_joint(j, g_jstate[j].statusword, now);
+        if (g_jstate[j].fb_fresh)
+            safety_report_joint(j, g_jstate[j].statusword, now);
     bool allow = safety_update(now);
     dual_arm_set_safe_stop(!allow, safety_safe_controlword());
 
@@ -71,7 +75,7 @@ void app_main_tick(void)
 
     /* 4) L1：下發 CSP 目標 + PDO 交換（安全停止時內部覆寫） */
     for (int j = 0; j < 14; j++) dual_arm_set_target(j, cnt[j]);
-    dual_arm_tick_1khz();
+    dual_arm_tick();
 }
 
 /* WP6 對外：急停 / 系統狀態 */

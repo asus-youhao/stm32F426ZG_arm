@@ -32,7 +32,7 @@ ts_sync_q(&arm, q_fb);            // 由回授回灌目前關節角
 ts_set_target(&arm, &pose_des);  // 設笛卡爾目標
 float err = ts_tick_1khz(&arm);  // IK 單步 → js_set_setpoint
 js_tick_1khz(cnt);               // joint_space 產生 counts
-// → dual_arm_set_target + dual_arm_tick_1khz
+// → dual_arm_set_target + dual_arm_tick
 ```
 
 ## 4. 設計選擇與限制

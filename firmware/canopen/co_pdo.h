@@ -22,4 +22,7 @@ void co_pdo_process_frame(co_bus_t bus, const co_frame_t *f);
 bool co_pdo_get_feedback(co_bus_t bus, uint8_t node,
                          uint16_t *statusword, int32_t *pos_actual);
 
+/** @brief 回授序號（每收到一個 TPDO 遞增）。比較前後值即可判斷是否有新回授。 */
+uint32_t co_pdo_feedback_seq(co_bus_t bus, uint8_t node);
+
 #endif /* CO_PDO_H */

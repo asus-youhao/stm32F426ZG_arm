@@ -1,0 +1,11 @@
+# CMake / build 產物
+build/
+build-tgt/
+*.elf
+*.bin
+*.hex
+*.map
+*.o
+# CubeMX 產生的 HAL（由使用者本機放入,不入庫）
+Core/
+Drivers/

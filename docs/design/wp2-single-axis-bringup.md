@@ -61,7 +61,7 @@ co_status_t st = bringup_single_axis(CO_BUS_LEFT, 1, /*spin_velocity=*/2000,
 
 1. 換 PP / CSP 模式做小角度定位測試。
 2. 同 bus 接第 2 軸,測 node ID 區分與多節點共存。
-3. 一臂 7 軸全上 → 進 `dual_arm_init()` + 1 kHz `dual_arm_tick_1khz()`。
+3. 一臂 7 軸全上 → 進 `dual_arm_init()` + 1 kHz `dual_arm_tick()`。
 4. 兩臂雙 channel 同時 → 進 WP3 joint-space 控制器。
 
 ## 6. 關聯
