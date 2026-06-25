@@ -48,6 +48,24 @@ firmware/
 5. 在 `HAL_CAN_RxFifo0MsgPendingCallback` 轉呼叫 `co_bxcan_on_rx()`。
 6. 主程式呼叫 `app_main_init()` 與 1 kHz `app_main_tick()`。
 
+## 編譯 / 燒錄（Nucleo-F746ZG bring-up）
+
+`board/` + `Makefile` 已備妥一個可直接編譯/燒錄的 **WP2 單軸 bring-up** 韌體
+（HAL 取自本機 `STM32Cube_FW_F7_V1.17.4`；換機器用 `make CUBE_FW_F7=<路徑>`）。
+
+```bash
+cd firmware
+make            # 產出 build/bringup_f746.elf/.hex/.bin
+make probe      # 確認 Nucleo ST-Link/目標連線（免燒）
+make flash      # 用 STM32CubeProgrammer CLI 燒錄並 reset
+```
+
+接線（務必一致）：CAN1_RX=**PD0**、CAN1_TX=**PD1**（AF9）→ CAN transceiver → PHU 關節；
+兩端各 120 Ω 終端、24–48V 共地；log = USART3(VCP) **PD8/PD9 @115200**。
+測試參數在 `board/main.c`（`BRINGUP_NODE/SPIN_VEL/SPIN_MS`；`SPIN_VEL=0` 則只讀不轉）。
+細節見 [docs 變更紀錄](../docs/changes/2026-06-26-f746-makefile-bringup-build.md) 與
+[WP2 bring-up](../docs/design/wp2-single-axis-bringup.md)。
+
 ## 備註
 
 - 本套為**輕量手寫主站**,適合 bring-up 與理解協定。

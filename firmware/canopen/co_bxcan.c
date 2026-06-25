@@ -48,19 +48,22 @@ static bool rxq_pop(co_bus_t bus, co_frame_t *out)
 }
 
 /*
- * 1 Mbps 位元時序（以 APB1 = 45 MHz 為例）：
- *   Tq      = (Prescaler) / 45MHz
+ * 1 Mbps 位元時序。
+ *   Tq       = Prescaler / APB1Clk
  *   bit time = (1 + BS1 + BS2) * Tq
- *   取 Prescaler=5, BS1=6TQ, BS2=2TQ → (1+6+2)=9 Tq, 45M/5/9 = 1.0 Mbps
- *   採樣點 = (1+BS1)/(1+BS1+BS2) = 7/9 ≈ 77.8%
- * ※ 請依你的時脈樹（APB1 頻率）重算這三個參數。
+ *   採樣點   = (1+BS1)/(1+BS1+BS2) = 7/9 ≈ 77.8%
+ *
+ * 本專案目標板 Nucleo-F746ZG：SYSCLK 216 MHz → APB1 = 54 MHz。
+ *   取 Prescaler=6, BS1=6TQ, BS2=2TQ → 54M/6/9 = 1.0 Mbps
+ * （原 45 MHz 範例用 Prescaler=5；換板/換時脈樹請依 APB1 重算。）
+ * 參考：docs/design/firmware-cubemx-integration.md §3。
  */
 co_status_t co_bxcan_init(co_bus_t bus)
 {
     CAN_HandleTypeDef *h = handle_of(bus);
     if (!h) return CO_ERR_PARAM;
 
-    h->Init.Prescaler = 5;
+    h->Init.Prescaler = 6;   /* APB1 = 54 MHz → 1 Mbps */
     h->Init.Mode = CAN_MODE_NORMAL;
     h->Init.SyncJumpWidth = CAN_SJW_1TQ;
     h->Init.TimeSeg1 = CAN_BS1_6TQ;
