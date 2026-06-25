@@ -23,6 +23,7 @@
 | 2026-06-25 | [CubeMX 整合 + WP2 bring-up](./changes/2026-06-25-cubemx-integration-wp2-bringup.md) | 接線範本與單軸 bring-up 測試 |
 | 2026-06-25 | [WP3 Joint-space 控制器](./changes/2026-06-25-wp3-joint-space.md) | 軌跡插值 + 14 軸 1kHz 設定點 |
 | 2026-06-25 | [WP4 Task-space 控制器](./changes/2026-06-25-wp4-task-space.md) | FK/Jacobian/DLS-IK + 笛卡爾控制 |
+| 2026-06-25 | [WP5 雙臂整合](./changes/2026-06-25-wp5-dual-arm-integration.md) | L4 協同 + L1–L4 全棧串接 |
 
 ## 設計文件
 
@@ -37,4 +38,5 @@
 | [WP2 單軸 Bring-up](./design/wp2-single-axis-bringup.md) | SDO 驗證 + 單軸轉動測試流程 |
 | [WP3 Joint-space](./design/wp3-joint-space.md) | 軌跡插值與 joint-space 控制器 |
 | [WP4 Task-space](./design/wp4-task-space.md) | 運動學/Jacobian/IK 與笛卡爾控制 |
+| [WP5 雙臂整合](./design/wp5-dual-arm-integration.md) | L4 協同與全棧串接 |
 | [協定與模式速覽 (HTML)](./eyou-phu-protocols.html) | 可瀏覽的 EYOU PHU 協定/控制模式速覽 |
