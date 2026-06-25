@@ -11,6 +11,30 @@
 - 開發語言：C / C++（嵌入式韌體）
 
 > 隨著專案演進，請持續更新本節（工具鏈、HAL 版本、目錄結構等）。
+>
+> 註：目標應用實際使用 **STM32F746ZG（Cortex-M7）**，與 repo 名稱 F426ZG 不同；MCU 最終選型見 `docs/design/`（CANopen 需 FDCAN/外接、或走 EtherCAT）。
+
+## 雙臂硬體配置（Dual-Arm Hardware）
+
+- 致動器：**EYOU（意优科技）PHU 系列** 整合式諧波伺服關節（內建驅動器、雙絕對編碼器 19-bit、24–48V）。
+- 介面：每顆關節同時具 **CAN FD（In/Out）** 與 **EtherCAT（In/Out）** 菊鏈埠 + STO。
+- 通訊協定：**CANopen（CiA 301/402，預設 1 Mbps Classic）** 或 **EtherCAT（CoE，支援 DC 同步、CSP/CSV/CST/CSF）**。
+- 構型：**雙臂，每臂 7-DoF（共 14 軸）**。
+
+### 關節對應表（每臂 7 軸）
+
+| Joint | 部位            | 型號（規格書）   | 介面          | 備註                 |
+| ----- | --------------- | ---------------- | ------------- | -------------------- |
+| J1    | 肩 Shoulder     | **PHU20**（PHU-20H-90） | CAN FD / ECAT | 肩部大關節           |
+| J2    | 肩 Shoulder     | **PHU20**（PHU-20H-90） | CAN FD / ECAT | 肩部大關節           |
+| J3    | 肩 Yaw          | **PHU17**（PHU-17H-80） | CAN FD / ECAT | 肩偏航               |
+| J4    | 手肘 Elbow      | **PHU17**（PHU-17H-80） | CAN FD / ECAT | 肘關節               |
+| J5    | 手腕 Wrist 1    | **PHU14**（PHU-14H-70） | CAN FD / ECAT | 腕三軸之一           |
+| J6    | 手腕 Wrist 2    | **PHU14**（PHU-14H-70） | CAN FD / ECAT | 腕三軸之一           |
+| J7    | 手腕 Wrist 3    | **PHU14**（PHU-14H-70） | CAN FD / ECAT | 腕三軸之一           |
+
+> 每臂用量：PHU20 ×2、PHU17 ×2、PHU14 ×3 = 7 軸；**雙臂共 14 軸**（左/右各一份）。
+> 控制目標：joint-space 與 task-space **1 kHz** 高頻控制器,雙臂整合。詳見 `docs/design/dual-arm-control-plan.md`。
 
 ## 目錄結構
 

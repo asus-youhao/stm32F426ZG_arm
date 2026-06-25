@@ -1,66 +1,72 @@
-# 致動器選型分析 — EYOU PHU 系列(CANopen 類型判定）
+# 致動器選型分析 — EYOU PHU 系列(CAN 類型判定）
 
-- 對象：EYOU Robotics（意优科技 / Jiangsu EYOU Robotics）PHU14 / PHU17 / PHU20 整合式伺服關節
+- 對象：EYOU Robotics（意优科技 / Jiangsu EYOU Robotics）PHU 系列整合式伺服關節
 - 文件層級：需求 / 選型分析
-- 狀態：草案（draft，待原廠 datasheet 逐字確認 baud rate）
+- 狀態：**已依原廠 datasheet 更正(v2)**
+- 依據文件（`doc_EYOU/`）：
+  - `PHU系列规格书v1.14-20260424.pdf`
+  - `EYou-PHU&RHU系列关节CANopen与EtherCAT通信手册v1.06-20260430.pdf`
+  - `EYou-PHU关节模组用户手册v1.24-20260409.pdf`
 
-## 1. 結論摘要
+> ⚠️ 更正說明：本文件第一版（依網路經銷商資料）誤判 PHU 為「非 CAN-FD、無需 FD 硬體」。取得原廠 datasheet 後更正如下。
 
-- EYOU PHU 為人形機器人用「諧波減速一體化關節」,提供 **兩種通訊版本**:`-C` = **CANopen**、`-E` = **EtherCAT**（截圖中 `ECAT/CAN` 欄即指此）。
-- **PHU 的 CANopen 為傳統 Classic CAN（CAN 2.0B,≤ 1 Mbps）,非 CAN-FD / CANopen FD。** 採 CiA 301 + 馬達 CiA 402 profile。
-- 因此 **無需 CAN-FD 硬體** → **STM32F746ZG 的 2× bxCAN 即相容**,不必為了 FD 改用 H743。
-- 需要更高即時頻寬時,EYOU 官方路線是改用 **EtherCAT 版**,而非 CAN-FD。
+## 1. 結論摘要（依原廠 datasheet）
 
-> ⚠️ 信心說明:EYOU 官網與 RobotShop 對自動抓取回 403,未能直接讀取 PDF datasheet 逐字。以上依多個經銷商產品列表與此級距關節通用規格判定;**建議向原廠索取 PHU 通訊手冊**確認確切 bit rate 與物件字典（OD/PDO 對應）。
+| 層級             | 結論                                                              |
+| ---------------- | --------------------------------------------------------------- |
+| **實體接口/收發器** | **CAN FD 等級**：規格書「驅動器接口」明列 `CAN FD（In, Out）`、`EtherCAT（In, Out）`、`STO`、`電源 DC in/out` |
+| **CANopen 協定運作** | **以 Classic CAN 運作**：對象字典 `0x26A1` CAN 波特率預設 **1 Mbps**,僅支援 500k/250k/125k/100k/50k/20k（皆 ≤1Mbps,傳統速率,無 FD 資料相） |
+| 應用層 profile   | 標準 **CiA 301 + CiA 402**（OD、NMT、SDO、PDO、EMCY、Heartbeat），節點 ID 1–127（`0x26A0`） |
+| 高頻路徑         | **EtherCAT（CoE）**：支援 CSP/CSV/CST、力控 CSF、DC 分散式時鐘同步 |
 
-## 2. 產品概況
+白話:**接頭是 CAN-FD 規格的硬體,但文件記載的 CANopen 目前跑在傳統 CAN（1 Mbps）上。**
 
-- 廠商：Eyou Robot Technology Co., Ltd.（en.eyoubot.com）
-- 系列:PHU = 輕量諧波關節（另有 PH、PP 規劃系列）
-- 規格（搜尋彙整）:19-bit 雙磁編、24–48V、背隙 15 arcsec、噪音 < 60dB@30cm、-20~60°C。
-- 命名:型號尾碼 `-C` = CANopen 版、`-E` = EtherCAT 版。
+## 2. 通訊關鍵參數（自通訊手冊 v1.06）
 
-## 3. 通訊類型判定
+- `0x26A0` Node-ID：CAN 總線節點位址,範圍 1–127(0x01–0x7F),改後需重新上電。
+- `0x26A1` CAN 波特率：預設 **1,000,000 bps**;可選 500k/250k/125k/100k/50k/20k bps。
+- 控制模式(規格書 + 手冊):PP、PV、PT、CSP、CSV(力控版另有 CSF/力控模式)。
+- 通訊協定欄：**EtherCAT / CANopen**(同一硬體兩種模式)。
+- 全文未出現 "CAN FD / CANopen FD / Mbps 資料相" 等 FD 協定字樣 → CANopen 為傳統模式。
 
-| 問題                         | 判定                                   |
-| ---------------------------- | -------------------------------------- |
-| CANopen 跑在哪種 CAN?       | **Classic CAN（CAN 2.0B）**            |
-| 是否 CAN-FD / CANopen FD?   | **否**                                 |
-| 應用層 profile               | CiA 301 + CiA 402（馬達運動控制）      |
-| 高頻寬替代版本               | EtherCAT（CoE）版（`-E`）              |
+## 3. 使用者 BOM 對應（截圖)
 
-依據:所有公開來源一致標示 "CANopen",未見任何 "CAN-FD / CANopen FD" 字樣;此級距人形關節業界普遍為 Classic CANopen，高頻需求改走 EtherCAT。
+一臂 7 軸:
 
-## 4. 對 MCU 選型的影響
+| 截圖型號 | 對應規格書型號     | 數量/臂 | 介面      | 峰值外部容許扭矩(N.m) |
+| -------- | ------------------ | ------- | --------- | --------------------- |
+| PHU20    | PHU-20H-90         | 2       | CAN FD/ECAT | 158–182               |
+| PHU17    | PHU-17H-80         | 2       | CAN FD/ECAT | 86–134                |
+| PHU14    | PHU-14H-70         | 3       | CAN FD/ECAT | 43–66                 |
+| 合計     |                    | **7**   |           | 雙臂共 **14 軸**       |
 
-- 既然 PHU CANopen 版為 **Classic CAN**,先前「F746 不支援 CAN-FD」**不再是阻礙** —— bxCAN 跑 Classic CANopen 完全相容。
-- 真正限制回到 **Classic CAN 1 Mbps 頻寬**:建議 **一臂一路**（7 軸/路）。
-- 拓樸:`bxCAN1 → 左臂 7 軸`,`bxCAN2 → 右臂 7 軸`,跑 CiA 402,搭 **CANopenNode** 軟體堆疊。
+（大關節置於肩/肘基座、小關節靠手腕,符合 7-DoF 手臂配置。供電 24–48V,內建驅動器,雙絕對編碼器 19-bit。）
 
-| 需求情境                                   | 建議方案                                            |
-| ------------------------------------------ | --------------------------------------------------- |
-| PHU CANopen 版 + 中低頻（位置/速度模式）   | **STM32F746 + 2× bxCAN**,足夠,不需換 MCU          |
-| 7 軸/路 1 kHz 高頻力矩閉迴路               | Classic CAN 吃緊 → 採 PHU **EtherCAT 版** + F746 外接 EtherCAT 從站晶片（如 LAN9252） |
+## 4. 對 MCU 選型的影響（更正後）
 
-## 5. 待原廠確認 / 待決議
+1. **要走 CANopen**:對方是 **Classic CANopen @1Mbps** → **STM32F746 的 2× bxCAN 即可驅動**,協定相容。
+2. **但建議選 FDCAN MCU**:關節埠為 CAN-FD 等級,且雙臂 7 軸/路 @1Mbps 頻寬吃緊 → 採 **STM32H743ZI（2× FDCAN）** 或 STM32G4 更保險（FDCAN 向下相容傳統 CAN;未來若開放 FD 也接得上）。
+3. **要高頻(1 kHz+ 力矩 / CSP / 力控)**:改走關節的 **EtherCAT** 介面 + MCU 外接 EtherCAT 從站晶片(如 LAN9252),用 CoE + DC 同步。
 
-1. PHU CANopen 版確切 **CAN bit rate**（是否 1 Mbps）與是否可調。
-2. CiA 402 支援的 **operation mode**（PP / PV / CSP / CST / CSV…）。
-3. 每軸 PDO 配置與更新率上限（決定單路可掛幾軸、可跑多快）。
-4. 目標控制頻率 → 定 F746(CANopen) 或改 EtherCAT 版。
-5. 供電:24V 或 48V?（影響功率與線束）
+### 拓樸建議
 
-## 6. BOM 對應（依使用者截圖）
+```
+方案 1（CANopen，中低頻）：
+  MCU bxCAN/FDCAN1 ─► 左臂 7 軸（Node 1..7）   @1Mbps Classic CANopen
+  MCU bxCAN/FDCAN2 ─► 右臂 7 軸（Node 1..7）
 
-| 型號   | 數量/臂 | 介面      |
-| ------ | ------- | --------- |
-| PHU20  | 2       | ECAT/CAN  |
-| PHU17  | 2       | ECAT/CAN  |
-| PHU14  | 3       | ECAT/CAN  |
-| 合計   | **7**   | （一臂 7 軸,雙臂共 14 軸） |
+方案 2（EtherCAT，高頻力控）：
+  MCU + EtherCAT 從站 ─► 菊鏈 14 軸（DC 同步, CSP/CSF）
+```
+
+## 5. 待原廠確認
+
+1. 「CAN FD 接口」是否支援以 **CAN-FD 幀（BRS/64B）** 運行 CANopen,或僅 CAN-FD 收發器跑傳統幀?(影響是否需 FDCAN 主控)
+2. CANopen 模式下單路可掛幾軸並維持目標控制頻率?(PDO 數量 / 更新率上限)
+3. EtherCAT 模式的最小循環週期(DC)?
 
 ## 參考來源
 
-- Eyou Robot Technology（官方）: https://en.eyoubot.com/
-- EYOU 公司簡介 PDF: https://www.daonautomation.com/upload/file/카다로그%20EYOU%20Company%20profile%20V1.07.pdf
-- RobotShop EYOU 系列: https://www.robotshop.com/collections/eyou
+- 規格書 `doc_EYOU/PHU系列规格书v1.14-20260424.pdf`(驅動器接口、控制模式、電氣規格)
+- 通訊手冊 `doc_EYOU/EYou-PHU&RHU系列关节CANopen与EtherCAT通信手册v1.06-20260430.pdf`(0x26A0 Node-ID、0x26A1 CAN 波特率、CiA 402 模式)
+- 官方:https://en.eyoubot.com/
