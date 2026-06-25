@@ -13,7 +13,9 @@
 #include "joint_space.h"       /* L2 */
 #include "task_space.h"        /* L3 */
 #include "dual_arm_ctrl.h"     /* L4 */
+#include "safety.h"            /* WP6 */
 #include "robot_config.h"
+#include "stm32f7xx_hal.h"
 #include <string.h>
 
 static volatile bool s_ready = false;
@@ -35,6 +37,10 @@ void app_main_init(void)
     /* L4：雙臂協同（預設獨立模式,最小末端距離 5 cm 保護） */
     da_ctrl_init(&s_dc, &s_left, &s_right, DA_MODE_INDEPENDENT, 0.05f);
 
+    /* WP6：安全（通訊逾時 50ms） */
+    safety_cfg_t scfg = { .comms_timeout_ms = 50, .require_all_enabled_for_run = false };
+    safety_init(&scfg);
+
     s_ready = true;
 }
 
@@ -52,14 +58,25 @@ void app_main_tick(void)
     }
     da_ctrl_sync_feedback(&s_dc, q_fb);
 
-    /* 2) L4→L3→L2：產生 counts 目標 */
+    /* 2) WP6 安全：彙整狀態,決定是否允許運動 */
+    uint32_t now = HAL_GetTick();
+    for (int j = 0; j < 14; j++)
+        safety_report_joint(j, g_jstate[j].statusword, now);
+    bool allow = safety_update(now);
+    dual_arm_set_safe_stop(!allow, safety_safe_controlword());
+
+    /* 3) L4→L3→L2：產生 counts 目標 */
     int32_t cnt[14];
     (void)da_ctrl_tick_1khz(&s_dc, cnt);
 
-    /* 3) L1：下發 CSP 目標 + PDO 交換 */
+    /* 4) L1：下發 CSP 目標 + PDO 交換（安全停止時內部覆寫） */
     for (int j = 0; j < 14; j++) dual_arm_set_target(j, cnt[j]);
     dual_arm_tick_1khz();
 }
+
+/* WP6 對外：急停 / 系統狀態 */
+void app_set_estop(int active) { safety_set_estop(active != 0); }
+const char *app_sys_state(void) { return safety_state_str(); }
 
 /* ---- 對外控制 API（供上位機命令解析呼叫）---- */
 void app_set_left_pose(const pose_t *p)  { da_ctrl_set_left_target(&s_dc, p); }

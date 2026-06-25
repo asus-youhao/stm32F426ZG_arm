@@ -1,0 +1,81 @@
+/**
+ * @file    safety.c
+ * @brief   WP6 安全與系統狀態機實作
+ */
+#include "safety.h"
+
+/* CiA402 狀態字故障位 */
+#define SW_FAULT_BIT   0x0008u
+#define SW_OP_ENABLED  0x0027u
+#define SW_OP_MASK     0x006Fu
+
+#define CW_QUICK_STOP      0x0002u
+#define CW_DISABLE_VOLTAGE 0x0000u
+
+static safety_cfg_t s_cfg;
+static bool     s_estop;
+static sys_state_t s_state;
+static uint16_t s_sw[SAFETY_JOINTS];
+static uint32_t s_last_ms[SAFETY_JOINTS];
+
+void safety_init(const safety_cfg_t *cfg)
+{
+    s_cfg = *cfg;
+    s_estop = false;
+    s_state = SYS_INIT;
+    for (int i=0;i<SAFETY_JOINTS;i++){ s_sw[i]=0; s_last_ms[i]=0; }
+}
+
+void safety_set_estop(bool active){ s_estop = active; }
+
+void safety_report_joint(int j, uint16_t sw, uint32_t now_ms)
+{
+    if (j<0 || j>=SAFETY_JOINTS) return;
+    s_sw[j] = sw;
+    s_last_ms[j] = now_ms;
+}
+
+bool safety_update(uint32_t now_ms)
+{
+    if (s_estop) { s_state = SYS_ESTOP; return false; }
+
+    bool any_fault = false, any_stale = false, all_enabled = true;
+    for (int j=0;j<SAFETY_JOINTS;j++){
+        if (s_sw[j] & SW_FAULT_BIT) any_fault = true;
+        if (s_last_ms[j]==0 ||
+            (now_ms - s_last_ms[j]) > s_cfg.comms_timeout_ms) any_stale = true;
+        if ((s_sw[j] & SW_OP_MASK) != SW_OP_ENABLED) all_enabled = false;
+    }
+
+    if (any_fault || any_stale) { s_state = SYS_FAULT; return false; }
+
+    if (s_cfg.require_all_enabled_for_run && all_enabled)
+        s_state = SYS_RUNNING;
+    else if (all_enabled)
+        s_state = SYS_RUNNING;
+    else
+        s_state = SYS_ENABLED;
+
+    return true;
+}
+
+sys_state_t safety_state(void){ return s_state; }
+
+const char *safety_state_str(void)
+{
+    switch (s_state){
+        case SYS_INIT: return "INIT";
+        case SYS_IDLE: return "IDLE";
+        case SYS_ENABLED: return "ENABLED";
+        case SYS_RUNNING: return "RUNNING";
+        case SYS_FAULT: return "FAULT";
+        case SYS_ESTOP: return "ESTOP";
+        default: return "?";
+    }
+}
+
+uint16_t safety_safe_controlword(void)
+{
+    /* 急停用 disable voltage（自由）;一般故障用 quick stop（受控停） */
+    return (s_state == SYS_ESTOP) ? CW_DISABLE_VOLTAGE : CW_QUICK_STOP;
+}

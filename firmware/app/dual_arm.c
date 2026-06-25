@@ -116,6 +116,14 @@ void dual_arm_set_target(uint8_t idx, int32_t target_pos)
     if (idx < ARM_COUNT * JOINTS_PER_ARM) g_jstate[idx].target_pos = target_pos;
 }
 
+static bool s_safe_stop = false;
+static uint16_t s_safe_cw = 0x0002; /* quick stop */
+void dual_arm_set_safe_stop(bool on, uint16_t safe_cw)
+{
+    s_safe_stop = on;
+    s_safe_cw = safe_cw;
+}
+
 void dual_arm_tick_1khz(void)
 {
     /* 1) 收進回授 */
@@ -131,6 +139,12 @@ void dual_arm_tick_1khz(void)
             js->statusword = sw;
             js->pos_actual = pa;
             js->enabled = (cia402_decode(sw) == DS_OPERATION_ENABLED);
+        }
+
+        /* WP6 安全停止覆寫：強制安全控制字、目標維持實際位置 */
+        if (s_safe_stop) {
+            (void)co_pdo_send_csp(jc->bus, jc->node_id, s_safe_cw, js->pos_actual);
+            continue;
         }
 
         /* 推進 CiA402 使能狀態機（未使能時用回授狀態決定下一步 CW） */

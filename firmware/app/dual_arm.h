@@ -45,4 +45,11 @@ void dual_arm_pump_rx(void);
 /** @brief 設定某關節 CSP 目標位置（由上層 joint/task-space 控制器呼叫）。 */
 void dual_arm_set_target(uint8_t joint_index, int32_t target_pos);
 
+/**
+ * @brief 安全停止覆寫（WP6）。啟用時強制控制字、目標維持實際位置。
+ * @param on  是否安全停止
+ * @param safe_cw  安全控制字（quick stop / disable voltage）
+ */
+void dual_arm_set_safe_stop(bool on, uint16_t safe_cw);
+
 #endif /* DUAL_ARM_H */

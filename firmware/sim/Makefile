@@ -4,7 +4,7 @@
 CC      ?= cc
 CFLAGS  ?= -O2 -Wall -Wextra -std=c11 -ffast-math
 # include 路徑：sim 優先（提供 stm32f7xx_hal.h 替身）
-INC     = -I. -I../canopen -I../app -I../control
+INC     = -I. -I../canopen -I../app -I../control -I../safety
 
 # 注意：用 co_bxcan_sim.c 取代 co_bxcan.c（不編 HAL 版）
 SRC = \
@@ -23,6 +23,7 @@ SRC = \
   ../control/ik.c \
   ../control/task_space.c \
   ../control/dual_arm_ctrl.c \
+  ../safety/safety.c \
   ../app/dual_arm.c \
   ../app/robot_config.c \
   ../app/app_main.c
