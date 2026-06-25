@@ -16,6 +16,7 @@
 | 2026-06-25 | [STM32F746ZG 雙臂低階控制](./changes/2026-06-25-stm32f746zg-dual-arm-control.md) | 新增雙臂低階控制需求/架構文件 |
 | 2026-06-25 | [CAN/CAN-FD 匯流排架構](./changes/2026-06-25-can-bus-architecture.md) | 評估 CAN-FD 支援與雙臂頻寬/拓樸 |
 | 2026-06-25 | [CANopen 支援說明](./changes/2026-06-25-canopen-support-note.md) | 補充 CANopen / CANopen FD 支援情況 |
+| 2026-06-25 | [EYOU PHU 馬達分析](./changes/2026-06-25-eyou-phu-motor-analysis.md) | 判定 PHU CANopen 為 Classic CAN |
 
 ## 設計文件
 
@@ -23,3 +24,4 @@
 | ------------------------------------------------------------ | ------------------------------------- |
 | [Dual-Arm Low-Level Control](./design/dual-arm-low-level-control.md) | STM32F746ZG 雙臂低階控制需求/架構概述 |
 | [CAN/CAN-FD Bus Architecture](./design/can-bus-architecture.md) | CAN-FD 支援評估與雙臂匯流排拓樸/頻寬   |
+| [EYOU PHU Motor Analysis](./design/eyou-phu-motor-analysis.md) | EYOU PHU 關節選型與 CANopen 類型判定   |
