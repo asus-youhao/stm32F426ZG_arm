@@ -13,4 +13,8 @@ Core/
 Drivers/
 
 # UI 截圖（生成物）
-firmware/ui/*_screenshot.png
+ui/*_screenshot.png
+
+# Python 快取
+__pycache__/
+*.pyc
