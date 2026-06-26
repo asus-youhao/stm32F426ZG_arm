@@ -28,6 +28,7 @@
 | 2026-06-25 | [WP6 安全 + WP7 上位機](./changes/2026-06-25-wp6-safety-wp7-host.md) | 安全狀態機/急停 + 命令遙測協定 |
 | 2026-06-25 | [Python 假硬體](./changes/2026-06-25-python-fake-hardware.md) | 馬達讀寫 + 扭矩/電流 + URDF-ready |
 | 2026-06-25 | [完整OD+測試上位機](./changes/2026-06-25-full-od-test-host.md) | 全物件字典假馬達 + CANopen 讀寫上位機 |
+| 2026-06-25 | [前端統一接後端(WS)](./changes/2026-06-25-ws-unified-frontend.md) | host_ui/can_monitor 連同一 Python 假硬體 |
 | 2026-06-25 | [修復 500Hz/看門狗/可建置](./changes/2026-06-25-fix-500hz-watchdog-buildable.md) | 三項嚴重問題修復 + CMake 目標建置 |
 | 2026-06-25 | [單元測試](./changes/2026-06-25-unit-tests.md) | trajectory/kinematics/IK/協定/CANopen 測試 |
 
