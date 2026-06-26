@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CAN Bus Monitor — EYOU PHU 雙臂（假硬體）</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#283040;--txt:#e6edf3;--mut:#8b97a6;
+        --accent:#4fd1c5;--tx:#f6ad55;--rx:#63b3ed;--good:#48bb78;--warn:#f56565;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:"Consolas","PingFang TC",monospace;font-size:12px}
+  header{padding:8px 14px;background:linear-gradient(135deg,#10303a,#161b22);border-bottom:1px solid var(--line);
+         display:flex;gap:10px;align-items:center}
+  header h1{font-size:1rem;margin:0;margin-right:auto}
+  button{padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:#1f2733;color:var(--txt);cursor:pointer}
+  button:hover{border-color:var(--accent)} button.estop{background:#c53030;border-color:#e53e3e;color:#fff;font-weight:700}
+  .wrap{display:grid;grid-template-columns:1.35fr 1fr;gap:8px;padding:8px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px}
+  h2{font-size:.78rem;margin:0 0 6px;color:var(--accent);letter-spacing:1px;text-transform:uppercase}
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  th,td{padding:2px 6px;text-align:left;border-bottom:1px solid #1d2530;white-space:nowrap}
+  th{color:var(--mut);position:sticky;top:0;background:#161b22}
+  td.id{color:var(--accent);font-weight:700}
+  .tx{color:var(--tx)} .rx{color:var(--rx)}
+  .mono{font-variant-numeric:tabular-nums}
+  .en{color:var(--good)} .dis{color:var(--tx)} .flt{color:var(--warn)}
+  .scroll{max-height:460px;overflow:auto}
+  .stream{height:150px;overflow:auto;background:#0b0f14;border-radius:6px;padding:6px;line-height:1.5;color:#9fb0c0}
+  .kpi{display:flex;gap:14px;color:var(--mut);margin-top:6px}
+  .kpi b{color:var(--txt)}
+  .bar{display:inline-block;width:54px;height:6px;background:#222c38;border-radius:3px;overflow:hidden;vertical-align:middle}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,#48bb78,#f6ad55,#f56565)}
+</style>
+</head>
+<body>
+<header>
+  <h1>📡 CAN Bus Monitor — EYOU PHU 雙臂（假硬體 / 即時 COB-ID 監控）</h1>
+  <button id="btnEnable">使能 Enable</button>
+  <button id="btnMove">Demo 移動</button>
+  <button id="btnEstop" class="estop">E-STOP</button>
+</header>
+
+<div class="wrap">
+  <!-- 左：COB-ID 即時表 -->
+  <div class="panel">
+    <h2>所有 CAN ID（COB-ID）即時表</h2>
+    <div class="scroll">
+      <table id="idtbl"><thead><tr>
+        <th>COB-ID</th><th>方向</th><th>類型</th><th>Node</th><th>DLC</th>
+        <th>Data (hex)</th><th>解碼數值</th><th>次數</th><th>age</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+    <div class="kpi">
+      <span>CAN1 TX <b id="tx0">0</b>/RX <b id="rx0">0</b></span>
+      <span>CAN2 TX <b id="tx1">0</b>/RX <b id="rx1">0</b></span>
+      <span>總幀率 <b id="fps">0</b>/s</span>
+      <span>控制 <b>500Hz</b></span>
+    </div>
+    <h2 style="margin-top:8px">即時幀串流 Frame Stream</h2>
+    <div class="stream" id="stream"></div>
+  </div>
+
+  <!-- 右：每 Node 狀態解碼 -->
+  <div class="panel">
+    <h2>各 Node 狀態（CiA402 解碼）</h2>
+    <div class="scroll">
+      <table id="nodetbl"><thead><tr>
+        <th>Bus/Node</th><th>關節</th><th>CW</th><th>SW</th><th>狀態</th>
+        <th>目標(cnt)</th><th>實際(cnt)</th><th>力 N·m</th><th>電流 A</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+const CPR=524288/(2*Math.PI);
+const MODELS={PHU14:{rt:8.6,pt:43,rc:5,I:0.02,b:0.6,g:2},
+              PHU17:{rt:32,pt:134,rc:8,I:0.05,b:1,g:5},
+              PHU20:{rt:50,pt:182,rc:12,I:0.1,b:2,g:10}};
+const MAP=[["L_J1",0,1,"PHU20"],["L_J2",0,2,"PHU20"],["L_J3",0,3,"PHU17"],["L_J4",0,4,"PHU17"],
+           ["L_J5",0,5,"PHU14"],["L_J6",0,6,"PHU14"],["L_J7",0,7,"PHU14"],
+           ["R_J1",1,1,"PHU20"],["R_J2",1,2,"PHU20"],["R_J3",1,3,"PHU17"],["R_J4",1,4,"PHU17"],
+           ["R_J5",1,5,"PHU14"],["R_J6",1,6,"PHU14"],["R_J7",1,7,"PHU14"]];
+function mk(n,bus,node,model){const p=MODELS[model];return{name:n,bus,node,model,p,Kt:p.rt/p.rc,
+  Kp:120,Kd:2*Math.sqrt(120*p.I),q:0,qd:0,target:0,cw:0,sw:0x0040,torque:0,current:0,enabled:false};}
+const M=MAP.map(m=>mk(...m));
+let cmd=M.map(()=>0); const goal=[0,0.3,0,0.7,0,0.5,0, 0,0.3,0,0.7,0,0.5,0];
+let estop=false, enSeq=0, txc=[0,0],rxc=[0,0], frameCount=0, lastFps=0,fpsTimer=0;
+
+function applyCW(m,cw){m.cw=cw&0xFFFF;
+  if(cw&0x80){m.sw=0x0040;m.enabled=false;return;}
+  const lo=cw&0x0F;
+  if(lo==0x06)m.sw=0x0021;else if(lo==0x07)m.sw=0x0023;
+  else if(lo==0x0F){m.sw=0x0027;m.enabled=true;}else if(lo==0x00){m.sw=0x0040;m.enabled=false;}
+  if(lo!=0x0F&&lo!=0x80)m.enabled=false;}
+function stepM(m,dt){if(!m.enabled){m.torque=0;m.current=0;return;}
+  let tau=m.Kp*(m.target/CPR-m.q)-m.Kd*m.qd; tau=Math.max(-m.p.pt,Math.min(m.p.pt,tau));
+  m.qd+=((tau-m.p.g*Math.sin(m.q)-m.p.b*m.qd)/m.p.I)*dt; m.q+=m.qd*dt;
+  m.torque=tau;m.current=tau/m.Kt;}
+
+// ── COB-ID 聚合表 ──
+const idmap=new Map();  // cobid -> {dir,kind,node,dlc,data,decode,count,t}
+let stream=[];
+const STATE={0x40:"SOD",0x21:"READY",0x23:"SWITCHED",0x27:"OP_ENABLED",0x07:"QSTOP",0x08:"FAULT"};
+function hex(arr){return arr.map(b=>b.toString(16).padStart(2,'0')).join(' ');}
+function logFrame(dir,bus,cobid,kind,node,data,decode){
+  idmap.set(cobid,{dir,kind,node,dlc:data.length,data:hex(data),decode,
+    count:(idmap.get(cobid)?.count||0)+1,t:performance.now()});
+  if(dir=="TX")txc[bus]++;else rxc[bus]++; frameCount++;
+  stream.unshift(`<span class="${dir=='TX'?'tx':'rx'}">${dir} 0x${cobid.toString(16).padStart(3,'0')} ${kind}</span> ${hex(data)}  <span style="color:#6b7785">${decode}</span>`);
+  if(stream.length>30)stream.length=30;
+}
+function u16(a,b){return a|(b<<8);}
+function i32(a,b,c,d){let v=a|(b<<8)|(c<<16)|(d<<24);return v;}
+
+function tick(dt){
+  // NMT 偶發（示意）
+  for(let i=0;i<14;i++){
+    const m=M[i];
+    const d=Math.max(-dt*1.5,Math.min(dt*1.5,goal[i]-cmd[i]));cmd[i]+=d;
+    let cw= estop?0x00 : (!m.enabled?[0x06,0x07,0x0F][Math.min(2,enSeq)]:0x0F);
+    const target=m.enabled?Math.round(cmd[i]*CPR):Math.round(m.q*CPR);
+    // RPDO TX
+    const rp=[cw&0xff,cw>>8, target&0xff,(target>>8)&0xff,(target>>16)&0xff,(target>>24)&0xff];
+    logFrame("TX",m.bus,0x200+m.node,"RPDO1",m.node,rp,
+      `cw=0x${cw.toString(16).padStart(2,'0')} pos=${target}`);
+    applyCW(m,cw); m.target=target; stepM(m,dt);
+    // TPDO RX
+    const ap=Math.round(m.q*CPR);
+    const tp=[m.sw&0xff,m.sw>>8, ap&0xff,(ap>>8)&0xff,(ap>>16)&0xff,(ap>>24)&0xff];
+    logFrame("RX",m.bus,0x180+m.node,"TPDO1",m.node,tp,
+      `sw=0x${m.sw.toString(16).padStart(4,'0')}(${STATE[m.sw]||'?'}) pos=${ap}`);
+  }
+  enSeq++;
+  // 週期 SDO 讀扭矩/電流（每隔一陣子,示意 SDO 流量）
+  if(Math.random()<0.05){
+    const m=M[(Math.random()*14)|0];
+    const idx=Math.random()<0.5?0x6077:0x6078;
+    logFrame("TX",m.bus,0x600+m.node,"SDO-req",m.node,[0x40,idx&0xff,idx>>8,0,0,0,0,0],`read 0x${idx.toString(16)}`);
+    const val= idx==0x6077?Math.round(m.torque/m.p.rt*1000):Math.round(m.current/m.p.rc*1000);
+    logFrame("RX",m.bus,0x580+m.node,"SDO-rsp",m.node,[0x43,idx&0xff,idx>>8,0,val&0xff,(val>>8)&0xff,0,0],`= ${val}‰`);
+  }
+}
+
+function render(){
+  // COB-ID 表（依 ID 排序）
+  const tb=document.querySelector('#idtbl tbody');
+  const rows=[...idmap.entries()].sort((a,b)=>a[0]-b[0]);
+  tb.innerHTML=rows.map(([id,r])=>`<tr>
+    <td class="id">0x${id.toString(16).padStart(3,'0')}</td>
+    <td class="${r.dir=='TX'?'tx':'rx'}">${r.dir}</td>
+    <td>${r.kind}</td><td>${r.node||'-'}</td><td>${r.dlc}</td>
+    <td class="mono">${r.data}</td><td class="mono">${r.decode}</td>
+    <td class="mono">${r.count}</td>
+    <td class="mono">${((performance.now()-r.t)|0)}ms</td></tr>`).join('');
+  // Node 狀態表
+  const nt=document.querySelector('#nodetbl tbody');
+  nt.innerHTML=M.map(m=>{
+    const st=STATE[m.sw]||'?';
+    const cls=m.sw==0x0027?'en':(m.sw==0x0040&&estop?'flt':'dis');
+    const tqp=Math.min(100,Math.abs(m.torque)/m.p.pt*100);
+    return `<tr><td>CAN${m.bus+1}/${m.node}</td><td>${m.name}</td>
+      <td class="mono">0x${m.cw.toString(16).padStart(2,'0')}</td>
+      <td class="mono">0x${m.sw.toString(16).padStart(4,'0')}</td>
+      <td class="${cls}">${st}</td>
+      <td class="mono">${m.target}</td><td class="mono">${Math.round(m.q*CPR)}</td>
+      <td class="mono">${m.torque.toFixed(2)} <span class="bar"><i style="width:${tqp}%"></i></span></td>
+      <td class="mono">${m.current.toFixed(2)}</td></tr>`;}).join('');
+  document.getElementById('stream').innerHTML=stream.join('<br>');
+  document.getElementById('tx0').textContent=txc[0];document.getElementById('rx0').textContent=rxc[0];
+  document.getElementById('tx1').textContent=txc[1];document.getElementById('rx1').textContent=rxc[1];
+  document.getElementById('fps').textContent=lastFps;
+}
+
+let last=performance.now();
+function loop(){
+  const now=performance.now();
+  for(let i=0;i<8;i++)tick(0.002);     // 8×500Hz 子步
+  render();
+  fpsTimer+=now-last;
+  if(fpsTimer>=1000){lastFps=frameCount;frameCount=0;fpsTimer=0;}
+  last=now;
+  requestAnimationFrame(loop);
+}
+document.getElementById('btnEnable').onclick=()=>{estop=false;enSeq=0;};
+document.getElementById('btnEstop').onclick=()=>{estop=true;};
+document.getElementById('btnMove').onclick=()=>{goal[3]+=0.4;goal[1]+=0.2;goal[10]+=0.4;};
+estop=false;enSeq=0;loop();
+</script>
+</body>
+</html>

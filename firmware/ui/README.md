@@ -19,3 +19,8 @@
 
 此 UI 為**示意/教學用上位機**（前端模擬），與真機部署無關；真機上位機可改走
 WP7 的 `host_if` 二進位協定（CMD_*/TLM_*）對接 MCU。
+
+## can_monitor.html — 即時 CAN 監控台
+
+另開 `can_monitor.html`：即時顯示**所有 COB-ID(CAN ID)**的 TX/RX、類型、data、解碼值、次數、age，
+以及各 node 的 CiA402 狀態與力/電流。用於「即時看見所有 cmd RX/TX 與 CAN ID 數值/狀態」。
