@@ -11,3 +11,6 @@ phu_sim_demo
 # CubeMX 產生的 HAL（由使用者本機放入,不入庫）
 Core/
 Drivers/
+
+# UI 截圖（生成物）
+firmware/ui/*_screenshot.png
