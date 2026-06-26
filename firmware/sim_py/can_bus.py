@@ -50,16 +50,20 @@ class CanBus:
                     m.statusword = 0x0040; m.enabled = False
         # NMT 無回應
 
-    # ---- SDO 寫（expedited） ----
+    # ---- SDO 寫（expedited）；回 True=成功 / False=abort ----
     def sdo_write(self, node, index, sub, value, size=4):
         cs = {1: 0x2F, 2: 0x2B, 3: 0x27, 4: 0x23}[size]
         data = [cs, index & 0xFF, index >> 8, sub,
                 value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF]
         self.tx += 1; self._logf("TX", SDO_RX + node, data)
-        self.nodes[node].write_od(index, sub, value)
-        resp = [0x60, index & 0xFF, index >> 8, sub, 0, 0, 0, 0]
+        ok = self.nodes[node].write_od(index, sub, value)
+        if ok:
+            resp = [0x60, index & 0xFF, index >> 8, sub, 0, 0, 0, 0]
+        else:
+            # SDO abort：0x80 + abort code 0x06010002（嘗試寫唯讀物件）
+            resp = [0x80, index & 0xFF, index >> 8, sub, 0x02, 0x00, 0x01, 0x06]
         self.rx += 1; self._logf("RX", SDO_TX + node, resp)
-        return True
+        return ok
 
     # ---- SDO 讀（expedited） ----
     def sdo_read(self, node, index, sub=0):
