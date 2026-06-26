@@ -65,6 +65,31 @@ jmap = assign_motors(joints, {                  # 指定每關節 → (arm,bus,n
 [F] CAN1 TX≈12650 RX≈12645 ; CAN2 對稱
 ```
 
+## 完整物件字典 + 測試上位機（OD-driven）
+
+- `phu_od.py`：**由手冊 v1.06 自動抽取的完整物件字典**（399 條：index/sub/access/type/default/name）。
+- `phu_motor.py` 為 **OD-driven**：`read_od/write_od` 走整份 OD，RO 物件寫入回 SDO abort，
+  並對 0x6040/6060/607A/6071/60FF 等觸發副作用；狀態字/實際位置/扭矩/電流為即時計算。
+- `host_console.py`：**測試用上位機**，可對假馬達發送 CANopen 讀/寫 CMD 並讀回數據：
+
+```bash
+python3 host_console.py --demo     # 示範：讀身分→寫參數→RO abort→使能移動→讀力/電流
+python3 host_console.py            # 互動：read 0x6041 / write 0x6060 8 / enable / move 150000 / dump 0x26
+echo "read 0x6077" | python3 host_console.py
+```
+
+- `test_od.py`：OD 讀寫單元測試（讀身分、RW 寫回一致、RO 寫 abort、使能後力/電流非 0）。
+  `python3 test_od.py`（回傳碼 0=通過）。
+
+### 示範輸出（節錄）
+```
+READ  0x1000 Device type = 131474 (0x20192)
+WRITE 0x6060 Modes Of Operation = 8 → OK
+WRITE 0x6041 Status word = 4660 → ABORT (唯讀 0x06010002)
+MOVE  target=150000 → actual=146583  力=4.91 N·m  電流=1.23 A
+READ  0x6077 Torque Actual Value = 154 (‰rated)
+```
+
 ## 與 C 版關係
 
 行為對齊 `firmware/sim`（C 版全棧）;Python 版**更聚焦在單顆馬達讀寫與力/電流可視化**,且方便日後接 URDF。
