@@ -34,6 +34,18 @@ if(NOT CMAKE_CROSSCOMPILING)
     )
     target_include_directories(phu_sim_demo PRIVATE sim ${PORTABLE_INC})
     target_link_libraries(phu_sim_demo m)
+
+    # ── 單元測試（ctest）─────────────────────────────────────────────────
+    enable_testing()
+    add_executable(unit_tests
+        ${PORTABLE_SRC}
+        sim/hal_shim.c sim/co_bxcan_sim.c sim/phu_sim.c
+        tests/test_main.c tests/test_trajectory.c tests/test_kinematics.c
+        tests/test_ik.c tests/test_cia402.c tests/test_hostif.c tests/test_canopen.c
+    )
+    target_include_directories(unit_tests PRIVATE sim tests ${PORTABLE_INC})
+    target_link_libraries(unit_tests m)
+    add_test(NAME unit_tests COMMAND unit_tests)
 else()
     # ── TARGET：可燒錄韌體 ────────────────────────────────────────────────
     message(STATUS "Building TARGET firmware for STM32F746ZG")

@@ -35,8 +35,10 @@ void host_feed_byte(uint8_t b)
         case 1: s_type = b; s_ck = b; s_state = 2; break;
         case 2: s_len = b; s_ck ^= b; s_idx = 0;
                 s_state = (s_len == 0) ? 4 : 3; break;
-        case 3: s_buf[s_idx++] = b; s_ck ^= b;
-                if (s_idx >= s_len) s_state = 4; break;
+        case 3:
+            s_buf[s_idx++] = b; s_ck ^= b;
+            if (s_idx >= s_len) s_state = 4;
+            break;
         case 4:
             if (b == s_ck) host_on_command(s_type, s_buf, s_len);
             s_state = 0; break;

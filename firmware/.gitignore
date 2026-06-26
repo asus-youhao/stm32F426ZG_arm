@@ -1,6 +1,8 @@
 # CMake / build 產物
 build/
 build-tgt/
+tests/unit_tests
+phu_sim_demo
 *.elf
 *.bin
 *.hex
