@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上位機 Host Controller — EYOU PHU 雙臂（假硬體）</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#283040;--txt:#e6edf3;--mut:#8b97a6;
+        --accent:#4fd1c5;--accent2:#f6ad55;--good:#48bb78;--warn:#f56565;--blue:#63b3ed;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font-family:-apple-system,"Segoe UI","PingFang TC","Microsoft JhengHei",monospace;font-size:13px}
+  header{padding:10px 16px;background:linear-gradient(135deg,#10303a,#161b22);
+         border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px}
+  header h1{font-size:1.05rem;margin:0}
+  header .state{margin-left:auto;font-weight:700;padding:3px 12px;border-radius:14px;background:#1c4532;color:var(--good)}
+  header .state.estop{background:#4a1818;color:var(--warn)}
+  .wrap{display:grid;grid-template-columns:240px 1fr 360px;gap:10px;padding:10px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .panel h2{font-size:.85rem;margin:0 0 10px;color:var(--accent);text-transform:uppercase;letter-spacing:1px}
+  button{width:100%;padding:8px;margin:4px 0;border:1px solid var(--line);border-radius:7px;
+         background:#1f2733;color:var(--txt);cursor:pointer;font-size:.85rem}
+  button:hover{border-color:var(--accent)}
+  button.estop{background:#c53030;border-color:#e53e3e;color:#fff;font-weight:700}
+  button.on{background:#22543d;border-color:var(--good)}
+  .row{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .row label{width:54px;color:var(--mut)}
+  input[type=range]{flex:1}
+  canvas{background:#0b0f14;border-radius:8px;width:100%;display:block}
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  th,td{padding:3px 5px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--mut);font-weight:600}
+  .bar{height:7px;border-radius:4px;background:#222c38;overflow:hidden}
+  .bar>i{display:block;height:100%}
+  .tq>i{background:linear-gradient(90deg,#48bb78,#f6ad55,#f56565)}
+  .cu>i{background:linear-gradient(90deg,#63b3ed,#4fd1c5)}
+  .log{height:140px;overflow:auto;background:#0b0f14;border-radius:7px;padding:6px;
+       font-size:10.5px;line-height:1.5;color:#9fb0c0}
+  .log .tx{color:var(--accent2)} .log .rx{color:var(--blue)}
+  .kpi{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;color:var(--mut)}
+  .kpi b{color:var(--txt)}
+  .mut{color:var(--mut)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🦾 上位機 Host Controller — EYOU PHU 雙臂（假硬體 / Fake HW）</h1>
+  <div id="sysState" class="state">RUNNING</div>
+</header>
+
+<div class="wrap">
+  <!-- 左：命令面板 -->
+  <div class="panel">
+    <h2>命令 Command</h2>
+    <button id="btnEnable">① 使能 Enable 全軸</button>
+    <button id="btnWave">② Demo：揮手</button>
+    <button id="btnMode">③ 模式：INDEPENDENT</button>
+    <button id="btnEstop" class="estop">■ 急停 E-STOP</button>
+    <h2 style="margin-top:14px">左臂關節 Jog (rad)</h2>
+    <div class="row"><label>J1 肩</label><input type="range" id="j0" min="-1.5" max="1.5" step="0.01" value="0"></div>
+    <div class="row"><label>J2 肩</label><input type="range" id="j1" min="-1.5" max="1.5" step="0.01" value="0.3"></div>
+    <div class="row"><label>J4 肘</label><input type="range" id="j3" min="-2.0" max="2.0" step="0.01" value="0.7"></div>
+    <div class="row"><label>J6 腕</label><input type="range" id="j5" min="-1.5" max="1.5" step="0.01" value="0.5"></div>
+    <div class="kpi">
+      <span>狀態：<b id="kState">—</b></span>
+      <span>丟幀：<b id="kDrop">0</b></span>
+    </div>
+  </div>
+
+  <!-- 中：雙臂視覺化 -->
+  <div class="panel">
+    <h2>雙臂視覺化 Dual-Arm</h2>
+    <canvas id="cv" width="600" height="380"></canvas>
+    <div class="kpi">
+      <span>控制：<b>500 Hz</b></span>
+      <span>CAN1(左) TX <b id="tx0">0</b> / RX <b id="rx0">0</b></span>
+      <span>CAN2(右) TX <b id="tx1">0</b> / RX <b id="rx1">0</b></span>
+    </div>
+  </div>
+
+  <!-- 右：馬達遙測 + CAN log -->
+  <div class="panel">
+    <h2>馬達遙測 Motor Telemetry（力/電流）</h2>
+    <table id="tbl"><thead><tr>
+      <th>關節</th><th>型號</th><th>力 N·m</th><th>電流 A</th><th>狀態</th>
+    </tr></thead><tbody></tbody></table>
+    <h2 style="margin-top:12px">CANopen Frame Log</h2>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+
+<script>
+// ===== PHU 馬達模型（與 sim_py/phu_motor.py 一致的扭矩/電流模型）=====
+const CPR = 524288/(2*Math.PI);
+const MODELS = {
+  PHU14:{rt:8.6, pt:43, rc:5,  I:0.02, b:0.6, g:2},
+  PHU17:{rt:32,  pt:134,rc:8,  I:0.05, b:1.0, g:5},
+  PHU20:{rt:50,  pt:182,rc:12, I:0.10, b:2.0, g:10},
+};
+const MAP = [ // name, bus, node, model  （每臂 7 軸）
+  ["L_J1",0,1,"PHU20"],["L_J2",0,2,"PHU20"],["L_J3",0,3,"PHU17"],["L_J4",0,4,"PHU17"],
+  ["L_J5",0,5,"PHU14"],["L_J6",0,6,"PHU14"],["L_J7",0,7,"PHU14"],
+  ["R_J1",1,1,"PHU20"],["R_J2",1,2,"PHU20"],["R_J3",1,3,"PHU17"],["R_J4",1,4,"PHU17"],
+  ["R_J5",1,5,"PHU14"],["R_J6",1,6,"PHU14"],["R_J7",1,7,"PHU14"],
+];
+function mkMotor(name,bus,node,model){
+  const p=MODELS[model];
+  return {name,bus,node,model,p,Kt:p.rt/p.rc,Kp:120,Kd:2*Math.sqrt(120*p.I),
+          q:0,qd:0,target:0,torque:0,current:0,sw:0x0040,enabled:false,sat:false};
+}
+const M = MAP.map(m=>mkMotor(...m));
+let cmd = M.map(()=>0);                 // joint-space 命令(rad)
+const goalInit=[0,0.3,0,0.7,0,0.5,0, 0,0.3,0,0.7,0,0.5,0];
+let goal = goalInit.slice();
+let mode = 0;                            // 0 indep, 1 bimanual
+let estop = false;
+let txc=[0,0], rxc=[0,0], drops=0;
+let logLines=[];
+
+function applyCW(m,cw){
+  m.sw &= 0xFFFF;
+  if(cw&0x80){m.sw=0x0040;m.enabled=false;return;}
+  const lo=cw&0x0F;
+  if(lo===0x06){m.sw=0x0021;m.enabled=false;}
+  else if(lo===0x07){m.sw=0x0023;m.enabled=false;}
+  else if(lo===0x0F){m.sw=0x0027;m.enabled=true;}
+  else if(lo===0x00){m.sw=0x0040;m.enabled=false;}
+}
+function stepMotor(m,dt){
+  if(!m.enabled){m.torque=0;m.current=0;return;}
+  const tq=m.target/CPR, err=tq-m.q;
+  let tau=m.Kp*err - m.Kd*m.qd;
+  m.sat=Math.abs(tau)>m.p.pt;
+  tau=Math.max(-m.p.pt,Math.min(m.p.pt,tau));
+  const tg=m.p.g*Math.sin(m.q);
+  const qdd=(tau - tg - m.p.b*m.qd)/m.p.I;
+  m.qd+=qdd*dt; m.q+=m.qd*dt;
+  m.torque=tau; m.current=tau/m.Kt;
+}
+// 一個 500Hz 控制+通訊 tick（RPDO 下發 + TPDO 回授）
+let enableSeq=0;
+function tick(dt){
+  // 上位機：决定每軸 controlword 與目標
+  for(let i=0;i<14;i++){
+    const m=M[i];
+    // joint-space 緩升到 goal
+    const d=Math.max(-dt*1.5,Math.min(dt*1.5,goal[i]-cmd[i])); cmd[i]+=d;
+    let cw;
+    if(estop){cw=0x00;}
+    else if(!m.enabled){cw=[0x06,0x07,0x0F][Math.min(2,enableSeq)];}
+    else cw=0x0F;
+    const target= m.enabled? Math.round(cmd[i]*CPR) : Math.round(m.q*CPR);
+    // RPDO (master→slave)
+    txc[m.bus]++; m.target=target; applyCW(m,cw); stepMotor(m,dt);
+    // TPDO (slave→master)
+    rxc[m.bus]++;
+    if(i===0||i===3) pushLog(m.bus, m.node, cw, target, m.sw);
+  }
+  enableSeq++;
+}
+function pushLog(bus,node,cw,tp,sw){
+  const rp=(0x200+node).toString(16), tpid=(0x180+node).toString(16);
+  logLines.unshift(`<span class="tx">TX RPDO 0x${rp}</span> cw=0x${cw.toString(16).padStart(2,'0')} pos=${tp}`);
+  logLines.unshift(`<span class="rx">RX TPDO 0x${tpid}</span> sw=0x${sw.toString(16).padStart(4,'0')}`);
+  if(logLines.length>40) logLines.length=40;
+}
+
+// ===== 視覺化（平面近似：肩→肘→腕）=====
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function drawArm(baseX,baseY,q,flip){
+  const L=[70,60,40]; // 段長(px)
+  const ang=[q[1], q[1]+q[3], q[1]+q[3]+q[5]]; // 肩、肘、腕 累積
+  let x=baseX,y=baseY,a=-Math.PI/2 + (flip?1:-1)*0.0;
+  ctx.lineCap='round';
+  for(let s=0;s<3;s++){
+    a += (flip?-1:1)*ang[s===0?0:s]* (s===0?1:0.6);
+    const nx=x+Math.cos(a)*L[s]*(flip?-1:1)* (flip? -1:1); // mirror handled below
+    const ex=x+(flip?-1:1)*Math.cos(a)*L[s], ey=y+Math.sin(a)*L[s];
+    // 顏色依該段對應馬達扭矩
+    const mi=(flip?7:0)+[1,3,5][s];
+    const t=Math.min(1,Math.abs(M[mi].torque)/M[mi].p.pt);
+    ctx.strokeStyle=`hsl(${(1-t)*140},80%,55%)`;
+    ctx.lineWidth=14-s*3;
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.stroke();
+    ctx.fillStyle='#0b0f14';ctx.strokeStyle='#5a6b7d';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fill();ctx.stroke();
+    x=ex;y=ey;
+  }
+  ctx.fillStyle='#4fd1c5';ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.fill(); // 末端
+}
+function render(){
+  ctx.clearRect(0,0,600,380);
+  // 軀幹
+  ctx.strokeStyle='#2b3543';ctx.lineWidth=3;
+  ctx.strokeRect(250,70,100,150);
+  ctx.fillStyle='#8b97a6';ctx.font='12px sans-serif';
+  ctx.fillText('左臂 L',150,30);ctx.fillText('右臂 R',420,30);
+  drawArm(250,110, M.slice(0,7).map(m=>m.q), false);
+  drawArm(350,110, M.slice(7,14).map(m=>m.q), true);
+  // 遙測表
+  const tb=document.querySelector('#tbl tbody'); tb.innerHTML='';
+  for(const m of M){
+    const tr=document.createElement('tr');
+    const tqp=Math.min(100,Math.abs(m.torque)/m.p.pt*100);
+    const cup=Math.min(100,Math.abs(m.current)/m.p.rc*100);
+    const en=(m.sw===0x0027);
+    tr.innerHTML=`<td>${m.name}</td><td class=mut>${m.model}</td>
+      <td>${m.torque.toFixed(1)}<div class="bar tq"><i style="width:${tqp}%"></i></div></td>
+      <td>${m.current.toFixed(2)}<div class="bar cu"><i style="width:${cup}%"></i></div></td>
+      <td style="color:${en?'#48bb78':'#f6ad55'}">${en?'EN':'0x'+m.sw.toString(16)}</td>`;
+    tb.appendChild(tr);
+  }
+  document.getElementById('log').innerHTML=logLines.join('<br>');
+  document.getElementById('tx0').textContent=txc[0];
+  document.getElementById('rx0').textContent=rxc[0];
+  document.getElementById('tx1').textContent=txc[1];
+  document.getElementById('rx1').textContent=rxc[1];
+  document.getElementById('kDrop').textContent=drops;
+  const allEn=M.every(m=>m.sw===0x0027);
+  const st=estop?'ESTOP':(allEn?'RUNNING':'ENABLING');
+  const el=document.getElementById('sysState');
+  el.textContent=st; el.className='state'+(estop?' estop':'');
+  document.getElementById('kState').textContent=st;
+}
+
+// ===== 主迴圈：每影格跑多個 500Hz 子步 =====
+function frame(){
+  const sub=8, dt=0.002;
+  for(let i=0;i<sub;i++) tick(dt);
+  render();
+  requestAnimationFrame(frame);
+}
+
+// ===== 控制項 =====
+const sliderMap={j0:0,j1:1,j3:3,j5:5};
+for(const id in sliderMap){
+  document.getElementById(id).addEventListener('input',e=>{
+    goal[sliderMap[id]]=parseFloat(e.target.value);
+    if(mode===1){ // bimanual：右臂鏡像左臂
+      goal[7+sliderMap[id]]=parseFloat(e.target.value);
+    }
+  });
+}
+document.getElementById('btnEnable').onclick=function(){ estop=false; enableSeq=0; this.classList.add('on'); };
+document.getElementById('btnEstop').onclick=()=>{ estop=true; };
+document.getElementById('btnMode').onclick=function(){
+  mode=mode?0:1; this.textContent='③ 模式：'+(mode?'BIMANUAL':'INDEPENDENT');
+};
+let waving=false;
+document.getElementById('btnWave').onclick=()=>{ waving=!waving; };
+setInterval(()=>{ if(waving){ goal[5]=0.5+0.6*Math.sin(Date.now()/300); } },50);
+
+// 自動使能 + 初始姿態（讓畫面一打開就有資料/出力）
+estop=false; enableSeq=0;
+frame();
+</script>
+</body>
+</html>
