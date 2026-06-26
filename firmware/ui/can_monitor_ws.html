@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="UTF-8">
+<title>CAN 監控台（連線版）— Python 假硬體</title>
+<style>
+ :root{--bg:#0d1117;--panel:#161b22;--line:#283040;--txt:#e6edf3;--mut:#8b97a6;
+       --accent:#4fd1c5;--tx:#f6ad55;--rx:#63b3ed;--good:#48bb78;--warn:#f56565;}
+ *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);
+   font-family:"Consolas","PingFang TC",monospace;font-size:12px}
+ header{padding:8px 14px;background:linear-gradient(135deg,#10303a,#161b22);border-bottom:1px solid var(--line);
+        display:flex;gap:10px;align-items:center}
+ header h1{font-size:1rem;margin:0;margin-right:auto}
+ #conn{padding:3px 10px;border-radius:12px;background:#4a1818;color:var(--warn);font-weight:700}
+ #conn.ok{background:#1c4532;color:var(--good)}
+ button{padding:5px 11px;border:1px solid var(--line);border-radius:6px;background:#1f2733;color:var(--txt);cursor:pointer}
+ button.estop{background:#c53030;border-color:#e53e3e;color:#fff;font-weight:700}
+ .wrap{display:grid;grid-template-columns:1.35fr 1fr;gap:8px;padding:8px}
+ .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px}
+ h2{font-size:.76rem;color:var(--accent);margin:0 0 6px;letter-spacing:1px}
+ table{width:100%;border-collapse:collapse;font-size:11px}
+ th,td{padding:2px 6px;text-align:left;border-bottom:1px solid #1d2530;white-space:nowrap}
+ th{color:var(--mut);position:sticky;top:0;background:#161b22} td.id{color:var(--accent);font-weight:700}
+ .tx{color:var(--tx)} .rx{color:var(--rx)} .en{color:var(--good)} .dis{color:var(--tx)}
+ .scroll{max-height:470px;overflow:auto} .mono{font-variant-numeric:tabular-nums}
+ .stream{height:140px;overflow:auto;background:#0b0f14;border-radius:6px;padding:6px;line-height:1.5;color:#9fb0c0}
+ .kpi{color:var(--mut);margin-top:6px}
+ .bar{display:inline-block;width:50px;height:6px;background:#222c38;border-radius:3px;overflow:hidden;vertical-align:middle}
+ .bar>i{display:block;height:100%;background:linear-gradient(90deg,#48bb78,#f6ad55,#f56565)}
+</style></head><body>
+<header><h1>📡 CAN 監控台（連線版）— 接 Python 假硬體 ws://localhost:8765</h1>
+ <span id="conn">未連線</span>
+ <button id="bEn">使能</button><button id="bMv">Demo 移動</button><button id="bEs" class="estop">E-STOP</button></header>
+<div class="wrap">
+ <div class="panel"><h2>所有 CAN ID（COB-ID）即時表</h2>
+  <div class="scroll"><table id=idt><thead><tr><th>COB-ID</th><th>方向</th><th>類型</th><th>Node</th>
+   <th>DLC</th><th>Data</th><th>解碼數值</th><th>次數</th><th>age</th></tr></thead><tbody></tbody></table></div>
+  <div class="kpi" id=kpi>—</div>
+  <h2 style="margin-top:8px">即時幀串流</h2><div class="stream" id=stream></div>
+ </div>
+ <div class="panel"><h2>各 Node 狀態（CiA402）</h2>
+  <div class="scroll"><table id=nt><thead><tr><th>Bus/Node</th><th>關節</th><th>CW</th><th>SW</th>
+   <th>狀態</th><th>目標</th><th>實際</th><th>力</th><th>電流</th></tr></thead><tbody></tbody></table></div>
+ </div></div>
+<script>
+let ws,last=null;
+function connect(){ws=new WebSocket("ws://localhost:8765");
+ ws.onopen=()=>{c().textContent="已連線";c().className="ok";};
+ ws.onclose=()=>{c().textContent="斷線(重試)";c().className="";setTimeout(connect,1000);};
+ ws.onmessage=e=>{last=JSON.parse(e.data);render();};}
+function c(){return document.getElementById('conn');}
+function send(o){if(ws&&ws.readyState==1)ws.send(JSON.stringify(o));}
+function render(){ if(!last)return;
+ document.querySelector('#idt tbody').innerHTML=last.cobids.map(r=>`<tr>
+   <td class=id>${r.id}</td><td class="${r.dir=='TX'?'tx':'rx'}">${r.dir}</td><td>${r.kind}</td>
+   <td>${r.node||'-'}</td><td>${r.dlc}</td><td class=mono>${r.data}</td><td class=mono>${r.decode}</td>
+   <td class=mono>${r.count}</td><td class=mono>${r.age}ms</td></tr>`).join('');
+ document.querySelector('#nt tbody').innerHTML=last.motors.map(m=>{
+   const tqp=Math.min(100,Math.abs(m.torque)/m.peak*100);
+   return `<tr><td>CAN${m.bus+1}/${m.node}</td><td>${m.name}</td><td class=mono>${m.cw}</td>
+   <td class=mono>${m.sw}</td><td class="${m.state=='OP_ENABLED'?'en':'dis'}">${m.state}</td>
+   <td class=mono>${m.target}</td><td class=mono>${m.actual}</td>
+   <td class=mono>${m.torque.toFixed(2)} <span class=bar><i style="width:${tqp}%"></i></span></td>
+   <td class=mono>${m.current.toFixed(2)}</td></tr>`;}).join('');
+ document.getElementById('stream').innerHTML=last.frames.map(f=>
+   `<span class="${f.dir=='TX'?'tx':'rx'}">${f.dir} ${f.cobid} ${f.kind}</span> ${f.data} <span style="color:#6b7785">${f.decode}</span>`).join('<br>');
+ document.getElementById('kpi').textContent=
+   `CAN1 TX ${last.tx[0]}/RX ${last.rx[0]} · CAN2 TX ${last.tx[1]}/RX ${last.rx[1]} · COB-ID ${last.cobids.length} 個`;
+}
+document.getElementById('bEn').onclick=()=>send({cmd:'enable'});
+document.getElementById('bEs').onclick=()=>send({cmd:'estop'});
+document.getElementById('bMv').onclick=()=>{send({cmd:'move',joint:3,delta:0.4});send({cmd:'move',joint:10,delta:0.4});};
+connect();
+</script></body></html>
