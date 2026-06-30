@@ -29,6 +29,7 @@
 | 2026-06-25 | [Python 假硬體](./changes/2026-06-25-python-fake-hardware.md) | 馬達讀寫 + 扭矩/電流 + URDF-ready |
 | 2026-06-26 | [F746 Makefile bring-up 專案](./changes/2026-06-26-f746-makefile-bringup-build.md) | 可編譯/可燒的 Nucleo-F746ZG bring-up + CAN 時序修正 |
 | 2026-07-01 | [C1：CANable + Python 假從站](./changes/2026-07-01-c1-canable-python-slave.md) | F746 主站對打 PC 假 CiA402 從站（python-can）+ PV 模型 |
+| 2026-07-01 | [C1 上位機 web 看板](./changes/2026-07-01-web-monitor-14axis.md) | 標準庫 SSE 即時看板，畫雙臂 14 軸 pos/扭矩/電流/狀態 |
 
 ## 設計文件
 
