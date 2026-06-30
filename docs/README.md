@@ -31,6 +31,7 @@
 | 2026-07-01 | [C1：CANable + Python 假從站](./changes/2026-07-01-c1-canable-python-slave.md) | F746 主站對打 PC 假 CiA402 從站（python-can）+ PV 模型 |
 | 2026-07-01 | [C1 上位機 web 看板](./changes/2026-07-01-web-monitor-14axis.md) | 標準庫 SSE 即時看板，畫雙臂 14 軸 pos/扭矩/電流/狀態 |
 | 2026-07-01 | [全面忠實 CiA402 模擬器](./changes/2026-07-01-full-cia402-simulator.md) | 8 模式 + 完整狀態機 + Homing + 故障 + 手冊抽出 OD + web 控制台 |
+| 2026-07-01 | [Web CANopen 資料流](./changes/2026-07-01-web-can-dataflow.md) | 選取 motor 的即時 rx/tx 幀流面板（RPDO/TPDO/SDO 解析）|
 
 ## 設計文件
 
