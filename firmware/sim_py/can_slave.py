@@ -277,6 +277,92 @@ def selftest():
     print("\n=== 全部斷言通過 [OK]  從站邏輯正確，硬體到貨即可上真 bus ===")
 
 
+# ============================ 8 模式全測（離線）============================
+def modetest():
+    """驅動從站跑遍 8 種 CiA402 模式 + 急停 + 故障，斷言每個都正確。"""
+    from phu_motor import CPR
+    s = CiA402Slave(1, "PHU20", "L_J1")
+    m = s.motor
+
+    def enable(mode):
+        m.write_od(0x6060, 0, mode)
+        for cw in (0x06, 0x07, 0x0F):
+            m.apply_controlword(cw)
+        assert m.enabled, "mode %d 未進 operation-enabled" % mode
+
+    def run(n=1500, dt=0.001):
+        for _ in range(n):
+            m.step(dt)
+
+    print("=== 8 模式全測（單顆 PHU20）===\n")
+
+    # PP(1)：位置追隨
+    m.q = m.qd = 0.0; enable(1)
+    m.write_od(0x607A, 0, int(0.5 * CPR) & 0xFFFFFFFF); run()
+    assert abs(m.q - 0.5) < 0.05, "PP 未到位: q=%.3f" % m.q
+    print("  PP(1)  q→0.5  實際 %.3f  ✔".replace("✔", "OK") % m.q)
+
+    # PV(3)：速度追隨
+    m.q = m.qd = 0.0; enable(3)
+    m.write_od(0x60FF, 0, int(1.0 * CPR) & 0xFFFFFFFF); run()
+    assert abs(m.qd - 1.0) < 0.1, "PV 速度未到: qd=%.3f" % m.qd
+    print("  PV(3)  qd→1.0 實際 %.3f  OK" % m.qd)
+
+    # PT(4)：力矩追隨（經 torque slope）
+    m.q = m.qd = 0.0; enable(4)
+    m.write_od(0x6087, 0, 500000)            # slope ‰/s
+    m.write_od(0x6071, 0, 200)               # 200‰ 額定
+    run(800)
+    exp = 200 / 1000.0 * m.rated_torque
+    assert abs(m.torque - exp) < exp * 0.2, "PT 力矩偏差: %.2f vs %.2f" % (m.torque, exp)
+    print("  PT(4)  τ→%.1fNm 實際 %.2f  OK" % (exp, m.torque))
+
+    # HM(6)：回零
+    m.q = 0.3; m.qd = 0.0; enable(6)
+    m.apply_controlword(0x1F)                # bit4 啟動回零
+    run(3000)
+    assert m.homed and (m.statusword & 0x1000), "HM 未完成回零"
+    print("  HM(6)  homed=%s sw=0x%04X  OK" % (m.homed, m.statusword))
+
+    # CSP(8)
+    m.q = m.qd = 0.0; enable(8)
+    m.write_od(0x607A, 0, int(0.4 * CPR) & 0xFFFFFFFF); run()
+    assert abs(m.q - 0.4) < 0.05, "CSP 未到位"
+    print("  CSP(8) q→0.4  實際 %.3f  OK" % m.q)
+
+    # CSV(9)
+    m.q = m.qd = 0.0; enable(9)
+    m.write_od(0x60FF, 0, int(0.8 * CPR) & 0xFFFFFFFF); run()
+    assert abs(m.qd - 0.8) < 0.1, "CSV 速度未到"
+    print("  CSV(9) qd→0.8 實際 %.3f  OK" % m.qd)
+
+    # CST(10) / CSF(13)：直接力矩
+    for mode in (10, 13):
+        m.q = m.qd = 0.0; enable(mode)
+        m.write_od(0x6087, 0, 0)             # slope=0 → 立即
+        m.write_od(0x6071, 0, 150)
+        run(300)
+        exp = 150 / 1000.0 * m.rated_torque
+        assert abs(m.torque - exp) < exp * 0.25, "%d 力矩偏差" % mode
+        print("  %s(%d) τ→%.1fNm 實際 %.2f  OK" % ("CST" if mode == 10 else "CSF", mode, exp, m.torque))
+
+    # 急停：op-enabled → quick-stop-active 並減速
+    m.q = m.qd = 0.0; enable(3); m.write_od(0x60FF, 0, int(2.0 * CPR) & 0xFFFFFFFF)
+    run(200); m.apply_controlword(0x02)
+    assert m.state == 5, "急停未進 quick-stop-active"
+    run(1500); assert abs(m.qd) < 0.05, "急停後未停穩"
+    print("  QuickStop  state=quick-stop-active, qd=%.3f  OK" % m.qd)
+
+    # 故障注入 + 清除
+    m.inject_fault()
+    assert m.state == 7 and (m.statusword & 0x0008), "未進 fault"
+    m.apply_controlword(0x80); m.apply_controlword(0x06)
+    assert m.state != 7, "fault reset 失敗"
+    print("  Fault inject→clear  sw=0x%04X  OK" % m.statusword)
+
+    print("\n=== 8 模式 + 急停 + 故障 全部通過 [OK] ===")
+
+
 # ================================ main ================================
 def parse_nodes(spec):
     slaves = []
@@ -292,6 +378,7 @@ def parse_nodes(spec):
 def main():
     ap = argparse.ArgumentParser(description="C1：CANable 上的 CiA402 假從站")
     ap.add_argument("--selftest", action="store_true", help="離線自測（不需 python-can / 硬體）")
+    ap.add_argument("--modetest", action="store_true", help="8 模式 + 急停 + 故障全測（離線）")
     ap.add_argument("--interface", default="gs_usb", help="python-can interface（gs_usb / slcan …）")
     ap.add_argument("--channel", default=None, help="通道（gs_usb 多為 0；slcan 為 COM 埠）")
     ap.add_argument("--bitrate", type=int, default=1000000, help="位元率（預設 1Mbps）")
@@ -302,6 +389,9 @@ def main():
 
     if args.selftest:
         selftest()
+        return
+    if args.modetest:
+        modetest()
         return
 
     slaves = [CiA402Slave(nid, model, verbose=args.verbose)
