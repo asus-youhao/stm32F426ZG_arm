@@ -119,6 +119,9 @@ class PhuMotor:
             tau_cmd = self.Kp * err - self.Kd * self.qd     # 內環輸出 N·m
         elif self.mode in (10, 13):      # CST / CSF：直接扭矩命令
             tau_cmd = self.target_torque / 1000.0 * self.rated_torque
+        elif self.mode == 3:             # PV：Profile Velocity（速度追隨）
+            target_qd = self.target_vel / CPR               # counts/s → rad/s
+            tau_cmd = self.Kd * (target_qd - self.qd)        # 速度誤差 → 內環輸出 N·m
         else:
             tau_cmd = 0.0
 
