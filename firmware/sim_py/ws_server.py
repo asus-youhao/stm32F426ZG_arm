@@ -43,6 +43,7 @@ class Sim:
         self.cmd = [0.0]*14
         self.estop = False
         self.enseq = 0
+        self.source = "sim"
         self.tx = [0,0]; self.rx = [0,0]
         self.cobid = {}                       # cobid -> dict
         self.frames = collections.deque(maxlen=30)
@@ -162,16 +163,85 @@ class Sim:
             cobids=[dict(id="0x%03X"%k, **{kk:vv for kk,vv in v.items() if kk!="t"},
                          age=int((time.time()-v["t"])*1000)) for k,v in sorted(self.cobid.items())]
             return dict(motors=motors, frames=list(self.frames), cobids=cobids,
-                        tx=self.tx, rx=self.rx, estop=self.estop, model_rev=self.model_rev)
+                        tx=self.tx, rx=self.rx, estop=self.estop, model_rev=self.model_rev,
+                        source=getattr(self, "source", "sim"))
 
 sim = Sim()
+MODE = "sim"          # "sim"=純軟體自驅；"can"=真實 CAN，由外部主站(F746)驅動
 
-# ---- 控制迴圈執行緒（~500Hz）----
+# ---- 控制迴圈執行緒（~500Hz）：僅軟體模式自驅；CAN 模式交由 can_loop ----
 def control_loop():
     while True:
-        for _ in range(5): sim.step(DT)    # 5×2ms
+        if MODE == "sim":
+            for _ in range(5): sim.step(DT)    # 5×2ms
         time.sleep(0.01)
 threading.Thread(target=control_loop, daemon=True).start()
+
+
+# ===== 真實 CAN 模式：PC 當 14/7 顆假 CiA402 從站，回應 F746 主站 =====
+def parse_nodes(spec):
+    """'1:PHU20,2:PHU20,...' -> [(node, model), ...]"""
+    out = []
+    for item in spec.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        nid, _, model = item.partition(":")
+        out.append((int(nid), model or "PHU20"))
+    return out
+
+def _cob_kind(cobid):
+    if cobid == 0x000: return "NMT"
+    if 0x180 <= cobid <= 0x1FF: return "TPDO1"
+    if 0x200 <= cobid <= 0x27F: return "RPDO1"
+    if 0x580 <= cobid <= 0x5FF: return "SDO-rsp"
+    if 0x600 <= cobid <= 0x67F: return "SDO-req"
+    if 0x700 <= cobid <= 0x77F: return "HB"
+    return "?"
+
+def can_loop(interface, channel, bitrate, nodes):
+    """開 python-can bus，用 can_slave.CiA402Slave 回應主站；馬達 q 反映真實 CANopen 指令。"""
+    global MODE
+    try:
+        import can
+    except ImportError:
+        print("需要 python-can：pip install python-can pyserial（見 run_wsl.sh / run_ubuntu.sh）",
+              file=sys.stderr)
+        return
+    from can_slave import CiA402Slave, HEARTBEAT, NS_BOOTUP
+
+    # 每個要模擬的 node 綁到 sim 的左臂馬達（index=node-1），使 3D/遙測與 CAN 同一份狀態
+    slaves = []
+    for node, model in nodes:
+        s = CiA402Slave(node, model, "L_J%d" % node)
+        idx = node - 1
+        if 0 <= idx < len(sim.M):
+            s.motor = sim.M[idx]          # 共用同一顆 PhuMotor → 遙測/3D 立即反映
+        slaves.append(s)
+
+    try:
+        bus = can.Bus(interface=interface, channel=channel, bitrate=bitrate)
+    except Exception as e:
+        print("開啟 CAN 失敗（interface=%s channel=%s）：%s" % (interface, channel, e), file=sys.stderr)
+        return
+    sim.source = "canable:%s@%s" % (interface, channel)
+    print("CAN 模式：以 node %s 當假從站回應主站；等待 F746 …"
+          % ",".join(str(n) for n, _ in nodes))
+
+    for s in slaves:                      # boot-up heartbeat
+        bus.send(can.Message(arbitration_id=HEARTBEAT + s.node_id,
+                             data=[NS_BOOTUP], is_extended_id=False))
+    while True:
+        msg = bus.recv(timeout=0.2)
+        if msg is None or msg.is_extended_id:
+            continue
+        arb, data = msg.arbitration_id, list(msg.data)
+        with sim.lock:
+            sim._emit("RX", 0, arb, _cob_kind(arb), 0, data, "")
+            for s in slaves:
+                for a, d in s.handle_frame(arb, data):
+                    bus.send(can.Message(arbitration_id=a, data=bytes(d), is_extended_id=False))
+                    sim._emit("TX", 0, a, _cob_kind(a), s.node_id, list(d), "")
 
 # ===== 極簡 WebSocket（RFC6455）=====
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
@@ -261,22 +331,42 @@ def start_http(pref):
         return p
     return None
 
+ONE_ARM = "1:PHU20,2:PHU20,3:PHU17,4:PHU17,5:PHU14,6:PHU14,7:PHU14"
+
 def main():
-    port=int(sys.argv[1]) if len(sys.argv)>1 else 8765
-    http_pref=int(sys.argv[2]) if len(sys.argv)>2 else 8090
-    http_port=start_http(http_pref)
+    global MODE
+    import argparse
+    ap = argparse.ArgumentParser(description="PHU 假硬體：WebSocket + 靜態 HTTP + 3D，"
+                                             "可選真實 CAN 模式（當假 CiA402 從站測 F746 主站）")
+    ap.add_argument("ws_port", nargs="?", type=int, default=8765, help="WebSocket 埠（預設 8765）")
+    ap.add_argument("http_port", nargs="?", type=int, default=8090, help="HTTP 偏好埠（預設 8090，占用自動避讓）")
+    ap.add_argument("--interface", help="python-can interface（slcan/gs_usb…）；給了才進真實 CAN 模式")
+    ap.add_argument("--channel", help="CAN 通道（slcan=COM11 或 /dev/ttyACM0；gs_usb=0）")
+    ap.add_argument("--bitrate", type=int, default=1000000, help="位元率（預設 1Mbps）")
+    ap.add_argument("--nodes", default=ONE_ARM, help="真實 CAN 模式要模擬的 node（預設單臂 7 顆）")
+    args = ap.parse_args()
+
+    http_port=start_http(args.http_port)
     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind(("0.0.0.0", port)); s.listen(8)
-    print("假硬體伺服器啟動：")
-    print("  WebSocket : ws://localhost:%d"%port)
+    s.bind(("0.0.0.0", args.ws_port)); s.listen(8)
+
+    if args.interface:
+        MODE = "can"
+        threading.Thread(target=can_loop, daemon=True,
+                         args=(args.interface, args.channel, args.bitrate, parse_nodes(args.nodes))).start()
+
+    print("假硬體伺服器啟動（模式：%s）：" % ("真實 CAN" if args.interface else "純軟體 sim"))
+    print("  WebSocket : ws://localhost:%d"%args.ws_port)
     if http_port:
         print("  3D 檢視器 : http://localhost:%d/ui/viewer3d.html"%http_port)
         print("  模型/設定 : http://localhost:%d/sim_py/model/dual_arm.urdf"%http_port)
-        if http_port != http_pref:
-            print("  (偏好埠 %d 被占用，自動改用 %d)"%(http_pref, http_port))
+        if http_port != args.http_port:
+            print("  (偏好埠 %d 被占用，自動改用 %d)"%(args.http_port, http_port))
     else:
-        print("  [警告] HTTP 埠 %d..%d 皆被占用，靜態服務未啟動；請用 python3 ws_server.py 8765 <free-port>"%(http_pref, http_pref+20))
+        print("  [警告] HTTP 埠 %d..%d 皆被占用；請指定空埠：python3 ws_server.py 8765 <free-port>"%(args.http_port, args.http_port+20))
+    if args.interface:
+        print("  CAN       : %s @ %s（模擬 node %s）" % (args.interface, args.channel, args.nodes))
     print("  (Ctrl+C 結束)")
     while True:
         conn,_=s.accept()

@@ -38,6 +38,7 @@
 | 2026-07-02 | [P2 3D 檢視器](./changes/2026-07-02-p2-viewer3d-threejs.md) | viewer3d.html three.js TF 骨架 + 馬達零點紅線 + 手臂垂下 |
 | 2026-07-02 | [P3/P4 網格+設定](./changes/2026-07-02-p3-p4-mesh-and-settings.md) | CAD 網格載入 fallback + 零位校正面板（home offset） |
 | 2026-07-02 | [整體架構總覽 HTML](./changes/2026-07-02-architecture-overview-html.md) | 一頁式離線架構圖（資料流/TF/協定/路線圖） |
+| 2026-07-03 | [P5 3D×真實CAN整合](./changes/2026-07-03-p5-canopen-realbus-integration.md) | ws_server 真實 CAN 模式：PC 當假 CiA402 從站測 F746，3D 反映 |
 
 ## 設計文件
 

@@ -76,7 +76,7 @@
 
   <div id="view">
     <canvas id="cv"></canvas>
-    <div id="hud">模型：<b id="hModel">—</b>　rev <b id="hRev">—</b><br/>末端(L)：<b id="hL">—</b><br/>末端(R)：<b id="hR">—</b></div>
+    <div id="hud">模型：<b id="hModel">—</b>　rev <b id="hRev">—</b>　源：<b id="hSrc">—</b><br/>末端(L)：<b id="hL">—</b><br/>末端(R)：<b id="hR">—</b></div>
     <div class="legend">
       <div><span class="sw" style="background:#e23b3b"></span>零點紅線（轉子）　<span class="sw" style="background:#888"></span>零點參考（定子）</div>
       <div><span class="sw" style="background:#48bb78"></span>低扭矩 → <span class="sw" style="background:#f56565"></span>高扭矩　<span class="sw" style="background:#7fd3ff"></span>目標殘影</div>
@@ -367,6 +367,7 @@ function onTelemetry(t){
       live.motorMats[n].color.setRGB(0.28+0.7*f, 0.72-0.5*f, 0.42-0.3*f); }
   }
   document.getElementById('hRev').textContent=t.model_rev??'?';
+  document.getElementById('hSrc').textContent=t.source||'sim';
   updateEndEffectorHUD();
 }
 
