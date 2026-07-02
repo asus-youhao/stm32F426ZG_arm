@@ -46,8 +46,9 @@ class CanBus:
         self.tx += 1; self._logf("TX", NMT, data)
         for nid, m in self.nodes.items():
             if node == 0 or node == nid:
-                if cmd in (0x81, 0x82):   # reset
-                    m.statusword = 0x0040; m.enabled = False
+                if cmd in (0x81, 0x82):   # reset → 經狀態機回 switch-on-disabled
+                    m.apply_controlword(0x0080)   # fault reset（若在 FAULT）
+                    m.apply_controlword(0x0000)   # disable voltage
         # NMT 無回應
 
     # ---- SDO 寫（expedited）；回 True=成功 / False=abort ----

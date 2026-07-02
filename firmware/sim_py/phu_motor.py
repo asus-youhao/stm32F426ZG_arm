@@ -205,21 +205,25 @@ class PhuMotor:
         return e[5] if e else 0
 
     def write_od(self, index, sub, value):
+        """寫物件字典。回傳 True=成功 / False=不可寫（呼叫端應回 SDO abort）。"""
         if index == 0x6040:
-            self.apply_controlword(value); return
+            self.apply_controlword(value); return True
         if index == 0x6060:                       # 模式
             self.mode = self._i8(value)
             if self.mode in POSITION_MODES:       # 切位置模式 → 對齊目標
                 self.target_counts = self._counts()
-            return
-        if index == 0x607A: self.target_counts = self._i32(value); return
-        if index == 0x60FF: self.target_vel = self._i32(value); return
-        if index == 0x6071: self.target_torque = self._i16(value); return
-        # 一般可寫物件 → 存起來（若 OD 標 RW）
-        if phu_od.is_writable(index, sub) or (index, sub) in self._od:
+            return True
+        if index == 0x607A: self.target_counts = self._i32(value); return True
+        if index == 0x60FF: self.target_vel = self._i32(value); return True
+        if index == 0x6071: self.target_torque = self._i16(value); return True
+        e = phu_od.entry(index, sub)
+        if e is not None:                         # 已知物件 → 依 OD 存取權
+            if e[2] not in ("RW", "WO"):
+                return False                      # RO/CONST → SDO abort 0x06010002
             self._od[(index, sub)] = value
-        else:
-            self._od[(index, sub)] = value        # 寬鬆：未知物件也接受
+            return True
+        self._od[(index, sub)] = value            # 未知物件：寬鬆接受（實機保留區）
+        return True
 
     # ================= 物理步進 =================
     def step(self, dt):

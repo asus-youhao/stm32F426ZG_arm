@@ -17,8 +17,8 @@ def main():
     h = Host(model="PHU17", node=1)
     m = h.motor
 
-    # OD 規模與存取
-    check(len(OD) > 100, "OD 條目應 > 100,實得 %d" % len(OD))
+    # OD 規模與存取（v1.06 手冊抽出的精選表,約 45 條）
+    check(len(OD) >= 40, "OD 條目應 >= 40,實得 %d" % len(OD))
     check(od_access(0x6041) == "RO", "0x6041 statusword 應為 RO")
 
     # 讀身分/組態
@@ -43,7 +43,8 @@ def main():
     for cw in (0x80, 0x06, 0x07, 0x0F):
         h.pdo(cw, 0)
     check(m.enabled, "使能後 enabled")
-    check(h.read(0x6041) == 0x0027, "statusword OP_ENABLED")
+    # 遮罩比較：新模型含動態位元（bit10 target-reached / bit12 setpoint-ack）
+    check((h.read(0x6041) & 0x006F) == 0x0027, "statusword OP_ENABLED")
     for _ in range(300):
         h.pdo(0x0F, 150000)
     check(h.read(0x6064) > 100000, "actual position 已朝目標移動")

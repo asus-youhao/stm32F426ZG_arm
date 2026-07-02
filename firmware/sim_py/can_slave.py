@@ -124,10 +124,14 @@ class CiA402Slave:
 
         if ccs == 0x20:                     # download（寫，expedited）
             value = data[4] | (data[5] << 8) | (data[6] << 16) | (data[7] << 24)
-            self.motor.write_od(index, sub, value)
-            resp = [0x60, index & 0xFF, index >> 8, sub, 0, 0, 0, 0]
+            ok = self.motor.write_od(index, sub, value)
+            if ok:
+                resp = [0x60, index & 0xFF, index >> 8, sub, 0, 0, 0, 0]
+            else:                           # 寫唯讀物件 → abort 0x06010002
+                resp = [0x80, index & 0xFF, index >> 8, sub, 0x02, 0x00, 0x01, 0x06]
             if self.verbose:
-                print("    [SDO ] wr  0x%04X:%02X = 0x%08X" % (index, sub, value))
+                print("    [SDO ] wr  0x%04X:%02X = 0x%08X -> %s"
+                      % (index, sub, value, "OK" if ok else "ABORT(RO)"))
             return (SDO_TX + self.node_id, resp)
 
         # 不支援的 SDO → abort
