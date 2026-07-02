@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>雙臂人形 3D 檢視器 — PHU 假硬體</title>
+<style>
+  :root{ --bg:#0d1117; --panel:#161b22; --line:#2a3038; --accent:#4fd1c5;
+         --good:#48bb78; --warn:#f56565; --tx:#f6ad55; --rx:#63b3ed; --txt:#c9d1d9; }
+  *{box-sizing:border-box} html,body{margin:0;height:100%;font-family:system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--txt)}
+  #app{display:flex;height:100vh}
+  #side{width:340px;min-width:340px;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:12px}
+  #view{flex:1;position:relative}
+  #cv{width:100%;height:100%;display:block}
+  h1{font-size:15px;margin:0 0 8px} h2{font-size:12px;color:var(--accent);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+  .panel{background:#0f141b;border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:10px}
+  .row{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px}
+  .row label{flex:0 0 96px;color:#9aa4b0} .row .val{margin-left:auto;font-variant-numeric:tabular-nums;color:#e6edf3}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  button{background:#1f6feb;color:#fff;border:0;border-radius:6px;padding:7px 10px;font-size:12px;cursor:pointer}
+  button:hover{filter:brightness(1.1)} button.est{background:var(--warn)} button.sec{background:#30363d}
+  .btns{display:flex;gap:6px;flex-wrap:wrap}
+  .chk{display:flex;align-items:center;gap:6px;font-size:12px;margin:3px 0}
+  #conn{font-size:12px;padding:3px 8px;border-radius:10px;background:#30363d}
+  #conn.ok{background:var(--good);color:#04210f} #conn.no{background:var(--warn);color:#210404}
+  #hud{position:absolute;top:10px;left:10px;font-size:12px;background:rgba(13,17,23,.75);border:1px solid var(--line);border-radius:8px;padding:8px 10px;line-height:1.6}
+  #hud b{color:var(--accent)}
+  .legend{position:absolute;bottom:10px;left:10px;font-size:11px;background:rgba(13,17,23,.75);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+  .jgrid{max-height:250px;overflow:auto}
+  small{color:#7d8590}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <h1>雙臂人形 3D 檢視器 <span id="conn" class="no">未連線</span></h1>
+    <small id="hostinfo"></small>
+
+    <h2>控制</h2>
+    <div class="panel">
+      <div class="btns">
+        <button id="bEnable">使能全軸</button>
+        <button id="bEstop" class="est">急停 ESTOP</button>
+      </div>
+      <div class="btns" style="margin-top:6px">
+        <button id="bHome" class="sec">姿態：手臂垂下(零)</button>
+        <button id="bDemo" class="sec">姿態：示範彎曲</button>
+      </div>
+    </div>
+
+    <h2>顯示</h2>
+    <div class="panel">
+      <label class="chk"><input type="checkbox" id="dZero" checked/> 馬達零點紅線</label>
+      <label class="chk"><input type="checkbox" id="dGhost" checked/> 目標姿態殘影</label>
+      <label class="chk"><input type="checkbox" id="dAxes"/> TF 座標軸</label>
+      <label class="chk"><input type="checkbox" id="dTorque" checked/> 依扭矩上色</label>
+      <div class="row"><label>角度單位</label>
+        <select id="dUnit"><option value="deg">度 (°)</option><option value="rad">弧度 (rad)</option></select>
+      </div>
+    </div>
+
+    <h2>設定</h2>
+    <div class="panel">
+      <div class="row"><label>控制 Kp</label><input type="range" id="sKp" min="20" max="300" step="5" value="120"/><span class="val" id="vKp">120</span></div>
+      <small>拉動後放開 → 寫回 robot_config.json（set_config）</small>
+    </div>
+
+    <h2>關節 Jog</h2>
+    <div class="panel jgrid" id="jointPanel"><small>連線後載入…</small></div>
+  </div>
+
+  <div id="view">
+    <canvas id="cv"></canvas>
+    <div id="hud">模型：<b id="hModel">—</b>　rev <b id="hRev">—</b><br/>末端(L)：<b id="hL">—</b><br/>末端(R)：<b id="hR">—</b></div>
+    <div class="legend">
+      <div><span class="sw" style="background:#e23b3b"></span>零點紅線（轉子）　<span class="sw" style="background:#888"></span>零點參考（定子）</div>
+      <div><span class="sw" style="background:#48bb78"></span>低扭矩 → <span class="sw" style="background:#f56565"></span>高扭矩　<span class="sw" style="background:#7fd3ff"></span>目標殘影</div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+
+// ---- Z-up 世界（機器人慣例：Z 上、X 前、Y 左）----
+THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
+
+const HOST = location.hostname || 'localhost';
+const HTTP = location.origin.startsWith('http') ? location.origin : `http://${HOST}:8090`;
+const WS_URL = `ws://${HOST}:8765`;
+document.getElementById('hostinfo').textContent = `HTTP ${HTTP} · WS ${WS_URL}`;
+
+// ============================ three.js 場景 ============================
+const canvas = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(devicePixelRatio);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d1117);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 100);
+camera.position.set(1.4, -1.4, 0.9);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0.25);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const dl = new THREE.DirectionalLight(0xffffff, 0.9); dl.position.set(2, -3, 4); scene.add(dl);
+const dl2 = new THREE.DirectionalLight(0x88aaff, 0.35); dl2.position.set(-2, 2, 1); scene.add(dl2);
+
+// 地面格線（Z-up：格線放在 XY 平面 → 由 XZ 轉 90°）
+const grid = new THREE.GridHelper(3, 30, 0x2a3038, 0x1a1f26);
+grid.rotation.x = Math.PI/2; scene.add(grid);
+scene.add(new THREE.AxesHelper(0.25));   // 世界原點 XYZ
+
+function resize(){ const w=canvas.clientWidth, h=canvas.clientHeight;
+  renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(canvas);
+
+// ============================ 幾何工具 ============================
+const Y = new THREE.Vector3(0,1,0), Z = new THREE.Vector3(0,0,1);
+function alignQuat(from, to){ return new THREE.Quaternion().setFromUnitVectors(from.clone().normalize(), to.clone().normalize()); }
+function perp(axis){ // 取一條與 axis 垂直的單位向量
+  const a = axis.clone().normalize();
+  let t = Math.abs(a.z) < 0.9 ? new THREE.Vector3(0,0,1) : new THREE.Vector3(1,0,0);
+  return new THREE.Vector3().crossVectors(a, t).normalize();
+}
+const MOTOR_DIM = { PHU20:{r:0.052,l:0.09}, PHU17:{r:0.042,l:0.075}, PHU14:{r:0.032,l:0.06} };
+
+// ============================ URDF 解析（瀏覽器端）============================
+function parseURDF(xmlText){
+  const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
+  const f3 = (s,d)=>{ if(!s) return d.slice(); const v=s.trim().split(/\s+/).map(Number); return v.concat(d).slice(0,3); };
+  const links = {};
+  for(const l of xml.querySelectorAll('link')){
+    const vs=[];
+    for(const v of l.querySelectorAll('visual')){
+      const o=v.querySelector('origin'); const g=v.querySelector('geometry'); const c=v.querySelector('material color');
+      const vis={ origin_xyz:f3(o?.getAttribute('xyz'),[0,0,0]), origin_rpy:f3(o?.getAttribute('rpy'),[0,0,0]),
+                  type:null, params:{}, color:null };
+      if(c){ vis.color = (c.getAttribute('rgba')||'').trim().split(/\s+/).map(Number); }
+      const box=g?.querySelector('box'), cyl=g?.querySelector('cylinder'), mesh=g?.querySelector('mesh');
+      if(box){ vis.type='box'; vis.params.size=f3(box.getAttribute('size'),[0.1,0.1,0.1]); }
+      else if(cyl){ vis.type='cylinder'; vis.params.radius=+cyl.getAttribute('radius'); vis.params.length=+cyl.getAttribute('length'); }
+      else if(mesh){ vis.type='mesh'; vis.params.filename=mesh.getAttribute('filename'); }
+      vs.push(vis);
+    }
+    links[l.getAttribute('name')] = { visuals:vs };
+  }
+  const joints=[];
+  for(const j of xml.querySelectorAll('joint')){
+    const o=j.querySelector('origin'), ax=j.querySelector('axis'), lim=j.querySelector('limit');
+    joints.push({ name:j.getAttribute('name'), type:j.getAttribute('type'),
+      parent:j.querySelector('parent').getAttribute('link'), child:j.querySelector('child').getAttribute('link'),
+      xyz:f3(o?.getAttribute('xyz'),[0,0,0]), rpy:f3(o?.getAttribute('rpy'),[0,0,0]),
+      axis:f3(ax?.getAttribute('xyz'),[0,0,1]),
+      limit: lim ? {lower:+lim.getAttribute('lower'), upper:+lim.getAttribute('upper')} : null });
+  }
+  const children = new Set(joints.map(j=>j.child));
+  const root = Object.keys(links).find(n=>!children.has(n));
+  return { links, joints, root, name: xml.querySelector('robot')?.getAttribute('name')||'robot' };
+}
+
+// ============================ 建場景圖（TF 樹）============================
+function makeVisual(vis){
+  const col = vis.color ? new THREE.Color(vis.color[0],vis.color[1],vis.color[2]) : new THREE.Color(0.6,0.6,0.6);
+  const mat = new THREE.MeshStandardMaterial({ color:col, metalness:0.3, roughness:0.6,
+                 transparent:(vis.color&&vis.color[3]<1), opacity:vis.color?vis.color[3]:1 });
+  let geo;
+  if(vis.type==='box') geo=new THREE.BoxGeometry(...vis.params.size);
+  else if(vis.type==='cylinder'){ geo=new THREE.CylinderGeometry(vis.params.radius,vis.params.radius,vis.params.length,24); }
+  else geo=new THREE.SphereGeometry(0.03,16,12);
+  const m=new THREE.Mesh(geo,mat);
+  if(vis.type==='cylinder') m.rotation.x=Math.PI/2;   // URDF 圓柱沿 Z；THREE 沿 Y → 轉正
+  m.position.set(...vis.origin_xyz);
+  return m;
+}
+
+// 建一具骨架；ghost=true 時半透明、且回傳可由 qTarget 驅動的 pivots
+function buildSkeleton(robot, {ghost=false}={}){
+  const linkGroups = {}; const jointPivots = {}; const motorMats = {}; const zeroMarks=[]; const tfAxes=[];
+  for(const name in robot.links){ linkGroups[name]=new THREE.Group(); linkGroups[name].userData._link=name; }
+  const rootGroup = linkGroups[robot.root];
+
+  // link 視覺
+  for(const name in robot.links){
+    for(const vis of robot.links[name].visuals){
+      const mesh=makeVisual(vis);
+      if(ghost){ mesh.material.transparent=true; mesh.material.opacity=0.18; mesh.material.color.set(0x7fd3ff); }
+      linkGroups[name].add(mesh);
+    }
+  }
+  // joint：origin 群 + 繞軸 pivot；馬達裝在 origin 群（定子），紅線裝在 pivot（轉子）
+  for(const j of robot.joints){
+    const originG=new THREE.Group(); originG.position.set(...j.xyz);
+    originG.quaternion.copy(eulerRPY(j.rpy));
+    linkGroups[j.parent].add(originG);
+    const pivot=new THREE.Group(); originG.add(pivot);
+    pivot.add(linkGroups[j.child]);
+    if(j.type==='revolute'||j.type==='continuous'){
+      jointPivots[j.name]={pivot, axis:new THREE.Vector3(...j.axis).normalize()};
+      // ---- 馬達本體（圓柱，沿轉軸）----
+      const model = MODEL_OF[j.name] || 'PHU14'; const dim = MOTOR_DIM[model];
+      const axisV=new THREE.Vector3(...j.axis);
+      const mat=new THREE.MeshStandardMaterial({ color:0x9aa4b0, metalness:0.5, roughness:0.4,
+                   transparent:ghost, opacity:ghost?0.15:1 });
+      const body=new THREE.Mesh(new THREE.CylinderGeometry(dim.r,dim.r,dim.l,28), mat);
+      body.quaternion.copy(alignQuat(Y, axisV));
+      originG.add(body); motorMats[j.name]=mat;
+      // ---- 零點參考刻痕（定子，固定）----
+      const pdir=perp(axisV);
+      if(!ghost){
+        const tick=markMesh(dim, pdir, axisV, 0x888888);
+        originG.add(tick);
+        // ---- 零點紅線（轉子，隨 pivot 轉）----
+        const red=markMesh(dim, pdir, axisV, 0xe23b3b);
+        pivot.add(red); zeroMarks.push(tick, red);
+      }
+      // TF 軸
+      const ax=new THREE.AxesHelper(dim.r*1.8); ax.visible=false; originG.add(ax); tfAxes.push(ax);
+    }
+  }
+  return { rootGroup, jointPivots, motorMats, zeroMarks, tfAxes };
+}
+function eulerRPY(rpy){ const e=new THREE.Euler(rpy[0],rpy[1],rpy[2],'ZYX'); return new THREE.Quaternion().setFromEuler(e); }
+function markMesh(dim, pdir, axisV, color){
+  // 細長方體，貼在馬達外緣、沿半徑方向、與轉軸垂直
+  const len=dim.r*1.15, thick=Math.max(0.004, dim.r*0.14);
+  const g=new THREE.BoxGeometry(thick, len, dim.l*0.55);
+  const m=new THREE.Mesh(g, new THREE.MeshStandardMaterial({color, emissive:color, emissiveIntensity:0.25}));
+  // box 預設沿 Y；我們要它沿 pdir（半徑），並讓其長度中心落在半徑一半處
+  const q=alignQuat(Y, pdir); m.quaternion.copy(q);
+  m.position.copy(pdir.clone().multiplyScalar(dim.r*0.6));
+  // 讓 box 的「厚度面」朝軸向——再繞 pdir 對齊 axis（近似即可，視覺用途）
+  return m;
+}
+
+// ============================ 狀態 ============================
+let robot=null, live=null, ghost=null, jointOrder=[], MODEL_OF={}, LIMITS={};
+let cfg={display:{}}, ws=null, unit='deg';
+
+async function loadModel(){
+  const urdfTxt = await (await fetch(`${HTTP}/sim_py/model/dual_arm.urdf`)).text();
+  cfg = await (await fetch(`${HTTP}/sim_py/model/robot_config.json`)).json();
+  robot = parseURDF(urdfTxt);
+  jointOrder = robot.joints.filter(j=>j.type==='revolute'||j.type==='continuous').map(j=>j.name);
+  MODEL_OF={}; LIMITS={};
+  const jc = cfg.joints||{};
+  jointOrder.forEach(n=>{ MODEL_OF[n]=(jc[n]&&jc[n].model)||'PHU14';
+    LIMITS[n]=jc[n]?{lo:jc[n].soft_lower,hi:jc[n].soft_upper}:{lo:-3.14,hi:3.14}; });
+  window.MODEL_OF=MODEL_OF;
+
+  // 清掉舊骨架
+  if(live) scene.remove(live.rootGroup); if(ghost) scene.remove(ghost.rootGroup);
+  live = buildSkeleton(robot,{ghost:false});  scene.add(live.rootGroup);
+  ghost= buildSkeleton(robot,{ghost:true});   scene.add(ghost.rootGroup);
+  document.getElementById('hModel').textContent = robot.name;
+  document.getElementById('hRev').textContent = (cfg.meta&&cfg.meta.rev)||'?';
+  buildJointPanel(); applyDisplay();
+}
+
+function setJointAngles(sk, anglesByName){
+  for(const name in sk.jointPivots){
+    const jp=sk.jointPivots[name]; const q=anglesByName[name]||0;
+    jp.pivot.quaternion.setFromAxisAngle(jp.axis, q);
+  }
+}
+
+// ============================ 側欄 UI ============================
+function buildJointPanel(){
+  const p=document.getElementById('jointPanel'); p.innerHTML='';
+  jointOrder.forEach((name,i)=>{
+    const lim=LIMITS[name]; const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<label title="${name}">${name.replace(/_/g,' ')}</label>
+      <input type="range" data-i="${i}" min="${lim.lo}" max="${lim.hi}" step="0.01" value="0"/>
+      <span class="val" id="jv${i}">0</span>`;
+    p.appendChild(row);
+  });
+  p.querySelectorAll('input[type=range]').forEach(s=>{
+    s.addEventListener('input',e=>{ const i=+e.target.dataset.i, v=+e.target.value;
+      document.getElementById('jv'+i).textContent = fmtAng(v);
+      send({cmd:'jog', joint:i, value:v}); });
+  });
+}
+function fmtAng(rad){ return unit==='deg' ? (rad*180/Math.PI).toFixed(1)+'°' : rad.toFixed(3); }
+
+function applyDisplay(){
+  const d=cfg.display||{};
+  const zero=document.getElementById('dZero').checked, gh=document.getElementById('dGhost').checked,
+        axes=document.getElementById('dAxes').checked;
+  if(live){ live.zeroMarks.forEach(m=>m.visible=zero); live.tfAxes.forEach(a=>a.visible=axes);
+            [...Object.values(ghost.motorMats)].forEach(m=>m.visible=gh);
+            ghost.rootGroup.visible=gh; }
+}
+
+// ============================ WebSocket ============================
+function connect(){
+  ws=new WebSocket(WS_URL);
+  ws.onopen =()=>setConn(true);
+  ws.onclose=()=>{ setConn(false); setTimeout(connect,1200); };
+  ws.onmessage=e=>{ let t; try{t=JSON.parse(e.data);}catch{return;} onTelemetry(t); };
+}
+function setConn(ok){ const c=document.getElementById('conn'); c.className=ok?'ok':'no'; c.textContent=ok?'已連線':'未連線'; }
+function send(o){ if(ws&&ws.readyState===1) ws.send(JSON.stringify(o)); }
+
+let lastRev=null;
+function onTelemetry(t){
+  if(!robot) return;
+  if(t.model_rev!=null && lastRev!=null && t.model_rev!==lastRev){ loadModel(); }  // 設定改動 → 重載
+  lastRev=t.model_rev;
+  const actual={}, target={}, torque={};
+  (t.motors||[]).forEach((m,i)=>{ const n=jointOrder[i]; if(!n) return;
+    actual[n]=m.q||0; target[n]=m.qTarget||0; torque[n]=(m.peak? (m.torque/m.peak):0); });
+  setJointAngles(live, actual); setJointAngles(ghost, target);
+  // 扭矩上色
+  if(document.getElementById('dTorque').checked && live){
+    for(const n in live.motorMats){ const f=Math.min(1,Math.abs(torque[n]||0)*4);
+      live.motorMats[n].color.setRGB(0.28+0.7*f, 0.72-0.5*f, 0.42-0.3*f); }
+  }
+  document.getElementById('hRev').textContent=t.model_rev??'?';
+  updateEndEffectorHUD();
+}
+
+// 末端位置 HUD（從場景圖世界座標取手 link）
+const _v=new THREE.Vector3();
+function updateEndEffectorHUD(){
+  if(!live) return;
+  scene.updateMatrixWorld();
+  const L=findLinkGroup(live,'L_hand'), R=findLinkGroup(live,'R_hand');
+  if(L){ L.getWorldPosition(_v); document.getElementById('hL').textContent=fmtXYZ(_v); }
+  if(R){ R.getWorldPosition(_v); document.getElementById('hR').textContent=fmtXYZ(_v); }
+}
+function findLinkGroup(sk,name){ // link group 是某 pivot 的子；用名稱查——建構時未存，簡單遍歷
+  let found=null; sk.rootGroup.traverse(o=>{ if(o.userData._link===name) found=o; }); return found;
+}
+function fmtXYZ(v){ return `(${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)})`; }
+
+// ============================ 事件 ============================
+document.getElementById('bEnable').onclick=()=>send({cmd:'enable'});
+document.getElementById('bEstop').onclick =()=>send({cmd:'estop'});
+document.getElementById('bHome').onclick  =()=>{ send({cmd:'preset',name:'home_arms_down'}); zeroSliders(); };
+document.getElementById('bDemo').onclick  =()=>send({cmd:'preset',name:'demo_bend'});
+['dZero','dGhost','dAxes','dTorque'].forEach(id=>document.getElementById(id).addEventListener('change',applyDisplay));
+document.getElementById('dUnit').onchange=e=>{ unit=e.target.value; };
+const sKp=document.getElementById('sKp');
+sKp.addEventListener('input',e=>document.getElementById('vKp').textContent=e.target.value);
+sKp.addEventListener('change',e=>send({cmd:'set_config', path:'control.Kp', value:+e.target.value}));
+function zeroSliders(){ document.querySelectorAll('#jointPanel input').forEach((s,i)=>{s.value=0;document.getElementById('jv'+i).textContent=fmtAng(0);}); }
+
+// ============================ 主迴圈 ============================
+function tick(){ controls.update(); renderer.render(scene,camera); requestAnimationFrame(tick); }
+resize(); tick();
+loadModel().then(connect).catch(err=>{ console.error(err);
+  document.getElementById('hModel').textContent='模型載入失敗（請用 http:// 開啟，見 README）'; });
+</script>
+</body>
+</html>

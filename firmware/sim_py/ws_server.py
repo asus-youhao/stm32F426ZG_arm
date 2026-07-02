@@ -39,7 +39,7 @@ class Sim:
     def __init__(self):
         self.M = [PhuMotor(n, m, nm) for (nm,b,n,m) in MAP]
         self.bus = [b for (nm,b,n,m) in MAP]
-        self.goal = [0,0.3,0,0.7,0,0.5,0, 0,0.3,0,0.7,0,0.5,0]
+        self.goal = [0.0]*14          # 初始姿態 = 手臂垂下（全零，見設計文件零點慣例）
         self.cmd = [0.0]*14
         self.estop = False
         self.enseq = 0
@@ -249,22 +249,34 @@ class _Handler(SimpleHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
-def http_server(port):
+def start_http(pref):
+    """在 pref..pref+20 找一個可用埠啟動靜態 HTTP，回傳實際埠（找不到回 None）。"""
     handler = functools.partial(_Handler, directory=FIRMWARE_DIR)
-    httpd = ThreadingHTTPServer(("0.0.0.0", port), handler)
-    httpd.serve_forever()
+    for p in range(pref, pref + 21):
+        try:
+            httpd = ThreadingHTTPServer(("0.0.0.0", p), handler)
+        except OSError:
+            continue
+        threading.Thread(target=httpd.serve_forever, daemon=True).start()
+        return p
+    return None
 
 def main():
     port=int(sys.argv[1]) if len(sys.argv)>1 else 8765
-    http_port=int(sys.argv[2]) if len(sys.argv)>2 else 8080
-    threading.Thread(target=http_server, args=(http_port,), daemon=True).start()
+    http_pref=int(sys.argv[2]) if len(sys.argv)>2 else 8090
+    http_port=start_http(http_pref)
     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(("0.0.0.0", port)); s.listen(8)
     print("假硬體伺服器啟動：")
     print("  WebSocket : ws://localhost:%d"%port)
-    print("  3D 檢視器 : http://localhost:%d/ui/viewer3d.html"%http_port)
-    print("  模型/設定 : http://localhost:%d/sim_py/model/dual_arm.urdf"%http_port)
+    if http_port:
+        print("  3D 檢視器 : http://localhost:%d/ui/viewer3d.html"%http_port)
+        print("  模型/設定 : http://localhost:%d/sim_py/model/dual_arm.urdf"%http_port)
+        if http_port != http_pref:
+            print("  (偏好埠 %d 被占用，自動改用 %d)"%(http_pref, http_port))
+    else:
+        print("  [警告] HTTP 埠 %d..%d 皆被占用，靜態服務未啟動；請用 python3 ws_server.py 8765 <free-port>"%(http_pref, http_pref+20))
     print("  (Ctrl+C 結束)")
     while True:
         conn,_=s.accept()
