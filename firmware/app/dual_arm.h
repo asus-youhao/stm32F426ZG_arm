@@ -27,6 +27,7 @@ typedef struct {
     uint16_t statusword;     /* 回授狀態字 */
     uint16_t controlword;    /* 目前送出的控制字 */
     bool     enabled;        /* 是否已進入 OPERATION_ENABLED */
+    bool     present;        /* init 時有回應（bus 活著且 SDO 設定成功） */
     uint32_t fb_seq;         /* 上次處理過的回授序號 */
     bool     fb_fresh;       /* 本 tick 是否收到「新」TPDO 回授（看門狗用） */
 } joint_state_t;
@@ -35,8 +36,16 @@ typedef struct {
 extern const joint_cfg_t g_joints[ARM_COUNT * JOINTS_PER_ARM];
 extern joint_state_t      g_jstate[ARM_COUNT * JOINTS_PER_ARM];
 
-/** @brief 初始化兩條 bus + 全部關節（NMT、模式 CSP、PDO 映射、使能）。 */
+/**
+ * @brief 初始化兩條 bus + 全部關節（NMT、模式 CSP、PDO 映射、使能）。
+ *
+ * 優雅降級：單條 bus 失敗或個別節點無回應不會中止——缺席軸標記
+ * present=false 後跳過（單臂/單軸 HIL 也能跑）。全部缺席才回錯誤。
+ */
 co_status_t dual_arm_init(void);
+
+/** @brief init 後實際在線的軸數（present==true）。 */
+int dual_arm_present_count(void);
 
 /** @brief 控制週期呼叫：送 RPDO(目標) + 收 TPDO(回授) + 維持使能。 */
 void dual_arm_tick(void);

@@ -1,12 +1,15 @@
 /**
  * @file    main.c
- * @brief   Nucleo-F746ZG bring-up 韌體入口（WP2 單軸 SDO 驗證 + 選擇性轉動）
+ * @brief   Nucleo-F746ZG 韌體入口：WP2 bring-up 驗證 → 全棧控制迴圈
  *
  * 流程：HAL_Init → 216 MHz 時脈 → USART3(VCP) log → 設定 CAN handle →
- *       bringup_single_axis(CO_BUS_LEFT, node=1) → 印出報告 → 閒置。
+ *       bringup_single_axis(CO_BUS_LEFT, node=1) → 印出報告 →
+ *       app_main_init()（L1–L4 + WP6,缺 bus/缺軸優雅降級）→
+ *       TIM6 500 Hz → app_main_tick() → 主迴圈 1 Hz 印系統狀態。
  *
  * 硬體接線（務必與本檔一致）：
  *   - CAN1_RX = PD0, CAN1_TX = PD1（AF9）→ 接 CAN transceiver → PHU 關節
+ *   - CAN2_RX = PB12, CAN2_TX = PB13（AF9）→ 右臂（未接時自動降級單臂）
  *   - 兩端各 120Ω 終端電阻；關節 24–48V 供電、共地
  *   - log：USART3 = Nucleo ST-Link VCP（PD8=TX/PD9=RX, 115200-8-N-1）
  *
@@ -15,16 +18,24 @@
 #include "stm32f7xx_hal.h"
 #include "canopen.h"
 #include "co_bxcan.h"
+#include "dual_arm.h"
+#include "control_rate.h"
 #include "test/bringup.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
 /* ---- co_bxcan.c 以 extern 取用這兩個 handle ---- */
-CAN_HandleTypeDef hcan1;   /* 左臂 bus（bring-up 用） */
-CAN_HandleTypeDef hcan2;   /* 右臂 bus（本版未啟用，僅供連結） */
+CAN_HandleTypeDef hcan1;   /* 左臂 bus */
+CAN_HandleTypeDef hcan2;   /* 右臂 bus（未接 transceiver 時 init 失敗 → 降級） */
+TIM_HandleTypeDef htim6;   /* 500 Hz 控制 tick（stm32f7xx_it.c 取用） */
 
 static UART_HandleTypeDef huart3;   /* ST-Link VCP，log 用 */
+
+/* ---- app_main.c（L1–L4 全棧）---- */
+void app_main_init(void);
+void app_main_tick(void);
+const char *app_sys_state(void);
 
 /* ---- bring-up 測試參數（可依需要調整）---- */
 #define BRINGUP_NODE        1        /* 關節節點 ID（出廠多為 1）*/
@@ -33,6 +44,7 @@ static UART_HandleTypeDef huart3;   /* ST-Link VCP，log 用 */
 
 static void SystemClock_Config(void);
 static void UART3_Init(void);
+static void TIM6_Init(void);
 static void Error_Handler(void);
 
 /* ===================== bring-up log → USART3 ===================== */
@@ -96,6 +108,34 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef *hcan)
     }
 }
 
+/* ===================== TIM6：500 Hz 控制 tick ===================== */
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM6) {
+        __HAL_RCC_TIM6_CLK_ENABLE();
+        /* 比 CAN RX(5) 低一階,tick 可被回授中斷搶佔 */
+        HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 6, 0);
+        HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
+    }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM6) app_main_tick();
+}
+
+static void TIM6_Init(void)
+{
+    /* APB1=54 MHz → APB1 timer clock = 108 MHz。
+       108 分頻 → 1 MHz 計數,週期 CONTROL_DT_US(2000) → 500 Hz。 */
+    htim6.Instance               = TIM6;
+    htim6.Init.Prescaler         = 108 - 1;
+    htim6.Init.CounterMode       = TIM_COUNTERMODE_UP;
+    htim6.Init.Period            = CONTROL_DT_US - 1;
+    htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+    if (HAL_TIM_Base_Init(&htim6) != HAL_OK) Error_Handler();
+}
+
 /* ===================== UART MspInit ===================== */
 void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 {
@@ -150,9 +190,34 @@ int main(void)
     bringup_log("  pos_before=%ld pos_after=%ld moved=%d\r\n",
                 (long)rep.pos_before, (long)rep.pos_after, rep.moved);
 
+    /* ============ 全棧控制迴圈（L1–L4 + WP6） ============ */
+    bringup_log("\r\n=== app phase: init L1-L4 stack ===\r\n");
+    app_main_init();
+    int present = dual_arm_present_count();
+    bringup_log("dual_arm present joints = %d / 14%s\r\n", present,
+                present ? "" : "  (init FAILED, idle)");
+
+    if (present > 0) {
+        TIM6_Init();
+        HAL_TIM_Base_Start_IT(&htim6);          /* 500 Hz → app_main_tick() */
+        bringup_log("TIM6 started: %u us tick (500 Hz)\r\n",
+                    (unsigned)CONTROL_DT_US);
+    }
+
+    uint32_t last_print = HAL_GetTick();
     for (;;) {
         HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);  /* Nucleo LD1 (PB0) 心跳 */
         HAL_Delay(500);
+
+        if (present > 0 && (HAL_GetTick() - last_print) >= 1000) {
+            last_print = HAL_GetTick();
+            bringup_log("[app] sys=%s J0 sw=0x%04X pos=%ld tgt=%ld drops=%lu\r\n",
+                        app_sys_state(),
+                        g_jstate[0].statusword,
+                        (long)g_jstate[0].pos_actual,
+                        (long)g_jstate[0].target_pos,
+                        (unsigned long)dual_arm_tx_drops());
+        }
     }
 }
 

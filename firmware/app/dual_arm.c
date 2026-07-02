@@ -55,49 +55,61 @@ static co_status_t map_pdo_csp(co_bus_t bus, uint8_t node)
     return CO_OK;
 }
 
+static bool s_bus_ok[CO_BUS_COUNT];
+
 co_status_t dual_arm_init(void)
 {
-    co_status_t st;
+    /* 1) 初始化兩條 bxCAN channel——單條失敗不中止（單臂/HIL 降級運轉） */
+    s_bus_ok[CO_BUS_LEFT]  = (co_bxcan_init(CO_BUS_LEFT)  == CO_OK);
+    s_bus_ok[CO_BUS_RIGHT] = (co_bxcan_init(CO_BUS_RIGHT) == CO_OK);
+    if (!s_bus_ok[CO_BUS_LEFT] && !s_bus_ok[CO_BUS_RIGHT]) return CO_ERR_STATE;
 
-    /* 1) 初始化兩條 bxCAN channel */
-    st = co_bxcan_init(CO_BUS_LEFT);  if (st) return st;
-    st = co_bxcan_init(CO_BUS_RIGHT); if (st) return st;
-
-    /* 2) 重置通訊 + 進入 Pre-Operational（廣播） */
-    for (int b = 0; b < CO_BUS_COUNT; b++) {
-        co_nmt_send((co_bus_t)b, CO_NMT_RESET_COMM, 0);
-    }
+    /* 2) 重置通訊 + 進入 Pre-Operational（廣播,只對活著的 bus） */
+    for (int b = 0; b < CO_BUS_COUNT; b++)
+        if (s_bus_ok[b]) co_nmt_send((co_bus_t)b, CO_NMT_RESET_COMM, 0);
     HAL_Delay(100);
-    for (int b = 0; b < CO_BUS_COUNT; b++) {
-        co_nmt_send((co_bus_t)b, CO_NMT_PRE_OP, 0);
-    }
+    for (int b = 0; b < CO_BUS_COUNT; b++)
+        if (s_bus_ok[b]) co_nmt_send((co_bus_t)b, CO_NMT_PRE_OP, 0);
     HAL_Delay(20);
 
-    /* 3) 逐軸：設模式 CSP、設 PDO 映射 */
+    /* 3) 逐軸：設模式 CSP、設 PDO 映射。SDO 無回應 → 缺席,跳過不中止 */
+    int present = 0;
     for (int i = 0; i < ARM_COUNT * JOINTS_PER_ARM; i++) {
         const joint_cfg_t *jc = &g_joints[i];
-        st = cia402_set_mode(jc->bus, jc->node_id, MODE_CSP);
-        if (st) return st;
-        st = map_pdo_csp(jc->bus, jc->node_id);
-        if (st) return st;
-        g_jstate[i].controlword = CW_SHUTDOWN;
+        joint_state_t *js = &g_jstate[i];
+        js->present = false;
+        if (!s_bus_ok[jc->bus]) continue;
+        if (cia402_set_mode(jc->bus, jc->node_id, MODE_CSP) != CO_OK) continue;
+        if (map_pdo_csp(jc->bus, jc->node_id) != CO_OK) continue;
+        js->present = true;
+        js->controlword = CW_SHUTDOWN;
+        present++;
     }
+    if (present == 0) return CO_ERR_TIMEOUT;   /* bus 活著但沒有任何節點 */
 
     /* 4) 進入 Operational（開始 PDO 交換） */
-    for (int b = 0; b < CO_BUS_COUNT; b++) {
-        co_nmt_send((co_bus_t)b, CO_NMT_START, 0);
-    }
+    for (int b = 0; b < CO_BUS_COUNT; b++)
+        if (s_bus_ok[b]) co_nmt_send((co_bus_t)b, CO_NMT_START, 0);
     HAL_Delay(20);
 
     /* 5) 把目標位置初值設為當前實際位置（避免使能瞬間跳動） */
     dual_arm_pump_rx();
     for (int i = 0; i < ARM_COUNT * JOINTS_PER_ARM; i++) {
         uint16_t sw; int32_t pa;
+        if (!g_jstate[i].present) continue;
         if (co_pdo_get_feedback(g_joints[i].bus, g_joints[i].node_id, &sw, &pa)) {
             g_jstate[i].target_pos = pa;
         }
     }
     return CO_OK;
+}
+
+int dual_arm_present_count(void)
+{
+    int n = 0;
+    for (int i = 0; i < ARM_COUNT * JOINTS_PER_ARM; i++)
+        if (g_jstate[i].present) n++;
+    return n;
 }
 
 void dual_arm_pump_rx(void)
@@ -136,6 +148,7 @@ void dual_arm_tick(void)
     for (int i = 0; i < ARM_COUNT * JOINTS_PER_ARM; i++) {
         const joint_cfg_t *jc = &g_joints[i];
         joint_state_t *js = &g_jstate[i];
+        if (!js->present) continue;          /* 缺席軸（降級運轉）不收不發 */
 
         /* 新鮮度：序號變動才算「本 tick 真的收到新 TPDO」（看門狗用） */
         uint32_t seq = co_pdo_feedback_seq(jc->bus, jc->node_id);

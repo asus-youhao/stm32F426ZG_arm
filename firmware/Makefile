@@ -38,12 +38,16 @@ C_DEFS = -DUSE_HAL_DRIVER -DSTM32F746xx
 C_INCLUDES = \
   -Iboard \
   -Icanopen \
+  -Iapp \
+  -Icontrol \
+  -Isafety \
+  -Ihost \
   -I. \
   -I$(HAL_INC) \
   -I$(CMSIS_DEV)/Include \
   -I$(CMSIS_CORE)
 
-# ---- application + canopen sources（bring-up 所需）----
+# ---- application + canopen sources（bring-up + L1–L4 全棧）----
 C_SOURCES = \
   board/main.c \
   board/stm32f7xx_it.c \
@@ -51,10 +55,23 @@ C_SOURCES = \
   canopen/co_bxcan.c \
   canopen/co_nmt.c \
   canopen/co_sdo.c \
+  canopen/co_pdo.c \
   canopen/cia402.c \
+  app/app_main.c \
+  app/dual_arm.c \
+  app/robot_config.c \
+  control/linalg.c \
+  control/trajectory.c \
+  control/joint_space.c \
+  control/kinematics.c \
+  control/ik.c \
+  control/task_space.c \
+  control/dual_arm_ctrl.c \
+  safety/safety.c \
+  host/host_if.c \
   test/bringup.c
 
-# ---- HAL sources（只取 bring-up 用到的模組）----
+# ---- HAL sources（bring-up + app 用到的模組）----
 C_SOURCES += \
   $(HAL_SRC)/stm32f7xx_hal.c \
   $(HAL_SRC)/stm32f7xx_hal_cortex.c \
@@ -64,7 +81,9 @@ C_SOURCES += \
   $(HAL_SRC)/stm32f7xx_hal_pwr.c \
   $(HAL_SRC)/stm32f7xx_hal_pwr_ex.c \
   $(HAL_SRC)/stm32f7xx_hal_can.c \
-  $(HAL_SRC)/stm32f7xx_hal_uart.c
+  $(HAL_SRC)/stm32f7xx_hal_uart.c \
+  $(HAL_SRC)/stm32f7xx_hal_tim.c \
+  $(HAL_SRC)/stm32f7xx_hal_tim_ex.c
 
 ASM_SOURCES = board/startup_stm32f746xx.s
 LDSCRIPT    = board/STM32F746ZGTx_FLASH.ld

@@ -7,10 +7,16 @@
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
+extern TIM_HandleTypeDef htim6;
 
 void SysTick_Handler(void)
 {
     HAL_IncTick();
+}
+
+void TIM6_DAC_IRQHandler(void)
+{
+    HAL_TIM_IRQHandler(&htim6);   /* → HAL_TIM_PeriodElapsedCallback → app_main_tick */
 }
 
 void CAN1_RX0_IRQHandler(void)
