@@ -9,6 +9,7 @@ void test_ik(void);
 void test_cia402(void);
 void test_hostif(void);
 void test_canopen(void);
+void test_safety(void);
 
 int main(void)
 {
@@ -19,6 +20,7 @@ int main(void)
     RUN(test_cia402);
     RUN(test_hostif);
     RUN(test_canopen);
+    RUN(test_safety);
 
     printf("\n----------------------------------------\n");
     printf("總計 %d 檢查, %d 失敗 → %s\n", g_tests, g_fails,

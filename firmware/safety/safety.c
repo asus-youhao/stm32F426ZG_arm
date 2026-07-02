@@ -39,25 +39,28 @@ bool safety_update(uint32_t now_ms)
 {
     if (s_estop) { s_state = SYS_ESTOP; return false; }
 
-    bool any_fault = false, any_stale = false, all_enabled = true;
+    bool any_fault = false, any_stale = false;
+    bool all_enabled = true, any_enabled = false;
     for (int j=0;j<SAFETY_JOINTS;j++){
         if (s_sw[j] & SW_FAULT_BIT) any_fault = true;
         /* last_ms==0 表示此軸尚未收過任何回授（啟動初期）→ 不視為失聯,
            待第一筆回授後才納入看門狗。已活過再失聯則會被偵測。 */
         if (s_last_ms[j] != 0 &&
             (now_ms - s_last_ms[j]) > s_cfg.comms_timeout_ms) any_stale = true;
-        if ((s_sw[j] & SW_OP_MASK) != SW_OP_ENABLED) all_enabled = false;
+        if ((s_sw[j] & SW_OP_MASK) == SW_OP_ENABLED) any_enabled = true;
+        else all_enabled = false;
     }
 
     if (any_fault || any_stale) { s_state = SYS_FAULT; return false; }
 
-    if (s_cfg.require_all_enabled_for_run && all_enabled)
-        s_state = SYS_RUNNING;
-    else if (all_enabled)
-        s_state = SYS_RUNNING;
-    else
-        s_state = SYS_ENABLED;
+    /* RUNNING 門檻由設定決定：require=true 需全軸 op-enabled,
+       false 則任一軸即可（部分軸運轉,如單軸 bring-up/HIL）。
+       未達門檻 → ENABLED（可繼續使能交握,但上層應鎖住運動目標）。 */
+    bool run_ok = s_cfg.require_all_enabled_for_run ? all_enabled : any_enabled;
+    s_state = run_ok ? SYS_RUNNING : SYS_ENABLED;
 
+    /* 回傳只表示「無危險」（estop/fault/失聯之外）——不可因未達 RUNNING
+       門檻回 false,否則 safe-stop 會覆寫控制字,使能交握永遠完成不了。 */
     return true;
 }
 

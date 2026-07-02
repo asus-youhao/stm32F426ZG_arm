@@ -73,8 +73,12 @@ void app_main_tick(void)
     int32_t cnt[14];
     (void)da_ctrl_tick_1khz(&s_dc, cnt);
 
-    /* 4) L1：下發 CSP 目標 + PDO 交換（安全停止時內部覆寫） */
-    for (int j = 0; j < 14; j++) dual_arm_set_target(j, cnt[j]);
+    /* 4) L1：下發 CSP 目標 + PDO 交換（安全停止時內部覆寫）。
+       未達 RUNNING 門檻（見 safety require_all_enabled_for_run）時目標鎖在
+       實際位置：使能交握照常進行,但不產生運動。 */
+    bool run = (safety_state() == SYS_RUNNING);
+    for (int j = 0; j < 14; j++)
+        dual_arm_set_target(j, run ? cnt[j] : g_jstate[j].pos_actual);
     dual_arm_tick();
 }
 
