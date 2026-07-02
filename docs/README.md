@@ -37,6 +37,7 @@
 | 2026-07-02 | [P1 後端模型/設定端點](./changes/2026-07-02-p1-ws-server-model-endpoints.md) | ws_server 靜態HTTP + set_config/preset + 遙測 q/qTarget |
 | 2026-07-02 | [P2 3D 檢視器](./changes/2026-07-02-p2-viewer3d-threejs.md) | viewer3d.html three.js TF 骨架 + 馬達零點紅線 + 手臂垂下 |
 | 2026-07-02 | [P3/P4 網格+設定](./changes/2026-07-02-p3-p4-mesh-and-settings.md) | CAD 網格載入 fallback + 零位校正面板（home offset） |
+| 2026-07-02 | [整體架構總覽 HTML](./changes/2026-07-02-architecture-overview-html.md) | 一頁式離線架構圖（資料流/TF/協定/路線圖） |
 
 ## 設計文件
 

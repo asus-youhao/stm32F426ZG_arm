@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>雙臂人形 3D 模擬器 — 整體架構</title>
+<style>
+  :root{ --bg:#0d1117; --panel:#161b22; --panel2:#0f141b; --line:#2a3038; --accent:#4fd1c5;
+         --good:#48bb78; --warn:#f56565; --tx:#f6ad55; --rx:#63b3ed; --txt:#c9d1d9; --mut:#7d8590; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,"Segoe UI","Noto Sans TC",sans-serif;line-height:1.65}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:26px;margin:0 0 4px} .sub{color:var(--mut);margin-bottom:24px}
+  h2{font-size:18px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px;margin:34px 0 14px}
+  h3{font-size:14px;margin:18px 0 8px;color:#e6edf3}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  code,pre{font-family:"SF Mono",Consolas,monospace} code{background:#0b0f14;padding:1px 5px;border-radius:4px;color:#9ce0d8}
+  pre{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:12.5px}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)}
+  .pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;border:1px solid var(--line)}
+  .ok{background:rgba(72,187,120,.15);color:var(--good);border-color:#265} .todo{background:rgba(246,173,85,.12);color:var(--tx)}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  ul{margin:6px 0 6px 2px;padding-left:20px} li{margin:3px 0}
+  .mut{color:var(--mut)} .kbd{background:#0b0f14;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:12px}
+  a{color:var(--accent)}
+  .legend span{margin-right:14px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>雙臂人形 3D 模擬器 — 整體架構</h1>
+  <div class="sub">STM32F746 CANopen 主站 · 14 軸 EYOU PHU 假硬體 · three.js TF 視覺化　<span class="mut">（本頁為離線靜態文件）</span></div>
+
+  <!-- ============ 總覽 ============ -->
+  <h2>1. 系統總覽</h2>
+  <div class="card">
+    <p>純 Python 假硬體後端跑 14 顆 PHU 馬達（完整 CiA402 物件字典 + 500 Hz 控制），
+    透過 <b>WebSocket（遙測/命令）</b>與<b>靜態 HTTP（模型/設定/前端）</b>對外；
+    瀏覽器端 <code>viewer3d.html</code> 以 <b>three.js</b> 依 <b>URDF TF 樹</b>建人形骨架，
+    即時把每軸角度畫成 3D 動作，並提供控制與設定介面。</p>
+    <p class="legend">
+      <span><span class="sw" style="background:#e23b3b"></span>馬達零點紅線（轉子）</span>
+      <span><span class="sw" style="background:#888"></span>零點參考（定子）</span>
+      <span><span class="sw" style="background:#48bb78"></span>低扭矩→<span class="sw" style="background:#f56565"></span>高扭矩</span>
+      <span><span class="sw" style="background:#7fd3ff"></span>目標殘影</span>
+    </p>
+  </div>
+
+  <!-- ============ 資料流 ============ -->
+  <h2>2. 資料流</h2>
+  <div class="card">
+  <svg viewBox="0 0 1000 340" width="100%" font-family="system-ui" font-size="13">
+    <defs>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 Z" fill="#4fd1c5"/></marker>
+      <marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 Z" fill="#f6ad55"/></marker>
+    </defs>
+    <!-- backend box -->
+    <rect x="30" y="40" width="330" height="260" rx="10" fill="#0f141b" stroke="#2a3038"/>
+    <text x="45" y="64" fill="#4fd1c5" font-weight="bold">後端 ws_server.py（Python 標準庫）</text>
+    <rect x="50" y="80" width="290" height="46" rx="6" fill="#161b22" stroke="#2a3038"/>
+    <text x="62" y="99" fill="#c9d1d9">Sim：14× PhuMotor（CiA402 OD）</text>
+    <text x="62" y="116" fill="#7d8590" font-size="11">500 Hz 控制迴圈 · RPDO1/TPDO1 · goal=0（手臂垂下）</text>
+    <rect x="50" y="134" width="290" height="40" rx="6" fill="#161b22" stroke="#2a3038"/>
+    <text x="62" y="152" fill="#c9d1d9">載入 model/（URDF + robot_config.json）</text>
+    <text x="62" y="167" fill="#7d8590" font-size="11">套用 Kp/Kd · home_offset · model_rev</text>
+    <rect x="50" y="182" width="140" height="44" rx="6" fill="#161b22" stroke="#2a3038"/>
+    <text x="60" y="200" fill="#c9d1d9" font-size="12">WebSocket</text><text x="60" y="216" fill="#7d8590" font-size="11">:8765</text>
+    <rect x="200" y="182" width="140" height="44" rx="6" fill="#161b22" stroke="#2a3038"/>
+    <text x="210" y="200" fill="#c9d1d9" font-size="12">靜態 HTTP</text><text x="210" y="216" fill="#7d8590" font-size="11">:8090（自動避讓）</text>
+    <text x="45" y="255" fill="#7d8590" font-size="11">命令：enable/estop/jog/mode/read/write</text>
+    <text x="45" y="272" fill="#7d8590" font-size="11">　　　set_config / preset</text>
+    <text x="45" y="289" fill="#7d8590" font-size="11">遙測(20Hz)：q/qTarget/torque/…/model_rev</text>
+
+    <!-- frontend box -->
+    <rect x="640" y="40" width="330" height="260" rx="10" fill="#0f141b" stroke="#2a3038"/>
+    <text x="655" y="64" fill="#4fd1c5" font-weight="bold">前端 viewer3d.html（three.js）</text>
+    <rect x="660" y="80" width="290" height="42" rx="6" fill="#161b22" stroke="#2a3038"/>
+    <text x="672" y="98" fill="#c9d1d9">fetch URDF/config → 解析 → 建 TF 場景圖</text>
+    <text x="672" y="114" fill="#7d8590" font-size="11">Z-up · 馬達/連桿 · 紅色零點紅線</text>
+    <rect x="660" y="130" width="290" height="42" rx="6" fill="#161b22" stroke="#2a3038"/>
+    <text x="672" y="148" fill="#c9d1d9">每幀：q→pivot 旋轉；qTarget→殘影</text>
+    <text x="672" y="164" fill="#7d8590" font-size="11">扭矩上色 · 末端 HUD · OrbitControls</text>
+    <rect x="660" y="180" width="290" height="42" rx="6" fill="#161b22" stroke="#2a3038"/>
+    <text x="672" y="198" fill="#c9d1d9">側欄：控制 · 顯示 · 設定 · 零位校正 · Jog</text>
+    <text x="672" y="214" fill="#7d8590" font-size="11">CAD 網格載入（缺檔→圓柱 fallback）</text>
+    <text x="655" y="255" fill="#7d8590" font-size="11">model_rev 變動 → 自動重載模型</text>
+
+    <!-- arrows -->
+    <line x1="360" y1="150" x2="640" y2="100" stroke="#f6ad55" stroke-width="2" marker-end="url(#ar2)"/>
+    <text x="410" y="120" fill="#f6ad55" font-size="11">HTTP GET 模型/設定/前端</text>
+    <line x1="360" y1="204" x2="640" y2="150" stroke="#4fd1c5" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="430" y="188" fill="#4fd1c5" font-size="11">遙測 20Hz →</text>
+    <line x1="640" y1="200" x2="360" y2="235" stroke="#4fd1c5" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="430" y="232" fill="#4fd1c5" font-size="11">← 命令 / set_config</text>
+  </svg>
+  </div>
+
+  <!-- ============ 座標/零點 ============ -->
+  <h2>3. 座標系與「手臂垂下＝零點」</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>慣例</h3>
+      <ul>
+        <li><b>Z 向上、X 向前、Y 向左</b>（右手系，重力 −Z）</li>
+        <li>單位：m / rad（前端可切 deg）；counts↔rad 用 <code>CPR=524288/2π</code></li>
+        <li><code>base_link</code> 軀幹原點；左肩 <code>(0,+0.20,0.50)</code>、右肩 <code>(0,−0.20,0.50)</code></li>
+        <li><b>q=0 → 雙臂沿 −Z 自然垂下</b>（人站立、手臂貼身）</li>
+        <li>零點紅線：轉子紅線對齊定子刻痕＝機械零；<code>home_offset</code>(0x607C) 旋轉定子刻痕</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>3-1-3 擬人臂 TF 鏈（每臂 7 軸）</h3>
+      <pre>base_link
+ └─ J1 肩 pitch  (axis Y)
+     └─ J2 肩 roll (axis X)
+         └─ J3 肩 yaw (axis Z) ── upperarm 0.30
+             └─ J4 肘 (axis Y) ── forearm 0.28
+                 └─ J5 腕 roll (axis Z)
+                     └─ J6 腕 (axis Y)
+                         └─ J7 腕 (axis X) ── hand 0.08</pre>
+      <p class="mut" style="font-size:12px">q=0 時肩(0,±.20,.50)→肘(0,±.20,.20)→手(0,±.20,−.08)</p>
+    </div>
+  </div>
+
+  <!-- ============ 關節/馬達對應 ============ -->
+  <h2>4. 關節 ↔ 馬達對應（雙臂 14 軸）</h2>
+  <div class="card">
+    <table>
+      <tr><th>Joint</th><th>部位</th><th>型號</th><th>額定/峰值扭矩</th><th>Bus/Node（左｜右）</th></tr>
+      <tr><td>J1 / J2</td><td>肩 Shoulder</td><td>PHU20</td><td>50 / 182 N·m</td><td>0｜1 · 1..2</td></tr>
+      <tr><td>J3</td><td>肩 Yaw</td><td>PHU17</td><td>32 / 134 N·m</td><td>0｜1 · 3</td></tr>
+      <tr><td>J4</td><td>肘 Elbow</td><td>PHU17</td><td>32 / 134 N·m</td><td>0｜1 · 4</td></tr>
+      <tr><td>J5 / J6 / J7</td><td>腕 Wrist</td><td>PHU14</td><td>8.6 / 43 N·m</td><td>0｜1 · 5..7</td></tr>
+    </table>
+    <p class="mut" style="font-size:12px">左臂 bus0（CAN1）、右臂 bus1（CAN2）；每臂 PHU20×2 + PHU17×2 + PHU14×3 = 7 軸。</p>
+  </div>
+
+  <!-- ============ 模組職責 ============ -->
+  <h2>5. 模組職責</h2>
+  <div class="card">
+  <table>
+    <tr><th>檔案</th><th>職責</th></tr>
+    <tr><td><code>sim_py/model/dual_arm.urdf</code></td><td>唯一真相：link/joint/origin/axis/limit + 視覺（手臂垂下＝零）</td></tr>
+    <tr><td><code>sim_py/model/robot_config.json</code></td><td>可調疊加：bus/node/model、home_offset、soft limit、Kp/Kd、mesh 檔名、顯示、preset</td></tr>
+    <tr><td><code>sim_py/urdf_loader.py</code></td><td>URDF 完整解析 + TF FK（<code>Robot.fk()</code>/<code>joint_origin_world()</code>/<code>to_dict()</code>）</td></tr>
+    <tr><td><code>sim_py/phu_motor.py</code></td><td>單顆 PHU 馬達：CiA402 OD、動態、扭矩/電流、CPR</td></tr>
+    <tr><td><code>sim_py/ws_server.py</code></td><td>Sim（14 馬達+控制）、WebSocket、靜態 HTTP、set_config/preset、遙測</td></tr>
+    <tr><td><code>ui/viewer3d.html</code></td><td>three.js TF 場景、紅色零點紅線、遙測驅動、殘影/上色、控制+設定 UI、mesh 載入</td></tr>
+    <tr><td><code>ui/vendor/*</code></td><td>vendored three.js（three.module / OrbitControls / STLLoader / GLTFLoader）離線用</td></tr>
+  </table>
+  </div>
+
+  <!-- ============ 協定 ============ -->
+  <h2>6. WebSocket 協定</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>命令（前端→後端）</h3>
+<pre>{cmd:"enable"} / {cmd:"estop"}
+{cmd:"mode", value:8}
+{cmd:"jog",  joint:i, value:rad}
+{cmd:"move", joint:i, delta:rad}
+{cmd:"read", node,bus,index[,sub]}
+{cmd:"write",node,bus,index,value}
+{cmd:"preset", name:"home_arms_down"}
+{cmd:"set_config", path:"control.Kp", value:150}
+{cmd:"set_config", config:{...整包...}}</pre>
+    </div>
+    <div class="card">
+      <h3>遙測（後端→前端，20Hz）</h3>
+<pre>{
+  motors:[{ name, model, bus, node,
+    cw, sw, state, target, actual,
+    torque, current, peak, ratedC,
+    q, qTarget, home }, …14],
+  frames:[…], cobids:[…],
+  tx:[..], rx:[..], estop,
+  model_rev            // 變動→前端重載模型
+}</pre>
+    </div>
+  </div>
+
+  <!-- ============ 路線圖 ============ -->
+  <h2>7. 實作路線圖</h2>
+  <div class="card">
+  <table>
+    <tr><th>階段</th><th>內容</th><th>狀態</th></tr>
+    <tr><td>P0</td><td>URDF 人形模型 + urdf_loader 完整解析/FK（手臂垂下＝零）</td><td><span class="pill ok">完成</span></td></tr>
+    <tr><td>P1</td><td>ws_server：靜態 HTTP + get/set_config + preset + 遙測 q</td><td><span class="pill ok">完成</span></td></tr>
+    <tr><td>P2</td><td>viewer3d.html：three.js TF 骨架 + 馬達零點紅線 + 殘影/上色</td><td><span class="pill ok">完成</span></td></tr>
+    <tr><td>P3</td><td>CAD 網格載入（STL/glTF），缺檔→圓柱 fallback</td><td><span class="pill ok">完成（fallback）</span></td></tr>
+    <tr><td>P4</td><td>設定 UI：零位校正 / 顯示 / 控制 / preset</td><td><span class="pill ok">完成</span></td></tr>
+    <tr><td>—</td><td>放入真實 PHU CAD 檔、實機連桿長度/零位校正</td><td><span class="pill todo">待硬體</span></td></tr>
+  </table>
+  </div>
+
+  <!-- ============ 執行 ============ -->
+  <h2>8. 如何執行</h2>
+  <div class="card">
+<pre># 1) 啟動後端（WebSocket :8765 + 靜態 HTTP :8090，埠被占用會自動避讓）
+cd firmware/sim_py
+python3 ws_server.py            # 或 python3 ws_server.py 8765 &lt;http-port&gt;
+
+# 2) 瀏覽器開（務必用 http://，不要 file://）
+http://localhost:8090/ui/viewer3d.html
+
+# 3) 放 CAD 網格（可選）
+firmware/sim_py/model/meshes/  +  robot_config.json 的 "meshes"</pre>
+    <p class="mut" style="font-size:12px">終端機會印出實際使用的 HTTP 埠。three.js 為 vendored，無需連網。</p>
+  </div>
+
+  <div class="sub" style="margin-top:30px">文件：<a href="../../docs/design/3d-humanoid-visualizer.md">docs/design/3d-humanoid-visualizer.md</a> ·
+    變更紀錄見 <a href="../../docs/README.md">docs/README.md</a>（P0–P4）</div>
+</div>
+</body>
+</html>
