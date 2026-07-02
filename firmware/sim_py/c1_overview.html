@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C1 假硬體 — 接線圖・架構圖・功能說明</title>
+<style>
+  :root{
+    --bg:#f6f7f5; --card:#ffffff; --ink:#1f2430; --mut:#5f5e5a; --line:#e2e0d8;
+    /* 給內嵌 SVG 用（對應 widget 的變數名） */
+    --s:#5f5e5a; --b:#b4b2a9; --p:#1f2430; --t:#888780;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.6 system-ui,"Segoe UI","Microsoft JhengHei",sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 60px}
+  header h1{font-size:24px;margin:0 0 6px}
+  header p{color:var(--mut);margin:0 0 4px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:20px 22px;margin:18px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  h2{font-size:19px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  h2 .n{display:inline-flex;width:26px;height:26px;border-radius:7px;background:#0f6e56;
+    color:#fff;font-size:14px;align-items:center;justify-content:center;flex:0 0 auto}
+  h3{font-size:15px;margin:16px 0 6px}
+  p{margin:8px 0}
+  ul{margin:8px 0;padding-left:22px}li{margin:4px 0}
+  .fig{margin:6px 0 2px;text-align:center}
+  .fig svg{width:100%;height:auto;max-width:720px}
+  .cap{color:var(--mut);font-size:13px;text-align:center;margin-top:2px}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f0efe9;font-weight:600}
+  code{background:#eef0ec;padding:1px 6px;border-radius:5px;
+    font:13px ui-monospace,Consolas,monospace}
+  pre{background:#0e1116;color:#e6edf3;border-radius:8px;padding:12px 14px;overflow:auto;
+    font:12.5px/1.5 ui-monospace,Consolas,monospace}
+  .tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;
+    background:#e1f5ee;color:#0f6e56;margin-right:4px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+  .note{background:#fdf3e0;border-left:3px solid #ba7517;
+    padding:8px 12px;border-radius:6px;font-size:14px;margin:10px 0}
+
+  /* ===== 內嵌 SVG 專用樣式（對應 widget 的 class）===== */
+  .th{font:600 14px system-ui,"Segoe UI","Microsoft JhengHei",sans-serif;fill:var(--ink)}
+  .t {font:14px system-ui,"Segoe UI","Microsoft JhengHei",sans-serif;fill:var(--ink)}
+  .ts{font:12px system-ui,"Segoe UI","Microsoft JhengHei",sans-serif;fill:var(--mut)}
+  .box{fill:#f7f7f4;stroke:#b4b2a9;stroke-width:1.4}
+  .leader{stroke:#b4b2a9;stroke-width:.8;stroke-dasharray:3 3;fill:none}
+  .c-blue rect{fill:#E6F1FB;stroke:#185FA5;stroke-width:1.4}
+  .c-blue .th,.c-blue .t{fill:#0C447C}.c-blue .ts{fill:#185FA5}
+  .c-teal rect{fill:#E1F5EE;stroke:#0F6E56;stroke-width:1.4}
+  .c-teal .th,.c-teal .t{fill:#085041}.c-teal .ts{fill:#0F6E56}
+  .c-amber rect{fill:#FAEEDA;stroke:#854F0B;stroke-width:1.4}
+  .c-amber .th,.c-amber .t{fill:#633806}.c-amber .ts{fill:#854F0B}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>C1 假硬體 — 無馬達驗證 F746 CANopen 主站</h1>
+  <p>STM32F746ZG 主站韌體　×　CANable 2.0 Pro　×　Python CiA402 假從站</p>
+  <p><span class="tag">slcan · COM11</span><span class="tag">1 Mbps</span><span class="tag">python-can</span></p>
+</header>
+
+<!-- ===================== 目的 ===================== -->
+<section class="card">
+  <h2><span class="n">目</span>這套假硬體的目的</h2>
+  <p><b>一句話：讓 F746 的 CANopen 主站韌體，在「沒有真實 EYOU PHU 馬達」的情況下，也能被完整開發與驗證。</b></p>
+  <ul>
+    <li><b>為什麼需要</b>：真馬達貴、會動有風險、數量少、佈線麻煩；而韌體開發要反覆重啟、反覆測。</li>
+    <li><b>驗什麼</b>：主站最關鍵的是 <b>CANopen 交握邏輯</b>（NMT、SDO 讀寫、PDO、CiA402 使能序列、故障處理），這些不需要真實物理馬達就能驗。</li>
+    <li><b>怎麼達成</b>：Python 照通信手冊 v1.06 忠實模擬 CiA402 從站，掛在<b>真實 CAN bus</b> 上回應主站，主站「以為」接了真馬達。</li>
+    <li><b>好處</b>：安全、可重複、零成本、可注入故障測錯誤處理、可多軸測輪詢。</li>
+  </ul>
+</section>
+
+<!-- ===================== 接線圖 ===================== -->
+<section class="card">
+  <h2><span class="n">1</span>硬體接線圖</h2>
+  <div class="fig">
+<svg viewBox="0 0 680 332" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>STM32F746 到 CANable 2.0 Pro 的 CAN 接線圖</title>
+<desc>F746 的 PD1/PD0 經 SN65HVD230 收發器轉成 CANH/CANL，接到 CANable 2.0 Pro。兩端各一顆 120 歐姆終端，三方共地，速率 1 Mbps。</desc>
+<text class="th" x="40" y="34" text-anchor="start">F746 ↔ CANable 2.0 Pro 接線（1 Mbps）</text>
+<text class="ts" x="40" y="54" text-anchor="start">F746 是 TTL，不能直接接差動 CANH/CANL — 中間要一顆 3.3V 收發器</text>
+<rect class="box" x="30" y="90" width="150" height="180" rx="8"/>
+<text class="th" x="105" y="114" text-anchor="middle">STM32F746ZG</text>
+<text class="ts" x="105" y="132" text-anchor="middle">CANopen 主站</text>
+<text class="t" x="172" y="165" text-anchor="end">PD1 · CAN1_TX</text>
+<text class="t" x="172" y="195" text-anchor="end">PD0 · CAN1_RX</text>
+<text class="t" x="172" y="225" text-anchor="end">3V3</text>
+<text class="t" x="172" y="255" text-anchor="end">GND</text>
+<rect class="box" x="280" y="90" width="140" height="180" rx="8"/>
+<text class="th" x="350" y="114" text-anchor="middle">SN65HVD230</text>
+<text class="ts" x="350" y="132" text-anchor="middle">3.3V CAN 收發器</text>
+<text class="t" x="288" y="165" text-anchor="start">D · TXD</text>
+<text class="t" x="288" y="195" text-anchor="start">R · RXD</text>
+<text class="t" x="288" y="225" text-anchor="start">VCC</text>
+<text class="t" x="288" y="255" text-anchor="start">GND</text>
+<text class="t" x="412" y="165" text-anchor="end">CANH</text>
+<text class="t" x="412" y="200" text-anchor="end">CANL</text>
+<rect class="box" x="510" y="90" width="130" height="180" rx="8"/>
+<text class="th" x="575" y="114" text-anchor="middle">CANable 2.0 Pro</text>
+<text class="ts" x="575" y="132" text-anchor="middle">slcan · COM11 → PC</text>
+<text class="t" x="518" y="165" text-anchor="start">CANH</text>
+<text class="t" x="518" y="200" text-anchor="start">CANL</text>
+<text class="t" x="518" y="255" text-anchor="start">GND</text>
+<text class="ts" x="632" y="230" text-anchor="end">板上 120Ω → ON</text>
+<line x1="180" y1="160" x2="280" y2="160" style="stroke:var(--s);stroke-width:1.8"/>
+<line x1="180" y1="190" x2="280" y2="190" style="stroke:var(--s);stroke-width:1.8"/>
+<line x1="180" y1="220" x2="280" y2="220" style="stroke:var(--s);stroke-width:1.8"/>
+<line x1="180" y1="250" x2="280" y2="250" style="stroke:var(--s);stroke-width:1.8"/>
+<line x1="420" y1="160" x2="510" y2="160" style="stroke:#D85A30;stroke-width:2.4"/>
+<line x1="420" y1="195" x2="510" y2="195" style="stroke:#378ADD;stroke-width:2.4"/>
+<line x1="420" y1="250" x2="510" y2="250" style="stroke:var(--s);stroke-width:1.8"/>
+<text class="ts" x="465" y="152" text-anchor="middle">CANH</text>
+<text class="ts" x="465" y="187" text-anchor="middle">CANL</text>
+<rect class="box" x="449" y="166" width="15" height="23" rx="3"/>
+<line x1="456" y1="160" x2="456" y2="166" style="stroke:var(--s);stroke-width:1.8"/>
+<line x1="456" y1="189" x2="456" y2="195" style="stroke:var(--s);stroke-width:1.8"/>
+<text class="ts" x="446" y="182" text-anchor="end">120Ω</text>
+<text class="ts" x="450" y="244" text-anchor="middle">GND 共地</text>
+<line x1="40" y1="296" x2="640" y2="296" style="stroke:var(--b);stroke-width:1"/>
+<text class="ts" x="40" y="316" text-anchor="start">終端：CANable 板上 120Ω 開(ON) ＋ 收發器端 CANH–CANL 補 120Ω　|　共地：F746 · 收發器 · CANable 三方 GND 相連</text>
+</svg>
+  </div>
+  <div class="cap">圖 1・CAN 實體接線</div>
+  <ul>
+    <li><b>三段連線</b>：F746 <code>PD1/PD0</code> → 收發器 TTL 側；收發器差動側 <code>CANH/CANL</code> → CANable；CANable → USB(COM11)。</li>
+    <li><b>兩顆 120Ω 終端</b>（1 Mbps 對終端敏感，缺一不可）：CANable 板上一顆 + 收發器端一顆。</li>
+    <li><b>三方共地</b>：F746、收發器、CANable 的 GND 必須相連。</li>
+    <li><b>收發器選 3.3V 版</b>（SN65HVD230），別用 5V 的 TJA1050/MCP2551 直接打進 F746 的 3.3V 腳。</li>
+  </ul>
+</section>
+
+<!-- ===================== 架構圖 ===================== -->
+<section class="card">
+  <h2><span class="n">2</span>軟體架構圖</h2>
+  <div class="fig">
+<svg viewBox="0 0 680 462" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>C1 假硬體架構圖</title>
+<desc>F746 CANopen 主站韌體經 CANable 2.0 Pro 連到 PC 上的 Python 假硬體，由 CiA402Slave 協定層、PhuMotor 裝置模型層、phu_od 物件字典層三層構成，並有三個入口工具。</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1 L8 5 L2 9 Z" fill="var(--s)"/></marker>
+</defs>
+<text class="th" x="40" y="30" text-anchor="start">C1 假硬體架構 — 讓 F746 主站無馬達也能驗證 CANopen</text>
+<g class="c-blue">
+<rect x="240" y="46" width="200" height="46" rx="8"/>
+<text class="th" x="340" y="68" text-anchor="middle">STM32F746ZG 主站</text>
+<text class="ts" x="340" y="84" text-anchor="middle">CANopen 韌體（受測物）</text>
+</g>
+<line x1="340" y1="92" x2="340" y2="118" style="stroke:var(--s);stroke-width:1.6" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<text class="ts" x="350" y="110" text-anchor="start">CAN 1 Mbps</text>
+<rect class="box" x="150" y="118" width="380" height="48" rx="8"/>
+<text class="th" x="340" y="140" text-anchor="middle">CANable 2.0 Pro（+ SN65HVD230 收發器）</text>
+<text class="ts" x="340" y="156" text-anchor="middle">slcan · COM11 · python-can</text>
+<line x1="340" y1="166" x2="340" y2="196" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow)"/>
+<text class="ts" x="350" y="186" text-anchor="start">handle_frame() ↔ 回應幀</text>
+<text class="ts" x="76" y="214" text-anchor="start">PC 假硬體核心（Python）— 取代真實 EYOU PHU 馬達</text>
+<rect x="76" y="220" width="366" height="186" rx="8" fill="none" style="stroke:var(--b);stroke-width:1.2;stroke-dasharray:5 4"/>
+<g class="c-teal">
+<rect x="90" y="230" width="338" height="46" rx="7"/>
+<text class="th" x="259" y="252" text-anchor="middle">① CiA402Slave · 協定層</text>
+<text class="ts" x="259" y="268" text-anchor="middle">SDO / NMT / PDO handle_frame() 純函式</text>
+</g>
+<line x1="259" y1="276" x2="259" y2="292" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow)"/>
+<g class="c-teal">
+<rect x="90" y="292" width="338" height="46" rx="7"/>
+<text class="th" x="259" y="314" text-anchor="middle">② PhuMotor · 裝置模型層</text>
+<text class="ts" x="259" y="330" text-anchor="middle">狀態機 · 8模式 · 物理 · homing · 故障</text>
+</g>
+<line x1="259" y1="338" x2="259" y2="354" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow)"/>
+<g class="c-teal">
+<rect x="90" y="354" width="338" height="44" rx="7"/>
+<text class="th" x="259" y="375" text-anchor="middle">③ phu_od · 物件字典層</text>
+<text class="ts" x="259" y="391" text-anchor="middle">OD 表（通信手冊 v1.06 抽取）</text>
+</g>
+<text class="ts" x="565" y="226" text-anchor="middle">入口 / 工具</text>
+<rect class="box" x="492" y="232" width="146" height="42" rx="7"/>
+<text class="th" x="565" y="252" text-anchor="middle">can_slave.py</text>
+<text class="ts" x="565" y="267" text-anchor="middle">無頭 CLI 回應器</text>
+<rect class="box" x="492" y="292" width="146" height="42" rx="7"/>
+<text class="th" x="565" y="312" text-anchor="middle">web_monitor.py</text>
+<text class="ts" x="565" y="327" text-anchor="middle">14軸看板+控制台</text>
+<rect class="box" x="492" y="352" width="146" height="42" rx="7"/>
+<text class="th" x="565" y="372" text-anchor="middle">bringup_decode</text>
+<text class="ts" x="565" y="387" text-anchor="middle">解碼主站 cmd</text>
+<line class="leader" x1="492" y1="253" x2="430" y2="250"/>
+<line class="leader" x1="492" y1="313" x2="430" y2="258"/>
+<line class="leader" x1="492" y1="373" x2="430" y2="266"/>
+<line x1="76" y1="424" x2="638" y2="424" style="stroke:var(--b);stroke-width:1"/>
+<text class="ts" x="76" y="444" text-anchor="start">藍=受測 F746 韌體　綠=假硬體核心三層　灰框=傳輸與入口工具　虛線=驅動/觀測</text>
+</svg>
+  </div>
+  <div class="cap">圖 2・軟體分層架構</div>
+  <p>由上而下即資料流：<b>F746 主站 → CANable → 三層假硬體核心（協定 → 裝置模型 → 物件字典）</b>。右側三個入口工具都掛在協定層上，共用同一份 <code>CiA402Slave</code> + <code>PhuMotor</code>。核心設計是<b>協定與傳輸脫鉤</b>——同一份從站邏輯，離線用斷言測、真機用 python-can 跑、web 用 HTTP 控制。</p>
+</section>
+
+<!-- ===================== 分層架構（詳細） ===================== -->
+<section class="card">
+  <h2><span class="n">3</span>分層架構（詳細）</h2>
+  <div class="fig">
+<svg width="100%" viewBox="0 0 680 528" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>C1 假硬體分層架構（詳細）</title>
+<desc>入口工具三個，往下經協定層 CiA402Slave、裝置模型層 PhuMotor、物件字典層 phu_od，最底為真機傳輸層。</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1 L8 5 L2 9 Z" fill="var(--s)"/></marker>
+</defs>
+<text class="th" x="40" y="30" text-anchor="start">分層架構 — 假硬體 4 層 + 入口</text>
+<g class="c-amber">
+<rect x="40" y="46" width="190" height="54" rx="7"/>
+<text class="th" x="135" y="70" text-anchor="middle">can_slave.py</text>
+<text class="ts" x="135" y="88" text-anchor="middle">無頭 CLI 回應器 · --verbose</text>
+</g>
+<g class="c-amber">
+<rect x="245" y="46" width="190" height="54" rx="7"/>
+<text class="th" x="340" y="70" text-anchor="middle">web_monitor.py</text>
+<text class="ts" x="340" y="88" text-anchor="middle">14軸 web 看板 + 控制台</text>
+</g>
+<g class="c-amber">
+<rect x="450" y="46" width="190" height="54" rx="7"/>
+<text class="th" x="545" y="70" text-anchor="middle">bringup_decode.py</text>
+<text class="ts" x="545" y="88" text-anchor="middle">單獨解碼主站 cmd</text>
+</g>
+<line x1="135" y1="100" x2="135" y2="114" style="stroke:var(--s);stroke-width:1.4"/>
+<line x1="340" y1="100" x2="340" y2="114" style="stroke:var(--s);stroke-width:1.4"/>
+<line x1="545" y1="100" x2="545" y2="114" style="stroke:var(--s);stroke-width:1.4"/>
+<line x1="135" y1="114" x2="545" y2="114" style="stroke:var(--s);stroke-width:1.4"/>
+<line x1="340" y1="114" x2="340" y2="130" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow)"/>
+<g class="c-teal">
+<rect x="40" y="130" width="600" height="80" rx="8"/>
+<text class="th" x="54" y="151" text-anchor="start">① 協定層　can_slave.py :: CiA402Slave</text>
+<text class="ts" x="54" y="171" text-anchor="start">handle_frame(arb_id, data) → [(arb_id, data)…]　純函式</text>
+<text class="ts" x="54" y="188" text-anchor="start">解析 SDO(0x600) / NMT(0x000) / RPDO1(0x200) → 產生回應幀</text>
+<text class="ts" x="54" y="205" text-anchor="start">回應 SDO-rsp(0x580) / TPDO1(0x180) / heartbeat(0x700)</text>
+</g>
+<line x1="340" y1="210" x2="340" y2="238" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow)"/>
+<text class="ts" x="350" y="228" text-anchor="start">read_od / write_od / apply_controlword / step</text>
+<g class="c-teal">
+<rect x="40" y="238" width="600" height="118" rx="8"/>
+<text class="th" x="54" y="259" text-anchor="start">② 裝置模型層　phu_motor.py :: PhuMotor</text>
+<text class="ts" x="54" y="279" text-anchor="start">• 完整 CiA402 狀態機 (0x6040→0x6041)</text>
+<text class="ts" x="54" y="295" text-anchor="start">　 shutdown / switch-on / enable / disable / quick-stop / halt / fault-reset</text>
+<text class="ts" x="54" y="311" text-anchor="start">• 8 模式：PP PV PT HM CSP CSV CST CSF</text>
+<text class="ts" x="54" y="327" text-anchor="start">• 物理模型：重力 + 黏滯阻尼 + 慣量 → 扭矩(N·m) / 電流(A)</text>
+<text class="ts" x="54" y="343" text-anchor="start">• Homing 序列、故障注入/清除 · 型號 PHU14 / 17 / 20</text>
+</g>
+<line x1="340" y1="356" x2="340" y2="384" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow)"/>
+<text class="ts" x="350" y="374" text-anchor="start">型別 / 存取 / 預設值 + 名稱</text>
+<g class="c-teal">
+<rect x="40" y="384" width="600" height="62" rx="8"/>
+<text class="th" x="54" y="405" text-anchor="start">③ 物件字典層　phu_od.py</text>
+<text class="ts" x="54" y="425" text-anchor="start">通信手冊 v1.06 抽出的 OD 表（CiA402 0x6040~ + EYOU 0x2000~）</text>
+<text class="ts" x="54" y="441" text-anchor="start">⚠ develop 版 = list + od_name()；feature 版 = dict + entry()</text>
+</g>
+<text class="ts" x="54" y="464" text-anchor="start">↕ 承載 ① 的收發幀（真實 F746）</text>
+<rect class="box" x="40" y="470" width="600" height="46" rx="8"/>
+<text class="th" x="54" y="490" text-anchor="start">④ 傳輸層（真機）</text>
+<text class="ts" x="54" y="507" text-anchor="start">python-can(slcan) → CANable 2.0 Pro(COM11) → CAN bus → F746</text>
+</svg>
+  </div>
+  <div class="cap">圖 3・4 層 + 入口工具（含 COB-ID / 方法名）</div>
+  <p>入口三工具都掛在 <b>① 協定層</b> 上；由上而下呼叫：協定層 <code>handle_frame()</code> → 裝置模型 <code>read_od / write_od / apply_controlword / step</code> → 物件字典。<b>④ 傳輸層</b> 在真機時承載 ① 的收發幀。</p>
+</section>
+
+<!-- ===================== 執行期資料流 ===================== -->
+<section class="card">
+  <h2><span class="n">4</span>執行期資料流（從站視角）</h2>
+  <div class="fig">
+<svg width="100%" viewBox="0 0 680 536" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>執行期資料流（從站視角）</title>
+<desc>主站幀由 F746 經 CANable、python-can 進入 CiA402Slave.handle_frame，分寫路徑與讀路徑後交給 PhuMotor.step，產生回應幀經 python-can、CANable 回傳 F746。</desc>
+<defs>
+<marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1 L8 5 L2 9 Z" fill="var(--s)"/></marker>
+<marker id="arrowT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1 L8 5 L2 9 Z" fill="#0F6E56"/></marker>
+</defs>
+<text class="th" x="40" y="30" text-anchor="start">執行期資料流（從站視角）</text>
+<g class="c-blue">
+<rect x="230" y="46" width="180" height="42" rx="8"/>
+<text class="th" x="320" y="66" text-anchor="middle">F746 主站</text>
+<text class="ts" x="320" y="81" text-anchor="middle">CANopen master</text>
+</g>
+<line x1="320" y1="88" x2="320" y2="112" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow2)"/>
+<text class="ts" x="330" y="104" text-anchor="start">CAN 幀 (RX)</text>
+<rect class="box" x="230" y="112" width="180" height="40" rx="8"/>
+<text class="th" x="320" y="131" text-anchor="middle">CANable 2.0 Pro</text>
+<text class="ts" x="320" y="146" text-anchor="middle">COM11 · USB</text>
+<line x1="320" y1="152" x2="320" y2="176" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow2)"/>
+<text class="ts" x="330" y="168" text-anchor="start">python-can</text>
+<g class="c-teal">
+<rect x="160" y="176" width="320" height="46" rx="8"/>
+<text class="th" x="320" y="197" text-anchor="middle">CiA402Slave.handle_frame(arb, data)</text>
+<text class="ts" x="320" y="213" text-anchor="middle">依 COB-ID 解析 → 分派</text>
+</g>
+<line x1="300" y1="222" x2="200" y2="250" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow2)"/>
+<line x1="340" y1="222" x2="440" y2="250" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow2)"/>
+<rect class="box" x="45" y="252" width="270" height="54" rx="8"/>
+<text class="th" x="180" y="272" text-anchor="middle">寫路徑</text>
+<text class="ts" x="180" y="290" text-anchor="middle">SDO寫 → write_od()</text>
+<text class="ts" x="180" y="303" text-anchor="middle">控制字 → apply_controlword()</text>
+<rect class="box" x="325" y="252" width="290" height="54" rx="8"/>
+<text class="th" x="470" y="272" text-anchor="middle">讀路徑</text>
+<text class="ts" x="470" y="290" text-anchor="middle">SDO讀 → read_od()</text>
+<text class="ts" x="470" y="303" text-anchor="middle">即時值(位置 / 扭矩 / 狀態字)</text>
+<line x1="180" y1="306" x2="290" y2="342" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow2)"/>
+<line x1="470" y1="306" x2="360" y2="342" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow2)"/>
+<g class="c-teal">
+<rect x="200" y="344" width="250" height="46" rx="8"/>
+<text class="th" x="325" y="365" text-anchor="middle">PhuMotor.step(dt)</text>
+<text class="ts" x="325" y="381" text-anchor="middle">物理步進（狀態機推進）</text>
+</g>
+<line x1="325" y1="390" x2="325" y2="414" style="stroke:var(--s);stroke-width:1.6" marker-end="url(#arrow2)"/>
+<text class="ts" x="335" y="406" text-anchor="start">產生回應幀</text>
+<g class="c-amber">
+<rect x="195" y="414" width="260" height="46" rx="8"/>
+<text class="th" x="325" y="435" text-anchor="middle">SDO-rsp(0x580) / TPDO1(0x180)</text>
+<text class="ts" x="325" y="451" text-anchor="middle">heartbeat(0x700)</text>
+</g>
+<line x1="325" y1="460" x2="325" y2="484" style="stroke:#0F6E56;stroke-width:1.6" marker-end="url(#arrowT)"/>
+<rect class="box" x="175" y="484" width="300" height="40" rx="8"/>
+<text class="th" x="325" y="508" text-anchor="middle">python-can → CANable → F746</text>
+<path d="M475 504 L600 504 L600 67 L412 67" fill="none" style="stroke:#0F6E56;stroke-width:1.6;stroke-dasharray:5 4" marker-end="url(#arrowT)"/>
+<text class="ts" x="596" y="300" text-anchor="end">回應幀 (TX) 回主站</text>
+</svg>
+  </div>
+  <div class="cap">圖 4・一次 SDO/PDO 交握的收發路徑</div>
+  <p>主站幀進 <code>handle_frame()</code> 後分兩路：<b>寫路徑</b>（<code>write_od</code> / <code>apply_controlword</code>）與<b>讀路徑</b>（<code>read_od</code> 即時值）→ 匯入 <code>PhuMotor.step(dt)</code> 物理步進 → 產生回應幀（綠色虛線）回傳 F746，完成一次交握。</p>
+</section>
+
+<!-- ===================== 功能說明 ===================== -->
+<section class="card">
+  <h2><span class="n">5</span>功能說明</h2>
+
+  <h3>檔案與職責</h3>
+  <table>
+    <tr><th>檔案</th><th>角色</th><th>關鍵內容</th></tr>
+    <tr><td><code>phu_od.py</code></td><td>物件字典層</td><td>OD 表（index/sub/access/type/default/name），手冊 v1.06 抽取</td></tr>
+    <tr><td><code>phu_motor.py</code></td><td>裝置模型層 <code>PhuMotor</code></td><td>CiA402 狀態機 + 8 模式 + 物理模型 + homing + 故障注入；型號 PHU14/17/20</td></tr>
+    <tr><td><code>can_slave.py</code></td><td>協定層 <code>CiA402Slave</code></td><td><code>handle_frame()</code> 純函式（SDO/NMT/PDO）+ python-can 傳輸</td></tr>
+    <tr><td><code>web_monitor.py</code></td><td>上位機看板</td><td><code>TelemetryHub</code> 管 14 顆從站 + SSE 即時看板 + <code>/cmd</code> 控制台 + CAN 幀流</td></tr>
+    <tr><td><code>bringup_decode.py</code></td><td>主站解碼器</td><td>當從站回應，同時把主站每一幀翻成 READ/WRITE + 物件名稱 + 值</td></tr>
+  </table>
+
+  <h3>四種跑法</h3>
+  <table>
+    <tr><th>模式</th><th>指令</th><th>需要硬體</th><th>用途</th></tr>
+    <tr><td>離線自測</td><td><code>python can_slave.py --selftest</code></td><td>否</td><td>重現 bring-up SDO 序列，斷言從站回應正確</td></tr>
+    <tr><td>8 模式全測</td><td><code>python can_slave.py --modetest</code></td><td>否</td><td>PP/PV/PT/HM/CSP/CSV/CST/CSF + 急停 + 故障</td></tr>
+    <tr><td>無頭真機</td><td><code>python can_slave.py --interface slcan --channel COM11</code></td><td>是</td><td>掛真 bus 當從站回應 F746，<code>--verbose</code> 印每筆 SDO/NMT</td></tr>
+    <tr><td>web 看板</td><td><code>python web_monitor.py --interface slcan --channel COM11</code></td><td>是</td><td>瀏覽器 <code>http://127.0.0.1:8080</code> 看/控 14 軸 + 幀流</td></tr>
+    <tr><td>解碼主站</td><td><code>python bringup_decode.py --channel COM11</code></td><td>是</td><td>單獨看 F746 開機發了哪些 cmd / 讀了哪些</td></tr>
+  </table>
+
+  <div class="grid2">
+    <div>
+      <h3>web 控制台 <code>/cmd</code> 動作</h3>
+      <ul>
+        <li><code>mode</code> — 切 8 種運動模式</li>
+        <li><code>enable</code> / <code>disable</code> — 使能 / 解除</li>
+        <li><code>quickstop</code> / <code>halt</code> — 急停 / 暫停</li>
+        <li><code>home</code> — 回零</li>
+        <li><code>fault</code> / <code>faultreset</code> — 注入 / 清除故障</li>
+        <li><code>target</code> — 設目標（位置/速度/力矩）</li>
+        <li><code>trace</code> — 切換 CAN 幀追蹤對象</li>
+        <li><code>auto</code> — 交還 demo 自驅</li>
+      </ul>
+    </div>
+    <div>
+      <h3>8 種運動模式</h3>
+      <ul>
+        <li><b>PP</b>(1) 輪廓位置　<b>PV</b>(3) 輪廓速度</li>
+        <li><b>PT</b>(4) 輪廓力矩　<b>HM</b>(6) 回零</li>
+        <li><b>CSP</b>(8) 同步位置　<b>CSV</b>(9) 同步速度</li>
+        <li><b>CST</b>(10) 同步力矩　<b>CSF</b>(13) 同步力控</li>
+      </ul>
+      <p class="cap" style="text-align:left">使能序列須 <code>0x06 → 0x07 → 0x0F</code></p>
+    </div>
+  </div>
+
+  <h3>已驗證：F746 主站開機序列</h3>
+  <p>用 <code>bringup_decode.py</code> 實測抓到的 F746 bring-up（共 22 幀，<code>NMT×3 · READ×10 · WRITE×9</code>）：</p>
+<pre>NMT   RESET-COMMUNICATION
+NMT   PRE-OPERATIONAL
+READ  0x1000 Device type        = 0x20192
+READ  0x6041 Status word        = 0x40  (switch-on-disabled)
+READ  0x26A1 CAN Baudrate       = 1000000 bps
+READ  0x26A0 Node-ID            = 1
+READ  0x6064 Position Actual    = 0
+NMT   START (operational)
+WRITE 0x6060 Modes Of Operation = 3   (PV 輪廓速度)
+WRITE 0x6083 Profile Accel      = 100000
+WRITE 0x6084 Profile Decel      = 100000
+WRITE 0x60FF Target Velocity    = 2000
+WRITE 0x6040 Control word = 0x06 (shutdown)      -> sw 0x21 ready
+WRITE 0x6040 Control word = 0x07 (switch on)     -> sw 0x23 switched-on
+WRITE 0x6040 Control word = 0x0F (enable op)     -> sw 0x27 operation-enabled ✔
+... 轉 2 秒 ...
+WRITE 0x60FF Target Velocity    = 0
+WRITE 0x6040 Control word = 0x00 (disable voltage)</pre>
+  <div class="note">韌體 bring-up 邏輯 = 重置通訊 → 讀身分 → 進 operational → 設 PV 模式/目標速度 → 標準三段使能到 <code>0x27</code> → 轉 2 秒 → 停機。</div>
+</section>
+
+<footer style="text-align:center;color:var(--mut);font-size:13px;margin-top:24px">
+  C1 假硬體總覽 · STM32F746ZG + CANable 2.0 Pro · 生成於 2026-07-02
+</footer>
+
+</div>
+</body>
+</html>
