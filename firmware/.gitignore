@@ -3,10 +3,12 @@ build/
 build-tgt/
 tests/unit_tests
 phu_sim_demo
+phu_sim_demo.exe
 *.elf
 *.bin
 *.hex
 *.map
+*.lst
 *.o
 # CubeMX 產生的 HAL（由使用者本機放入,不入庫）
 Core/

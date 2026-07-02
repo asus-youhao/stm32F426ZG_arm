@@ -31,6 +31,11 @@
 | 2026-06-25 | [前端統一接後端(WS)](./changes/2026-06-25-ws-unified-frontend.md) | host_ui/can_monitor 連同一 Python 假硬體 |
 | 2026-06-25 | [修復 500Hz/看門狗/可建置](./changes/2026-06-25-fix-500hz-watchdog-buildable.md) | 三項嚴重問題修復 + CMake 目標建置 |
 | 2026-06-25 | [單元測試](./changes/2026-06-25-unit-tests.md) | trajectory/kinematics/IK/協定/CANopen 測試 |
+| 2026-06-26 | [F746 Makefile bring-up 專案](./changes/2026-06-26-f746-makefile-bringup-build.md) | 可編譯/可燒的 Nucleo-F746ZG bring-up + CAN 時序修正 |
+| 2026-07-01 | [C1：CANable + Python 假從站](./changes/2026-07-01-c1-canable-python-slave.md) | F746 主站對打 PC 假 CiA402 從站（python-can）+ PV 模型 |
+| 2026-07-01 | [C1 上位機 web 看板](./changes/2026-07-01-web-monitor-14axis.md) | 標準庫 SSE 即時看板，畫雙臂 14 軸 pos/扭矩/電流/狀態 |
+| 2026-07-01 | [全面忠實 CiA402 模擬器](./changes/2026-07-01-full-cia402-simulator.md) | 8 模式 + 完整狀態機 + Homing + 故障 + 手冊抽出 OD + web 控制台 |
+| 2026-07-01 | [Web CANopen 資料流](./changes/2026-07-01-web-can-dataflow.md) | 選取 motor 的即時 rx/tx 幀流面板（RPDO/TPDO/SDO 解析）|
 | 2026-07-02 | [bringup_decode 跨平台(WSL/Ubuntu)](./changes/2026-07-02-bringup-decode-linux-slcan.md) | 補回 can_slave + slcan 自動偵測 + WSL/Ubuntu 啟動腳本 |
 
 ## 設計文件
