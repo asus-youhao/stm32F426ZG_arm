@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "name": "dual_arm_humanoid",
+    "urdf": "dual_arm.urdf",
+    "convention": "Z-up, X-forward, Y-left; q=0 => arms hang down (-Z)",
+    "rev": 1
+  },
+  "joints": {
+    "L_J1_shoulder":     {"bus": 0, "node": 1, "model": "PHU20", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159},
+    "L_J2_shoulder":     {"bus": 0, "node": 2, "model": "PHU20", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159},
+    "L_J3_shoulder_yaw": {"bus": 0, "node": 3, "model": "PHU17", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159},
+    "L_J4_elbow":        {"bus": 0, "node": 4, "model": "PHU17", "home_offset": 0.0, "soft_lower": -2.60,    "soft_upper": 0.0},
+    "L_J5_wrist1":       {"bus": 0, "node": 5, "model": "PHU14", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159},
+    "L_J6_wrist2":       {"bus": 0, "node": 6, "model": "PHU14", "home_offset": 0.0, "soft_lower": -1.92,    "soft_upper": 1.92},
+    "L_J7_wrist3":       {"bus": 0, "node": 7, "model": "PHU14", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159},
+    "R_J1_shoulder":     {"bus": 1, "node": 1, "model": "PHU20", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159},
+    "R_J2_shoulder":     {"bus": 1, "node": 2, "model": "PHU20", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159},
+    "R_J3_shoulder_yaw": {"bus": 1, "node": 3, "model": "PHU17", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159},
+    "R_J4_elbow":        {"bus": 1, "node": 4, "model": "PHU17", "home_offset": 0.0, "soft_lower": -2.60,    "soft_upper": 0.0},
+    "R_J5_wrist1":       {"bus": 1, "node": 5, "model": "PHU14", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159},
+    "R_J6_wrist2":       {"bus": 1, "node": 6, "model": "PHU14", "home_offset": 0.0, "soft_lower": -1.92,    "soft_upper": 1.92},
+    "R_J7_wrist3":       {"bus": 1, "node": 7, "model": "PHU14", "home_offset": 0.0, "soft_lower": -3.14159, "soft_upper": 3.14159}
+  },
+  "control": {"Kp": 120.0, "Kd_ratio": 2.0, "torque_limit_pct": 100},
+  "meshes": {
+    "PHU20": null,
+    "PHU17": null,
+    "PHU14": null,
+    "note": "放入 model/meshes/*.stl 或 *.glb 後於此填檔名；null => 前端用圓柱幾何 fallback"
+  },
+  "display": {"show_tf_axes": false, "show_zero_marks": true, "show_target_ghost": true, "torque_color": true, "angle_unit": "deg"},
+  "presets": {
+    "home_arms_down": {"L_J1_shoulder": 0, "L_J2_shoulder": 0, "L_J3_shoulder_yaw": 0, "L_J4_elbow": 0, "L_J5_wrist1": 0, "L_J6_wrist2": 0, "L_J7_wrist3": 0,
+                        "R_J1_shoulder": 0, "R_J2_shoulder": 0, "R_J3_shoulder_yaw": 0, "R_J4_elbow": 0, "R_J5_wrist1": 0, "R_J6_wrist2": 0, "R_J7_wrist3": 0},
+    "demo_bend":      {"L_J2_shoulder": 0.3, "L_J4_elbow": -0.7, "L_J6_wrist2": 0.5,
+                        "R_J2_shoulder": 0.3, "R_J4_elbow": -0.7, "R_J6_wrist2": 0.5}
+  }
+}

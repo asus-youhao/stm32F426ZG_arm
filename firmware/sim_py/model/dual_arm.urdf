@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<!--
+  dual_arm.urdf — 雙臂 7-DoF x2 = 14 軸人形上半身
+  慣例：Z 向上、X 向前、Y 向左（右手系，重力 -Z），單位 m / rad。
+  零點：所有 revolute 關節 q=0 時，雙臂沿 -Z 自然垂下（人站立、手臂貼身）。
+  3-1-3 擬人臂：肩(J1 pitch/Y, J2 roll/X, J3 yaw/Z) - 肘(J4/Y) - 腕(J5 roll/Z, J6/Y, J7/X)。
+  馬達型號/bus/node 見 robot_config.json（此檔只描述運動學與外型）。
+-->
+<robot name="dual_arm_humanoid">
+
+  <!-- ===== 軀幹 ===== -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0.25"/>
+      <geometry><box size="0.16 0.34 0.5"/></geometry>
+      <material name="torso"><color rgba="0.30 0.34 0.40 1"/></material>
+    </visual>
+  </link>
+
+  <!-- ============================================================ 左臂 ============================================================ -->
+  <link name="L_link1"/>
+  <link name="L_link2"/>
+  <link name="L_upperarm">
+    <visual>
+      <origin xyz="0 0 -0.15"/>
+      <geometry><cylinder radius="0.035" length="0.30"/></geometry>
+      <material name="arm"><color rgba="0.55 0.58 0.62 1"/></material>
+    </visual>
+  </link>
+  <link name="L_forearm">
+    <visual>
+      <origin xyz="0 0 -0.14"/>
+      <geometry><cylinder radius="0.030" length="0.28"/></geometry>
+      <material name="arm"><color rgba="0.55 0.58 0.62 1"/></material>
+    </visual>
+  </link>
+  <link name="L_wrist5"/>
+  <link name="L_wrist6"/>
+  <link name="L_hand">
+    <visual>
+      <origin xyz="0 0 -0.04"/>
+      <geometry><box size="0.05 0.02 0.08"/></geometry>
+      <material name="hand"><color rgba="0.70 0.62 0.50 1"/></material>
+    </visual>
+  </link>
+
+  <joint name="L_J1_shoulder" type="revolute">
+    <parent link="base_link"/><child link="L_link1"/>
+    <origin xyz="0 0.20 0.50"/><axis xyz="0 1 0"/>
+    <limit lower="-3.14159" upper="3.14159" effort="182" velocity="6.28"/>
+  </joint>
+  <joint name="L_J2_shoulder" type="revolute">
+    <parent link="L_link1"/><child link="L_link2"/>
+    <origin xyz="0 0 0"/><axis xyz="1 0 0"/>
+    <limit lower="-3.14159" upper="3.14159" effort="182" velocity="6.28"/>
+  </joint>
+  <joint name="L_J3_shoulder_yaw" type="revolute">
+    <parent link="L_link2"/><child link="L_upperarm"/>
+    <origin xyz="0 0 0"/><axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="134" velocity="6.28"/>
+  </joint>
+  <joint name="L_J4_elbow" type="revolute">
+    <parent link="L_upperarm"/><child link="L_forearm"/>
+    <origin xyz="0 0 -0.30"/><axis xyz="0 1 0"/>
+    <limit lower="-2.60" upper="0.0" effort="134" velocity="6.28"/>
+  </joint>
+  <joint name="L_J5_wrist1" type="revolute">
+    <parent link="L_forearm"/><child link="L_wrist5"/>
+    <origin xyz="0 0 -0.28"/><axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="43" velocity="6.28"/>
+  </joint>
+  <joint name="L_J6_wrist2" type="revolute">
+    <parent link="L_wrist5"/><child link="L_wrist6"/>
+    <origin xyz="0 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-1.92" upper="1.92" effort="43" velocity="6.28"/>
+  </joint>
+  <joint name="L_J7_wrist3" type="revolute">
+    <parent link="L_wrist6"/><child link="L_hand"/>
+    <origin xyz="0 0 0"/><axis xyz="1 0 0"/>
+    <limit lower="-3.14159" upper="3.14159" effort="43" velocity="6.28"/>
+  </joint>
+
+  <!-- ============================================================ 右臂 ============================================================ -->
+  <link name="R_link1"/>
+  <link name="R_link2"/>
+  <link name="R_upperarm">
+    <visual>
+      <origin xyz="0 0 -0.15"/>
+      <geometry><cylinder radius="0.035" length="0.30"/></geometry>
+      <material name="arm"><color rgba="0.55 0.58 0.62 1"/></material>
+    </visual>
+  </link>
+  <link name="R_forearm">
+    <visual>
+      <origin xyz="0 0 -0.14"/>
+      <geometry><cylinder radius="0.030" length="0.28"/></geometry>
+      <material name="arm"><color rgba="0.55 0.58 0.62 1"/></material>
+    </visual>
+  </link>
+  <link name="R_wrist5"/>
+  <link name="R_wrist6"/>
+  <link name="R_hand">
+    <visual>
+      <origin xyz="0 0 -0.04"/>
+      <geometry><box size="0.05 0.02 0.08"/></geometry>
+      <material name="hand"><color rgba="0.70 0.62 0.50 1"/></material>
+    </visual>
+  </link>
+
+  <joint name="R_J1_shoulder" type="revolute">
+    <parent link="base_link"/><child link="R_link1"/>
+    <origin xyz="0 -0.20 0.50"/><axis xyz="0 1 0"/>
+    <limit lower="-3.14159" upper="3.14159" effort="182" velocity="6.28"/>
+  </joint>
+  <joint name="R_J2_shoulder" type="revolute">
+    <parent link="R_link1"/><child link="R_link2"/>
+    <origin xyz="0 0 0"/><axis xyz="1 0 0"/>
+    <limit lower="-3.14159" upper="3.14159" effort="182" velocity="6.28"/>
+  </joint>
+  <joint name="R_J3_shoulder_yaw" type="revolute">
+    <parent link="R_link2"/><child link="R_upperarm"/>
+    <origin xyz="0 0 0"/><axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="134" velocity="6.28"/>
+  </joint>
+  <joint name="R_J4_elbow" type="revolute">
+    <parent link="R_upperarm"/><child link="R_forearm"/>
+    <origin xyz="0 0 -0.30"/><axis xyz="0 1 0"/>
+    <limit lower="-2.60" upper="0.0" effort="134" velocity="6.28"/>
+  </joint>
+  <joint name="R_J5_wrist1" type="revolute">
+    <parent link="R_forearm"/><child link="R_wrist5"/>
+    <origin xyz="0 0 -0.28"/><axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="43" velocity="6.28"/>
+  </joint>
+  <joint name="R_J6_wrist2" type="revolute">
+    <parent link="R_wrist5"/><child link="R_wrist6"/>
+    <origin xyz="0 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-1.92" upper="1.92" effort="43" velocity="6.28"/>
+  </joint>
+  <joint name="R_J7_wrist3" type="revolute">
+    <parent link="R_wrist6"/><child link="R_hand"/>
+    <origin xyz="0 0 0"/><axis xyz="1 0 0"/>
+    <limit lower="-3.14159" upper="3.14159" effort="43" velocity="6.28"/>
+  </joint>
+
+</robot>

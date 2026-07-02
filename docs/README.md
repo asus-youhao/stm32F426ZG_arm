@@ -32,6 +32,8 @@
 | 2026-06-25 | [修復 500Hz/看門狗/可建置](./changes/2026-06-25-fix-500hz-watchdog-buildable.md) | 三項嚴重問題修復 + CMake 目標建置 |
 | 2026-06-25 | [單元測試](./changes/2026-06-25-unit-tests.md) | trajectory/kinematics/IK/協定/CANopen 測試 |
 | 2026-07-02 | [bringup_decode 跨平台(WSL/Ubuntu)](./changes/2026-07-02-bringup-decode-linux-slcan.md) | 補回 can_slave + slcan 自動偵測 + WSL/Ubuntu 啟動腳本 |
+| 2026-07-02 | [3D 人形視覺化規劃](./changes/2026-07-02-3d-humanoid-visualizer-plan.md) | TF 骨架 + 馬達擺放 + 零點紅線 + 手臂垂下=零 設計文件 |
+| 2026-07-02 | [P0 URDF 模型+FK](./changes/2026-07-02-p0-urdf-model-fk.md) | dual_arm.urdf + urdf_loader 完整解析/FK，q=0 雙臂垂下 |
 
 ## 設計文件
 
@@ -44,6 +46,7 @@
 | [Dual-Arm Control Plan](./design/dual-arm-control-plan.md) | 雙臂控制工作分解（joint/task-space 1kHz、整合） |
 | [CubeMX 整合說明](./design/firmware-cubemx-integration.md) | F746 CubeMX 設定與韌體接線 |
 | [WP2 單軸 Bring-up](./design/wp2-single-axis-bringup.md) | SDO 驗證 + 單軸轉動測試流程 |
+| [3D 人形視覺化](./design/3d-humanoid-visualizer.md) | TF 骨架 + 馬達擺放 + 零點紅線 + 手臂垂下=零 的 3D 視覺化設計 |
 | [WP3 Joint-space](./design/wp3-joint-space.md) | 軌跡插值與 joint-space 控制器 |
 | [WP4 Task-space](./design/wp4-task-space.md) | 運動學/Jacobian/IK 與笛卡爾控制 |
 | [WP5 雙臂整合](./design/wp5-dual-arm-integration.md) | L4 協同與全棧串接 |
