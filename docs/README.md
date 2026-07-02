@@ -34,6 +34,7 @@
 | 2026-07-02 | [bringup_decode 跨平台(WSL/Ubuntu)](./changes/2026-07-02-bringup-decode-linux-slcan.md) | 補回 can_slave + slcan 自動偵測 + WSL/Ubuntu 啟動腳本 |
 | 2026-07-02 | [3D 人形視覺化規劃](./changes/2026-07-02-3d-humanoid-visualizer-plan.md) | TF 骨架 + 馬達擺放 + 零點紅線 + 手臂垂下=零 設計文件 |
 | 2026-07-02 | [P0 URDF 模型+FK](./changes/2026-07-02-p0-urdf-model-fk.md) | dual_arm.urdf + urdf_loader 完整解析/FK，q=0 雙臂垂下 |
+| 2026-07-02 | [P1 後端模型/設定端點](./changes/2026-07-02-p1-ws-server-model-endpoints.md) | ws_server 靜態HTTP + set_config/preset + 遙測 q/qTarget |
 
 ## 設計文件
 

@@ -10,8 +10,23 @@ host_ui_ws.html 與 can_monitor_ws.html 連同一個 server → 看到同一份�
 啟動： python3 ws_server.py [port]   （預設 8765）
 """
 import socket, threading, time, json, base64, hashlib, struct, sys, collections
+import os, math, functools
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from phu_motor import PhuMotor, CPR
 from phu_od import od_name
+
+BASE = os.path.dirname(os.path.abspath(__file__))         # .../firmware/sim_py
+FIRMWARE_DIR = os.path.dirname(BASE)                      # .../firmware（靜態 HTTP 根）
+MODEL_DIR = os.path.join(BASE, "model")
+CONFIG_PATH = os.path.join(MODEL_DIR, "robot_config.json")
+
+
+def load_config():
+    try:
+        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
 
 MAP = [("L_J1",0,1,"PHU20"),("L_J2",0,2,"PHU20"),("L_J3",0,3,"PHU17"),("L_J4",0,4,"PHU17"),
        ("L_J5",0,5,"PHU14"),("L_J6",0,6,"PHU14"),("L_J7",0,7,"PHU14"),
@@ -32,6 +47,50 @@ class Sim:
         self.cobid = {}                       # cobid -> dict
         self.frames = collections.deque(maxlen=30)
         self.lock = threading.Lock()
+        self.config = load_config()
+        self.model_rev = int(self.config.get("meta", {}).get("rev", 1))
+        self.home = [0.0] * 14
+        self._apply_config()
+
+    def _apply_config(self):
+        """把 config 的 control/home_offset 套用到 14 顆馬達（在鎖內呼叫）。"""
+        ctrl = self.config.get("control", {})
+        kp = ctrl.get("Kp"); kdr = ctrl.get("Kd_ratio")
+        for m in self.M:
+            if kp:
+                m.Kp = float(kp)
+                if kdr is not None:
+                    m.Kd = float(kdr) * math.sqrt(m.Kp * m.I)
+        joints = list(self.config.get("joints", {}).values())
+        for i in range(len(self.M)):
+            self.home[i] = float(joints[i].get("home_offset", 0.0)) if i < len(joints) else 0.0
+
+    def set_config(self, msg):
+        """整包 config 或 dotted-path 設定；持久化、bump rev、重新套用（在鎖內呼叫）。"""
+        newcfg = msg.get("config")
+        if newcfg is not None:
+            self.config = newcfg
+        elif msg.get("path") is not None:
+            node = self.config
+            keys = msg["path"].split(".")
+            for k in keys[:-1]:
+                node = node.setdefault(k, {})
+            node[keys[-1]] = msg.get("value")
+        self.model_rev += 1
+        self.config.setdefault("meta", {})["rev"] = self.model_rev
+        self._apply_config()
+        try:
+            with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+                json.dump(self.config, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
+    def apply_preset(self, name):
+        """套用具名姿態 preset 到各軸目標（在鎖內呼叫）。"""
+        pre = self.config.get("presets", {}).get(name, {})
+        for i, jn in enumerate(self.config.get("joints", {}).keys()):
+            if jn in pre and i < len(self.goal):
+                self.goal[i] = float(pre[jn])
 
     def _emit(self, direction, bus, cobid, kind, node, data, decode):
         if direction == "TX": self.tx[bus]+=1
@@ -71,6 +130,8 @@ class Sim:
                 j=int(msg["joint"]); self.goal[j]=float(msg["value"])
             elif c=="move":
                 j=int(msg["joint"]); self.goal[j]+=float(msg.get("delta",0.3))
+            elif c=="set_config": self.set_config(msg)
+            elif c=="preset": self.apply_preset(msg.get("name"))
             elif c=="read":
                 m=self.M[int(msg.get("node",1))-1 + (7 if msg.get("bus",0) else 0)]
                 idx=int(msg["index"]); v=m.read_od(idx,int(msg.get("sub",0)))
@@ -96,11 +157,12 @@ class Sim:
                     cw="0x%02X"%m.controlword, sw="0x%04X"%m.statusword,
                     state=STATE.get(m.statusword,"?"), target=m.target_counts,
                     actual=int(round(m.q*CPR)), torque=round(m.torque,2), current=round(m.current,2),
-                    peak=m.peak_torque, ratedC=m.rated_current))
+                    peak=m.peak_torque, ratedC=m.rated_current,
+                    q=round(m.q,5), qTarget=round(m.target_counts/CPR,5), home=round(self.home[i],5)))
             cobids=[dict(id="0x%03X"%k, **{kk:vv for kk,vv in v.items() if kk!="t"},
                          age=int((time.time()-v["t"])*1000)) for k,v in sorted(self.cobid.items())]
             return dict(motors=motors, frames=list(self.frames), cobids=cobids,
-                        tx=self.tx, rx=self.rx, estop=self.estop)
+                        tx=self.tx, rx=self.rx, estop=self.estop, model_rev=self.model_rev)
 
 sim = Sim()
 
@@ -178,12 +240,32 @@ def broadcaster():
                 with clients_lock: clients.discard(c)
 threading.Thread(target=broadcaster, daemon=True).start()
 
+# ===== 靜態 HTTP 伺服器（serve firmware/：/ui/*.html 與 /sim_py/model/*）=====
+class _Handler(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+    def log_message(self, *a):
+        pass
+
+def http_server(port):
+    handler = functools.partial(_Handler, directory=FIRMWARE_DIR)
+    httpd = ThreadingHTTPServer(("0.0.0.0", port), handler)
+    httpd.serve_forever()
+
 def main():
     port=int(sys.argv[1]) if len(sys.argv)>1 else 8765
+    http_port=int(sys.argv[2]) if len(sys.argv)>2 else 8080
+    threading.Thread(target=http_server, args=(http_port,), daemon=True).start()
     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(("0.0.0.0", port)); s.listen(8)
-    print("假硬體 WebSocket 伺服器啟動：ws://localhost:%d  (Ctrl+C 結束)"%port)
+    print("假硬體伺服器啟動：")
+    print("  WebSocket : ws://localhost:%d"%port)
+    print("  3D 檢視器 : http://localhost:%d/ui/viewer3d.html"%http_port)
+    print("  模型/設定 : http://localhost:%d/sim_py/model/dual_arm.urdf"%http_port)
+    print("  (Ctrl+C 結束)")
     while True:
         conn,_=s.accept()
         threading.Thread(target=handle_client, args=(conn,), daemon=True).start()
