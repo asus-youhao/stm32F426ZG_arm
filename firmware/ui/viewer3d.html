@@ -66,6 +66,10 @@
       <small>拉動後放開 → 寫回 robot_config.json（set_config）</small>
     </div>
 
+    <h2>零位校正 (home offset)</h2>
+    <div class="panel jgrid" id="calibPanel"><small>連線後載入…</small></div>
+    <small>寫回 robot_config.json；紅線「參考刻痕」隨之旋轉代表機械零。</small>
+
     <h2>關節 Jog</h2>
     <div class="panel jgrid" id="jointPanel"><small>連線後載入…</small></div>
   </div>
@@ -86,6 +90,8 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
+import { STLLoader } from './vendor/STLLoader.js';
+import { GLTFLoader } from './vendor/GLTFLoader.js';
 
 // ---- Z-up 世界（機器人慣例：Z 上、X 前、Y 左）----
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
@@ -201,7 +207,7 @@ function buildSkeleton(robot, {ghost=false}={}){
     pivot.add(linkGroups[j.child]);
     if(j.type==='revolute'||j.type==='continuous'){
       jointPivots[j.name]={pivot, axis:new THREE.Vector3(...j.axis).normalize()};
-      // ---- 馬達本體（圓柱，沿轉軸）----
+      // ---- 馬達本體：有 CAD 網格則載入，否則圓柱幾何 fallback ----
       const model = MODEL_OF[j.name] || 'PHU14'; const dim = MOTOR_DIM[model];
       const axisV=new THREE.Vector3(...j.axis);
       const mat=new THREE.MeshStandardMaterial({ color:0x9aa4b0, metalness:0.5, roughness:0.4,
@@ -209,20 +215,37 @@ function buildSkeleton(robot, {ghost=false}={}){
       const body=new THREE.Mesh(new THREE.CylinderGeometry(dim.r,dim.r,dim.l,28), mat);
       body.quaternion.copy(alignQuat(Y, axisV));
       originG.add(body); motorMats[j.name]=mat;
-      // ---- 零點參考刻痕（定子，固定）----
+      loadMeshInto(originG, body, model, axisV, mat);   // 非同步：載到就換掉圓柱
+      // ---- 零點參考刻痕（定子）：依 home_offset 旋轉，代表校正後機械零 ----
       const pdir=perp(axisV);
       if(!ghost){
-        const tick=markMesh(dim, pdir, axisV, 0x888888);
-        originG.add(tick);
+        const tickG=new THREE.Group();
+        tickG.quaternion.setFromAxisAngle(axisV.clone().normalize(), HOME_OF[j.name]||0);
+        tickG.add(markMesh(dim, pdir, axisV, 0x888888));
+        originG.add(tickG);
         // ---- 零點紅線（轉子，隨 pivot 轉）----
         const red=markMesh(dim, pdir, axisV, 0xe23b3b);
-        pivot.add(red); zeroMarks.push(tick, red);
+        pivot.add(red); zeroMarks.push(tickG, red);
       }
       // TF 軸
       const ax=new THREE.AxesHelper(dim.r*1.8); ax.visible=false; originG.add(ax); tfAxes.push(ax);
     }
   }
   return { rootGroup, jointPivots, motorMats, zeroMarks, tfAxes };
+}
+// CAD 網格載入（STL/glTF）；成功後隱藏圓柱、加入網格。缺檔則保留圓柱 fallback。
+const _stl=new STLLoader(), _gltf=new GLTFLoader();
+function loadMeshInto(originG, cylBody, model, axisV, mat){
+  const fn = MESH_OF[model]; if(!fn) return;                 // null → 用圓柱
+  const url = `${HTTP}/sim_py/model/meshes/${fn}`;
+  const place=(obj)=>{ obj.quaternion.copy(alignQuat(Y, axisV)); originG.add(obj); cylBody.visible=false; };
+  try{
+    if(/\.stl$/i.test(fn)){
+      _stl.load(url, g=>{ place(new THREE.Mesh(g, mat)); }, undefined, ()=>{});
+    }else if(/\.(glb|gltf)$/i.test(fn)){
+      _gltf.load(url, gltf=>{ place(gltf.scene); }, undefined, ()=>{});
+    }
+  }catch(e){ /* 保留圓柱 */ }
 }
 function eulerRPY(rpy){ const e=new THREE.Euler(rpy[0],rpy[1],rpy[2],'ZYX'); return new THREE.Quaternion().setFromEuler(e); }
 function markMesh(dim, pdir, axisV, color){
@@ -239,6 +262,7 @@ function markMesh(dim, pdir, axisV, color){
 
 // ============================ 狀態 ============================
 let robot=null, live=null, ghost=null, jointOrder=[], MODEL_OF={}, LIMITS={};
+let MESH_OF={}, HOME_OF={};
 let cfg={display:{}}, ws=null, unit='deg';
 
 async function loadModel(){
@@ -246,19 +270,24 @@ async function loadModel(){
   cfg = await (await fetch(`${HTTP}/sim_py/model/robot_config.json`)).json();
   robot = parseURDF(urdfTxt);
   jointOrder = robot.joints.filter(j=>j.type==='revolute'||j.type==='continuous').map(j=>j.name);
-  MODEL_OF={}; LIMITS={};
+  MODEL_OF={}; LIMITS={}; HOME_OF={};
   const jc = cfg.joints||{};
+  MESH_OF = cfg.meshes||{};
   jointOrder.forEach(n=>{ MODEL_OF[n]=(jc[n]&&jc[n].model)||'PHU14';
+    HOME_OF[n]=(jc[n]&&jc[n].home_offset)||0;
     LIMITS[n]=jc[n]?{lo:jc[n].soft_lower,hi:jc[n].soft_upper}:{lo:-3.14,hi:3.14}; });
-  window.MODEL_OF=MODEL_OF;
 
   // 清掉舊骨架
   if(live) scene.remove(live.rootGroup); if(ghost) scene.remove(ghost.rootGroup);
   live = buildSkeleton(robot,{ghost:false});  scene.add(live.rootGroup);
   ghost= buildSkeleton(robot,{ghost:true});   scene.add(ghost.rootGroup);
+  window.__dbg = { scene, live, ghost, get counts(){ let cyl=0,mesh=0,box=0;
+    live.rootGroup.traverse(o=>{ if(o.isMesh){ const t=o.geometry?.type||'';
+      if(t.includes('Cylinder')&&o.visible) cyl++; else if(t.includes('Box')) box++; else if(o.visible) mesh++; } });
+    return {cyl,box,mesh}; } };
   document.getElementById('hModel').textContent = robot.name;
   document.getElementById('hRev').textContent = (cfg.meta&&cfg.meta.rev)||'?';
-  buildJointPanel(); applyDisplay();
+  buildJointPanel(); buildCalibPanel(); applyDisplay();
 }
 
 function setJointAngles(sk, anglesByName){
@@ -285,6 +314,24 @@ function buildJointPanel(){
   });
 }
 function fmtAng(rad){ return unit==='deg' ? (rad*180/Math.PI).toFixed(1)+'°' : rad.toFixed(3); }
+
+// 零位校正：每軸 home_offset 數字輸入（度），寫回 config（bump rev → 自動重載）
+function buildCalibPanel(){
+  const p=document.getElementById('calibPanel'); p.innerHTML='';
+  jointOrder.forEach(name=>{
+    const deg=((HOME_OF[name]||0)*180/Math.PI).toFixed(1);
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<label title="${name}">${name.replace(/_/g,' ')}</label>
+      <input type="number" data-j="${name}" value="${deg}" step="0.5" style="width:70px"/>
+      <span class="val">°</span>`;
+    p.appendChild(row);
+  });
+  p.querySelectorAll('input[type=number]').forEach(inp=>{
+    inp.addEventListener('change',e=>{ const name=e.target.dataset.j;
+      const rad=(+e.target.value)*Math.PI/180;
+      send({cmd:'set_config', path:`joints.${name}.home_offset`, value:rad}); });
+  });
+}
 
 function applyDisplay(){
   const d=cfg.display||{};
