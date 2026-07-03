@@ -21,8 +21,18 @@ Linux 執行檔，底層 bxCAN 換成 SocketCAN（`co_bxcan_socketcan.c`），
 ## 一鍵 Demo
 
 ```bash
-./run_demo.sh        # 全自動：vcan→從站→bring-up→移動→FK→急停→恢復（約15秒）
+./run_demo.sh        # 終端版：vcan→從站→bring-up→移動→FK→急停→恢復（約15秒）
 ./run_demo.sh -i     # 互動模式（自己下 j/e/p/q 命令）
+./run_demo_ui.sh     # UI 版：瀏覽器看 3D 動畫 + CAN 資料流（需先 sudo ./setup_vcan.sh）
+```
+
+UI 版架構——`ws_server --monitor` 當旁聽者，3D/資料流鏡射真實 bus 交握：
+
+```
+pc_master(主站,C) ──RPDO/SDO──► vcan0/vcan1 ◄──TPDO── can_slave.py×14(從站,物理)
+                                    ▲ 旁聽
+                          ws_server --monitor ──WS──► viewer3d.html(3D 動畫)
+                                                      can_monitor_ws.html(資料流)
 ```
 
 vcan 不存在時自動改用 user namespace（`unshare -rn`，**免 sudo**）;

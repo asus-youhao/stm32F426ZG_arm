@@ -35,6 +35,16 @@ MAP = [("L_J1",0,1,"PHU20"),("L_J2",0,2,"PHU20"),("L_J3",0,3,"PHU17"),("L_J4",0,
 STATE = {0x40:"SOD",0x21:"READY",0x23:"SWITCHED",0x27:"OP_ENABLED",0x07:"QSTOP",0x08:"FAULT"}
 DT = 0.002
 
+def sw_state(sw):
+    """CiA402 狀態字 → 狀態名（位元遮罩;真主站的 sw 帶 bit10/12 等旗標,不能整值查表）。"""
+    if (sw & 0x4F) == 0x40: return "SOD"
+    if (sw & 0x6F) == 0x21: return "READY"
+    if (sw & 0x6F) == 0x23: return "SWITCHED"
+    if (sw & 0x6F) == 0x27: return "OP_ENABLED"
+    if (sw & 0x6F) == 0x07: return "QSTOP"
+    if (sw & 0x4F) == 0x08: return "FAULT"
+    return "?"
+
 class Sim:
     def __init__(self):
         self.M = [PhuMotor(n, m, nm) for (nm,b,n,m) in MAP]
@@ -156,7 +166,7 @@ class Sim:
             for i,m in enumerate(self.M):
                 motors.append(dict(name=m.name,model=m.model,bus=self.bus[i],node=m.node_id,
                     cw="0x%02X"%m.controlword, sw="0x%04X"%m.statusword,
-                    state=STATE.get(m.statusword,"?"), target=m.target_counts,
+                    state=sw_state(m.statusword), target=m.target_counts,
                     actual=int(round(m.q*CPR)), torque=round(m.torque,2), current=round(m.current,2),
                     peak=m.peak_torque, ratedC=m.rated_current,
                     q=round(m.q,5), qTarget=round(m.target_counts/CPR,5), home=round(self.home[i],5)))
@@ -167,13 +177,22 @@ class Sim:
                         source=getattr(self, "source", "sim"))
 
 sim = Sim()
-MODE = "sim"          # "sim"=純軟體自驅；"can"=真實 CAN，由外部主站(F746)驅動
+MODE = "sim"          # "sim"=純軟體自驅；"can"=真實 CAN 假從站；"monitor"=被動監聽鏡射
 
-# ---- 控制迴圈執行緒（~500Hz）：僅軟體模式自驅；CAN 模式交由 can_loop ----
+# ---- 控制迴圈執行緒（~500Hz）：sim 自驅;can 只推進物理;monitor 不動（位置來自 bus）----
 def control_loop():
+    last = time.time()
     while True:
+        now = time.time()
+        dt = min(now - last, 0.05)
+        last = now
         if MODE == "sim":
             for _ in range(5): sim.step(DT)    # 5×2ms
+        elif MODE == "can":
+            # 假從站模式：主站的 RPDO/SDO 只設定目標,物理得自己推進
+            #（否則 CSP 目標下去 q 永遠不動,3D 沒有動畫）
+            with sim.lock:
+                for m in sim.M: m.step(dt)
         time.sleep(0.01)
 threading.Thread(target=control_loop, daemon=True).start()
 
@@ -242,6 +261,67 @@ def can_loop(interface, channel, bitrate, nodes):
                 for a, d in s.handle_frame(arb, data):
                     bus.send(can.Message(arbitration_id=a, data=bytes(d), is_extended_id=False))
                     sim._emit("TX", 0, a, _cob_kind(a), s.node_id, list(d), "")
+
+# ===== 被動監聽模式：嗅探真實 bus,把主站⇄從站的交握鏡射到 3D/資料流 =====
+# 情境：pc_master 或 F746 當主站,can_slave.py（或真 EYOU 馬達）當從站,
+# 本程式第三方旁聽——TPDO 回授餵 3D 動畫,所有幀餵資料流面板。
+# 接真馬達時同樣適用（P5 文件的情境③：被動讀 0x6064 真編碼器）。
+_mon_gate = {}   # (bus,cobid) -> 上次完整記錄時間;取樣 20Hz,其餘只累計數
+
+def _monitor_sniff(b, bus):
+    while True:
+        msg = bus.recv(timeout=0.2)
+        if msg is None or msg.is_extended_id:
+            continue
+        arb, data = msg.arbitration_id, list(msg.data)
+        kind = _cob_kind(arb)
+        node = arb & 0x7F
+        with sim.lock:
+            m = sim.M[b*7 + node - 1] if 1 <= node <= 7 else None
+            decode = ""
+            if kind == "TPDO1" and m and len(data) >= 6:
+                sw = data[0] | (data[1] << 8)
+                pos = int.from_bytes(bytes(data[2:6]), "little", signed=True)
+                m.statusword = sw
+                m.q = pos / CPR                      # ← 3D 動畫的資料源
+                decode = "sw=0x%04X(%s) pos=%d" % (sw, sw_state(sw), pos)
+            elif kind == "RPDO1" and m and len(data) >= 6:
+                cw = data[0] | (data[1] << 8)
+                tgt = int.from_bytes(bytes(data[2:6]), "little", signed=True)
+                m.controlword = cw
+                m.target_counts = tgt
+                decode = "cw=0x%02X pos=%d" % (cw, tgt)
+            dirn = "TX" if kind in ("RPDO1", "SDO-req", "NMT") else "RX"
+            now = time.time()
+            key = (b, arb)
+            if now - _mon_gate.get(key, 0) >= 0.05:  # 500Hz×28 幀全記錄太貴,取樣即可
+                _mon_gate[key] = now
+                sim._emit(dirn, b, arb, kind, node, data, decode)
+            else:
+                (sim.tx if dirn == "TX" else sim.rx)[b] += 1
+
+def monitor_loop(interface, channels, bitrate):
+    try:
+        import can
+    except ImportError:
+        print("需要 python-can：pip install python-can", file=sys.stderr)
+        return
+    opened = []
+    for b, ch in enumerate(channels):
+        if not ch:
+            continue
+        try:
+            opened.append((b, ch, can.Bus(interface=interface, channel=ch, bitrate=bitrate)))
+        except Exception as e:
+            print("開啟 CAN 失敗（%s@%s）：%s" % (interface, ch, e), file=sys.stderr)
+    if not opened:
+        return
+    sim.source = "monitor:%s@%s" % (interface, "+".join(ch for _, ch, _ in opened))
+    print("監聽模式：旁聽 %s（bus %s）,3D/資料流鏡射真實交握"
+          % ("+".join(ch for _, ch, _ in opened), ",".join(str(b) for b, _, _ in opened)))
+    for b, _, bus in opened:
+        threading.Thread(target=_monitor_sniff, daemon=True, args=(b, bus)).start()
+
 
 # ===== 極簡 WebSocket（RFC6455）=====
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
@@ -341,9 +421,13 @@ def main():
     ap.add_argument("ws_port", nargs="?", type=int, default=8765, help="WebSocket 埠（預設 8765）")
     ap.add_argument("http_port", nargs="?", type=int, default=8090, help="HTTP 偏好埠（預設 8090，占用自動避讓）")
     ap.add_argument("--interface", help="python-can interface（slcan/gs_usb…）；給了才進真實 CAN 模式")
-    ap.add_argument("--channel", help="CAN 通道（slcan=COM11 或 /dev/ttyACM0；gs_usb=0）")
+    ap.add_argument("--channel", help="CAN 通道（slcan=COM11 或 /dev/ttyACM0；gs_usb=0；socketcan=vcan0）")
+    ap.add_argument("--channel2", help="第二條 bus=右臂（monitor 模式；如 vcan1）")
     ap.add_argument("--bitrate", type=int, default=1000000, help="位元率（預設 1Mbps）")
     ap.add_argument("--nodes", default=ONE_ARM, help="真實 CAN 模式要模擬的 node（預設單臂 7 顆）")
+    ap.add_argument("--monitor", action="store_true",
+                    help="被動監聽：不當從站,旁聽 bus 鏡射到 3D/資料流"
+                         "（主站+從站另跑,如 pc_master + can_slave.py）")
     args = ap.parse_args()
 
     http_port=start_http(args.http_port)
@@ -352,11 +436,17 @@ def main():
     s.bind(("0.0.0.0", args.ws_port)); s.listen(8)
 
     if args.interface:
-        MODE = "can"
-        threading.Thread(target=can_loop, daemon=True,
-                         args=(args.interface, args.channel, args.bitrate, parse_nodes(args.nodes))).start()
+        if args.monitor:
+            MODE = "monitor"
+            threading.Thread(target=monitor_loop, daemon=True,
+                             args=(args.interface, [args.channel, args.channel2], args.bitrate)).start()
+        else:
+            MODE = "can"
+            threading.Thread(target=can_loop, daemon=True,
+                             args=(args.interface, args.channel, args.bitrate, parse_nodes(args.nodes))).start()
 
-    print("假硬體伺服器啟動（模式：%s）：" % ("真實 CAN" if args.interface else "純軟體 sim"))
+    mode_str = {"sim": "純軟體 sim", "can": "真實 CAN 假從站", "monitor": "真實 CAN 監聽"}[MODE]
+    print("假硬體伺服器啟動（模式：%s）：" % mode_str)
     print("  WebSocket : ws://localhost:%d"%args.ws_port)
     if http_port:
         print("  3D 檢視器 : http://localhost:%d/ui/viewer3d.html"%http_port)
@@ -366,7 +456,11 @@ def main():
     else:
         print("  [警告] HTTP 埠 %d..%d 皆被占用；請指定空埠：python3 ws_server.py 8765 <free-port>"%(args.http_port, args.http_port+20))
     if args.interface:
-        print("  CAN       : %s @ %s（模擬 node %s）" % (args.interface, args.channel, args.nodes))
+        if args.monitor:
+            print("  CAN       : 監聽 %s @ %s%s" % (args.interface, args.channel,
+                  ("+" + args.channel2) if args.channel2 else ""))
+        else:
+            print("  CAN       : %s @ %s（模擬 node %s）" % (args.interface, args.channel, args.nodes))
     print("  (Ctrl+C 結束)")
     while True:
         conn,_=s.accept()
