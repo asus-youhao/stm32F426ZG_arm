@@ -18,7 +18,17 @@ Linux 執行檔，底層 bxCAN 換成 SocketCAN（`co_bxcan_socketcan.c`），
 | `hal_linux.c` | `sim/hal_shim.c` | 真實牆鐘 HAL_GetTick/Delay（SDO 逾時、看門狗需要） |
 | `pc_master_main.c` | `board/main.c` | clock_nanosleep 500Hz 迴圈 + stdin 互動命令 |
 
-## 使用
+## 一鍵 Demo
+
+```bash
+./run_demo.sh        # 全自動：vcan→從站→bring-up→移動→FK→急停→恢復（約15秒）
+./run_demo.sh -i     # 互動模式（自己下 j/e/p/q 命令）
+```
+
+vcan 不存在時自動改用 user namespace（`unshare -rn`，**免 sudo**）;
+已跑過 `setup_vcan.sh` 則沿用系統級 vcan（可另開 `candump vcan0` 觀察）。
+
+## 手動使用
 
 ```bash
 # 1) 建 vcan0/vcan1（需 sudo，開機後需重跑）

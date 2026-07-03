@@ -24,6 +24,10 @@
   另有 stdin 互動命令（`j <idx> <rad>`、`e <0|1>`、`p`、`q`）與 `--seconds`（CI 用）。
 - `firmware/pc/Makefile`、`setup_vcan.sh`（sudo 建 vcan）、`run_slaves.sh`
   （雙 bus 各 7 顆從站）、`README.md`（含 **無 sudo 的 `unshare -rn`** 跑法）。
+- `firmware/pc/run_demo.sh`：**一鍵 demo**。自動建 vcan（不存在且無權限時
+  自動 `exec unshare -rn` 重跑自己,免 sudo）→ 編譯 → 起 14 顆從站（trap 收尾）
+  → 跑腳本化流程：bring-up → 使能 14 軸 → J0/J3 移動 → FK 印位姿 →
+  急停 → 恢復（約 15 秒）;`-i` 進互動模式手動下命令。
 
 修改：
 
