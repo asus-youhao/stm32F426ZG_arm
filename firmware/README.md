@@ -28,6 +28,8 @@ STM32F746 內建 **2 路獨立 bxCAN**,因此左/右臂各佔一條獨立匯流�
 
 - **HOST 模擬（PC 驗證控制邏輯）**：`cmake -S . -B build && cmake --build build && ./build/phu_sim_demo`
   （或 `cd sim && make`）
+- **PC 主站（SocketCAN，免板子跨行程測試）**：`cd pc && make && ./pc_master`，
+  對打 `sim_py/can_slave.py` 假從站（vcan0=左臂、vcan1=右臂），見 `pc/README.md`。
 - **TARGET 韌體（可燒錄 .bin）**：需 arm-none-eabi + CubeMX HAL，見 `target/README.md`。
 
 ## 目錄

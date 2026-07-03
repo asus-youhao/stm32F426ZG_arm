@@ -187,9 +187,19 @@ def run_canable(slaves, interface, channel, bitrate, hb_ms, verbose):
                              data=[NS_BOOTUP], is_extended_id=False))
 
     next_hb = time.time() + (hb_ms / 1000.0 if hb_ms else 1e9)
+    last_step = time.time()
     try:
         while True:
-            msg = bus.recv(timeout=0.05)
+            msg = bus.recv(timeout=0.002)
+            # 物理步進：讓 CSP/PV/PT 目標真的驅動 q/qd（否則位置永遠不動，
+            # 主站的 moved 檢查與回授看門狗都測不出東西）
+            now = time.time()
+            dt = now - last_step
+            if dt >= 0.001:
+                dt = min(dt, 0.05)          # 防暫停後的大步跳變
+                for s in slaves:
+                    s.motor.step(dt)
+                last_step = now
             if msg is not None and not msg.is_extended_id:
                 for s in slaves:
                     for arb, data in s.handle_frame(msg.arbitration_id, msg.data):
