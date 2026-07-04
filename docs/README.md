@@ -51,6 +51,7 @@
 | 2026-07-04 | [IgH EtherCAT 主站規劃](./changes/2026-07-04-linux-igh-ethercat-master-plan.md) | 方案 B：Ubuntu 24.04 Pro + IgH(kernel-space)；WP-I0~I7；與 SOEM 對比定案 |
 | 2026-07-04 | [Linux CANopen 主站規劃](./changes/2026-07-04-linux-canopen-master-plan.md) | 方案 C：pc_master 上真機 14 軸；PCIe CAN 卡、SYNC、佈建 SOP；WP-C0~C5 |
 | 2026-07-04 | [方案 C 指定 PCAN FD 硬體](./changes/2026-07-04-pcan-fd-hardware-selection.md) | PCAN-USB FD / PCIe FD 選型階梯；FD 硬體+Classic 協定；FD 升級路（WP-C0.6） |
+| 2026-07-05 | [WP-C0.3 佈建腳本](./changes/2026-07-05-wp-c0-3-provision-script.md) | provision_joint.sh：0x2100/0x26A0/存檔/驗證/清冊 SOP 腳本化,寫入大小自動探測 |
 
 ## 設計文件
 
