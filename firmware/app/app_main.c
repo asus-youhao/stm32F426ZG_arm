@@ -24,13 +24,16 @@ static volatile bool s_ready = false;
 static dual_arm_ctrl_t s_dc;
 static task_arm_t s_left, s_right;
 
-void app_main_init(void)
+/** @brief 執行期頻率版 init（WP-H2 `--rate`；對應 WP-C3.2 檔位化）。hz≤0 用預設。 */
+void app_main_init_hz(float hz)
 {
+    if (hz <= 0.0f) hz = CONTROL_HZ;
+
     /* L1：bxCAN + CANopen + CiA402（雙 channel） */
     if (dual_arm_init() != CO_OK) return;
 
-    /* L2：joint_space（14 軸設定,500 Hz） */
-    js_init(CONTROL_DT, robot_js_cfg());
+    /* L2：joint_space（14 軸設定,dt = 1/hz） */
+    js_init(1.0f / hz, robot_js_cfg());
 
     /* L3：兩臂 task_space（DH + IK + joint_space 起始索引） */
     ts_init(&s_left,  robot_left_kin(),  robot_ik_cfg(), 0, robot_q_init());
@@ -45,6 +48,8 @@ void app_main_init(void)
 
     s_ready = true;
 }
+
+void app_main_init(void) { app_main_init_hz(CONTROL_HZ); }
 
 /** @brief 500 Hz 控制 tick（由 TIM6 ISR 呼叫,週期 CONTROL_DT_US=2000us）。 */
 void app_main_tick(void)

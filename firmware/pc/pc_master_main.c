@@ -1,43 +1,44 @@
 /**
  * @file    pc_master_main.c
- * @brief   PC 端 CANopen 主站 — 與 board/main.c 同一套 L1–L4 全棧,底層走 SocketCAN
+ * @brief   PC 端 CANopen 主站 — WP-H2：harness + loop engine 驅動（雙執行緒）
  *
- * 用途：不接 Nucleo 板也能測完整韌體邏輯。
- *   行程A（本程式）：app_main 全棧 @500Hz,vcan0=左臂、vcan1=右臂
- *   行程B（sim_py/can_slave.py ×2）：每條 bus 模擬 7 顆 EYOU PHU CiA402 從站
+ * 架構（docs/design/harness-agent-loop-engine-plan.md §2/§5）：
+ *   RT 執行緒   ：loop engine（clock_nanosleep 絕對時間）+ 四控制 agent
+ *                 + Command/Telemetry agent。RT 路徑零 printf/零 stdin。
+ *   主執行緒    ：harness——stdin 解析→cmd ring、telemetry ring→狀態列印、
+ *                 hn_supervise 心跳監督（engine 卡死→NMT stop 最後防線）。
  *
- * 流程對齊 board/main.c：
- *   （選配 --bringup）單軸 bring-up → app_main_init() → 500Hz tick 迴圈
- *   差異：TIM6 ISR 換成 clock_nanosleep 絕對時間週期;UART log 換成 stdout;
- *         多了 stdin 互動命令（j/e/p/q）方便手動測試。
+ * 相對舊版（單執行緒、tick 內 printf/select）的差異即 H2 驗收：
+ *   stdout 被塞住（`| pv -L 1`）不影響 tick;--rate 執行期切換 400/500 Hz。
  */
 #include "canopen.h"
+#include "co_nmt.h"
 #include "co_bxcan_socketcan.h"
 #include "dual_arm.h"
 #include "dual_arm_ctrl.h"
 #include "task_space.h"
 #include "control_rate.h"
 #include "bringup.h"
+#include "harness.h"
+#include "app_agents.h"
+#include "app_io_agents.h"
+#include "safety.h"
 #include "stm32f7xx_hal.h"
 
+#include <pthread.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/select.h>
 #include <time.h>
 #include <unistd.h>
 
 /* app_main.c 對外 API（無公用標頭,與 board/main.c 同樣以 extern 取用） */
-void app_main_init(void);
-void app_main_tick(void);
-void app_set_estop(int active);
+void app_main_init_hz(float hz);
 const char *app_sys_state(void);
-void app_joint_move(int joint, float rad);
-void app_set_mode(da_mode_t m);
-void app_get_left_pose(pose_t *p);
-void app_get_right_pose(pose_t *p);
 
 /* bringup.c 的弱連結 log → 導到 stdout */
 void bringup_log(const char *fmt, ...)
@@ -49,46 +50,63 @@ void bringup_log(const char *fmt, ...)
     fflush(stdout);
 }
 
-#define TICKS_PER_SEC ((uint64_t)CONTROL_HZ)   /* CONTROL_HZ 為 float,取整用 */
-
 static volatile sig_atomic_t s_quit = 0;
 static void on_sigint(int sig) { (void)sig; s_quit = 1; }
 
 static void usage(const char *argv0)
 {
-    printf("用法: %s [--left IF] [--right IF|none] [--bringup NODE] [--seconds N]\n"
+    printf("用法: %s [--left IF] [--right IF|none] [--rate HZ] [--bringup NODE] [--seconds N]\n"
            "  --left IF      左臂 SocketCAN 介面（預設 vcan0）\n"
            "  --right IF     右臂 SocketCAN 介面（預設 vcan1;'none' 停用 → 單臂）\n"
-           "  --bringup N    先對左臂 node N 跑 WP2 單軸 bring-up（SDO 驗證 + 轉動）\n"
-           "  --seconds N    跑 N 秒後自動結束（0=直到 Ctrl-C;預設 0）\n"
+           "  --rate HZ      控制頻率（100..1000,預設 %u;WP-C 檔位 400/500）\n"
+           "  --bringup N    先對左臂 node N 跑 WP2 單軸 bring-up\n"
+           "  --seconds N    跑 N 秒後自動結束（0=直到 Ctrl-C）\n"
            "互動命令（stdin）：\n"
            "  j <idx> <rad>  關節點到點（idx 0..13）\n"
            "  e <0|1>        急停 off/on\n"
-           "  p              印出雙臂末端位姿\n"
-           "  q              離開\n", argv0);
+           "  p              印出雙臂末端位姿（讀最新遙測快照）\n"
+           "  q              離開\n", argv0, (unsigned)CONTROL_HZ);
 }
 
-static void print_status(uint64_t tick, uint32_t late_max_us)
+/* ================= RT 執行緒：engine 驅動 ================= */
+
+static volatile int s_rt_stop = 0;
+
+static void *rt_thread_fn(void *arg)
 {
-    printf("[app] t=%llus sys=%s J0 sw=0x%04X pos=%ld tgt=%ld drops=%lu late_max=%uus\n",
-           (unsigned long long)(tick / TICKS_PER_SEC), app_sys_state(),
-           g_jstate[0].statusword,
-           (long)g_jstate[0].pos_actual, (long)g_jstate[0].target_pos,
-           (unsigned long)dual_arm_tx_drops(), (unsigned)late_max_us);
-    fflush(stdout);
+    loop_engine_t *e = arg;
+
+    /* RT 排程與鎖頁：盡力而為,非 root/非 RT 內核下降級運行並警告一次
+       （抖動驗收屬 WP-H3,在 PREEMPT_RT 機上以 root/rtprio 權限跑） */
+    struct sched_param sp = { .sched_priority = 80 };
+    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp) != 0)
+        fprintf(stderr, "[rt] 警告：SCHED_FIFO 失敗（無權限?）,以一般排程降級運行\n");
+
+    while (!s_rt_stop && !s_quit) {
+        uint64_t dl = eng_next_deadline_us(e);
+        struct timespec ts = { (time_t)(dl / 1000000u),
+                               (long)(dl % 1000000u) * 1000L };
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, NULL);
+        eng_tick(e);
+    }
+    return NULL;
 }
 
-static void print_poses(void)
+/* ============ harness（主執行緒,非 RT）============ */
+
+/* 最後防線：engine 心跳停滯/連續 overrun 時由 harness 直接動作。
+   先設急停旗標（若 RT 還在動,safety 會下 quick stop）,
+   再直接對兩條 bus 廣播 NMT stop（RT 已死也停得下來）。 */
+static void enter_safe_stop_cb(void *user)
 {
-    pose_t L, R;
-    app_get_left_pose(&L);
-    app_get_right_pose(&R);
-    printf("  左末端 xyz=(%.3f, %.3f, %.3f)  右末端 xyz=(%.3f, %.3f, %.3f)\n",
-           L.p[0], L.p[1], L.p[2], R.p[0], R.p[1], R.p[2]);
-    fflush(stdout);
+    (void)user;
+    safety_set_estop(true);
+    co_nmt_send(CO_BUS_LEFT,  CO_NMT_STOP, 0);
+    co_nmt_send(CO_BUS_RIGHT, CO_NMT_STOP, 0);
+    fprintf(stderr, "[harness] SAFE_STOP：estop + NMT stop 已下發\n");
 }
 
-/* 非阻塞讀 stdin 一行;有完整命令回 true */
+/* 非阻塞讀 stdin 一行 */
 static bool poll_stdin(char *line, size_t cap)
 {
     fd_set rf;
@@ -100,19 +118,26 @@ static bool poll_stdin(char *line, size_t cap)
     return true;
 }
 
-static void handle_cmd(const char *line)
+/* 命令解析：只做解析與 ring push,套用在 RT 域（CommandAgent） */
+static void handle_cmd(const char *line, const app_tele_t *last)
 {
-    int idx;
+    int idx, v;
     float rad;
-    int v;
+    app_cmd_t c;
     if (sscanf(line, "j %d %f", &idx, &rad) == 2 && idx >= 0 && idx < 14) {
-        app_joint_move(idx, rad);
-        printf("  → J%d move_to %.3f rad\n", idx, rad);
+        c = (app_cmd_t){ .op = APP_CMD_JOINT_MOVE, .idx = (uint8_t)idx, .val = rad };
+        printf(app_io_cmd_push(&c) ? "  → J%d move_to %.3f rad\n"
+                                   : "  ！cmd ring 滿,丟棄（J%d %.3f）\n", idx, rad);
     } else if (sscanf(line, "e %d", &v) == 1) {
-        app_set_estop(v);
+        /* 操作員急停走 RT 域 safety（quick stop,可用 e 0 復歸）;
+           harness 的 SAFE_STOP（NMT stop,不可逆）只留給監督觸發 */
+        c = (app_cmd_t){ .op = APP_CMD_ESTOP, .val = (float)v };
+        app_io_cmd_push(&c);
         printf("  → estop %s\n", v ? "ON" : "OFF");
     } else if (line[0] == 'p') {
-        print_poses();
+        printf("  左末端 xyz=(%.3f, %.3f, %.3f)  右末端 xyz=(%.3f, %.3f, %.3f)\n",
+               last->lpos[0], last->lpos[1], last->lpos[2],
+               last->rpos[0], last->rpos[1], last->rpos[2]);
     } else if (line[0] == 'q') {
         s_quit = 1;
     } else if (line[0] != '\n') {
@@ -126,82 +151,121 @@ int main(int argc, char **argv)
     const char *left = "vcan0", *right = "vcan1";
     int bringup_node = 0;
     long run_seconds = 0;
+    long rate_hz = (long)CONTROL_HZ;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--left") && i + 1 < argc)         left = argv[++i];
         else if (!strcmp(argv[i], "--right") && i + 1 < argc)   right = argv[++i];
+        else if (!strcmp(argv[i], "--rate") && i + 1 < argc)    rate_hz = atol(argv[++i]);
         else if (!strcmp(argv[i], "--bringup") && i + 1 < argc) bringup_node = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--seconds") && i + 1 < argc) run_seconds = atol(argv[++i]);
         else { usage(argv[0]); return (strcmp(argv[i], "--help") == 0) ? 0 : 2; }
     }
     if (!strcmp(right, "none")) right = "";
+    if (rate_hz < 100 || rate_hz > 1000) {
+        fprintf(stderr, "--rate 需在 100..1000（Classic CAN 上限 500）\n");
+        return 2;
+    }
 
     signal(SIGINT, on_sigint);
+    if (mlockall(MCL_CURRENT | MCL_FUTURE) != 0)
+        fprintf(stderr, "[rt] 警告：mlockall 失敗（無權限?）\n");
 
     co_socketcan_set_ifname(CO_BUS_LEFT, left);
     co_socketcan_set_ifname(CO_BUS_RIGHT, right);
 
-    printf("=== PC CANopen 主站（SocketCAN）===\n");
-    printf("左臂=%s  右臂=%s  週期=%u us（%u Hz）\n",
-           left, right[0] ? right : "(停用)",
-           (unsigned)CONTROL_DT_US, (unsigned)TICKS_PER_SEC);
+    printf("=== PC CANopen 主站（harness + loop engine, WP-H2）===\n");
+    printf("左臂=%s  右臂=%s  rate=%ld Hz\n", left, right[0] ? right : "(停用)", rate_hz);
 
-    /* （選配）WP2 單軸 bring-up：SDO 驗證 + 轉動,同 board main 開機自檢 */
+    /* （選配）WP2 單軸 bring-up（BUS_UP 前的自檢,非 RT、可阻塞） */
     if (bringup_node > 0) {
         bringup_report_t rep;
         co_status_t st = bringup_single_axis(CO_BUS_LEFT, (uint8_t)bringup_node,
                                              5000, 1000, &rep);
         printf("=== bring-up result = %d (0=OK) ===\n", st);
-        printf("  deviceType=0x%08lX baud=%lu node=%lu\n",
-               (unsigned long)rep.device_type, (unsigned long)rep.baudrate_bps,
-               (unsigned long)rep.node_id_read);
         printf("  pos_before=%ld pos_after=%ld moved=%d\n",
                (long)rep.pos_before, (long)rep.pos_after, rep.moved);
     }
 
-    /* L1–L4 全棧初始化（NMT reset → PDO 映射 → CSP → 使能） */
-    printf("\n=== app phase: init L1-L4 stack ===\n");
-    app_main_init();
+    /* BUS_UP：L1–L4 全棧初始化（SDO 往返、可阻塞 → 在 harness 執行緒做） */
+    printf("\n=== harness: BUS_UP（init L1-L4 stack）===\n");
+    app_main_init_hz((float)rate_hz);
     int present = dual_arm_present_count();
     printf("dual_arm present joints = %d / 14%s\n", present,
            present ? "" : "  (init FAILED — 從站沒起來?)");
     if (present == 0) return 1;
 
-    /* 500 Hz 控制迴圈：clock_nanosleep 絕對時間,量測遲到抖動 */
-    struct timespec next;
-    clock_gettime(CLOCK_MONOTONIC, &next);
-    uint64_t tick = 0;
-    uint32_t late_max_us = 0;
-    uint64_t tick_limit = (run_seconds > 0)
-                        ? (uint64_t)run_seconds * TICKS_PER_SEC : 0;
-    char line[128];
-
-    printf("控制迴圈啟動（Ctrl-C 或 'q' 結束）。命令：j <idx> <rad> / e <0|1> / p / q\n");
-    while (!s_quit && (tick_limit == 0 || tick < tick_limit)) {
-        next.tv_nsec += (long)CONTROL_DT_US * 1000L;
-        while (next.tv_nsec >= 1000000000L) { next.tv_nsec -= 1000000000L; next.tv_sec++; }
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
-
-        struct timespec now;
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        long late_us = (now.tv_sec - next.tv_sec) * 1000000L
-                     + (now.tv_nsec - next.tv_nsec) / 1000L;
-        if (late_us > 0 && (uint32_t)late_us > late_max_us)
-            late_max_us = (uint32_t)late_us;
-
-        app_main_tick();
-        tick++;
-
-        if (tick % TICKS_PER_SEC == 0) {              /* 每秒狀態 */
-            print_status(tick, late_max_us);
-            late_max_us = 0;
-        }
-        if (tick % (TICKS_PER_SEC / 50) == 0 && poll_stdin(line, sizeof(line)))
-            handle_cmd(line);                          /* 50Hz 輪詢 stdin */
+    /* engine + agents + harness */
+    loop_engine_t eng;
+    harness_t hn;
+    eng_cfg_t ecfg = {
+        .dt_us = (uint32_t)(1000000L / rate_hz),
+        .user = &hn,
+        .on_escalate = hn_notify_escalation,
+    };
+    eng_init(&eng, &ecfg);
+    if (app_agents_register(&eng) || app_io_register(&eng)) {
+        fprintf(stderr, "agent 註冊失敗\n");
+        return 1;
+    }
+    hn_cfg_t hcfg = { .stall_checks = 3, .enter_safe_stop = enter_safe_stop_cb };
+    hn_init(&hn, &eng, &hcfg);
+    if (hn_configure(&hn) || hn_activate(&hn)) {
+        fprintf(stderr, "harness configure/activate 失敗\n");
+        return 1;
     }
 
-    printf("\n結束：ticks=%llu drops=%lu sys=%s\n",
-           (unsigned long long)tick, (unsigned long)dual_arm_tx_drops(),
-           app_sys_state());
+    pthread_t rt;
+    if (pthread_create(&rt, NULL, rt_thread_fn, &eng) != 0) {
+        fprintf(stderr, "RT 執行緒建立失敗\n");
+        return 1;
+    }
+
+    printf("RUN（Ctrl-C 或 'q' 結束）。命令：j <idx> <rad> / e <0|1> / p / q\n");
+
+    /* 主執行緒：50 Hz 輪詢 stdin + 遙測列印 + 10 Hz 監督 */
+    app_tele_t tele = {0}, t;
+    char line[128];
+    uint64_t loops = 0, last_print_tick = 0;
+    const long loop_ms = 20;
+    long deadline_loops = run_seconds > 0 ? run_seconds * 1000 / loop_ms : 0;
+
+    while (!s_quit && (deadline_loops == 0 || (long)loops < deadline_loops)) {
+        HAL_Delay((uint32_t)loop_ms);
+        loops++;
+
+        while (app_io_tele_pop(&t)) tele = t;      /* 取最新快照 */
+
+        if (loops % 5 == 0) hn_supervise(&hn);     /* 10 Hz 監督 */
+
+        if (tele.tick >= last_print_tick + (uint64_t)rate_hz) {   /* ~1 Hz 狀態 */
+            last_print_tick = tele.tick;
+            printf("[app] t=%llus hn=%s sys=%s J0 sw=0x%04X pos=%ld tgt=%ld "
+                   "drops=%lu late_max=%uus miss=%llu\n",
+                   (unsigned long long)(tele.tick / (uint64_t)rate_hz),
+                   hn_state_str(&hn), app_sys_state(), tele.sw0,
+                   (long)tele.pos0, (long)tele.tgt0,
+                   (unsigned long)tele.tx_drops, (unsigned)tele.late_max_us,
+                   (unsigned long long)tele.miss);
+            fflush(stdout);
+        }
+
+        if (poll_stdin(line, sizeof(line))) handle_cmd(line, &tele);
+    }
+
+    /* SHUTDOWN */
+    s_rt_stop = 1;
+    pthread_join(rt, NULL);
+    hn_shutdown(&hn);
+    printf("\n結束：ticks=%llu skipped=%llu miss=%lu overruns=%lu "
+           "late_max=%uus drops=%lu tele_drops=%lu hn=%s sys=%s\n",
+           (unsigned long long)eng_stats(&eng)->ticks,
+           (unsigned long long)eng_stats(&eng)->skipped,
+           (unsigned long)eng_stats(&eng)->miss,
+           (unsigned long)eng_stats(&eng)->overruns,
+           (unsigned)eng_stats(&eng)->late_max_us,
+           (unsigned long)dual_arm_tx_drops(),
+           (unsigned long)app_io_tele_drops(),
+           hn_state_str(&hn), app_sys_state());
     return 0;
 }

@@ -16,7 +16,7 @@ Linux 執行檔，底層 bxCAN 換成 SocketCAN（`co_bxcan_socketcan.c`），
 | ---- | ---- | ---- |
 | `co_bxcan_socketcan.c` | `canopen/co_bxcan.c` | SocketCAN 收發（非阻塞;TX 滿→CO_ERR_TX 對齊 mailbox 語意） |
 | `hal_linux.c` | `sim/hal_shim.c` | 真實牆鐘 HAL_GetTick/Delay（SDO 逾時、看門狗需要） |
-| `pc_master_main.c` | `board/main.c` | clock_nanosleep 500Hz 迴圈 + stdin 互動命令 |
+| `pc_master_main.c` | `board/main.c` | **WP-H2**：harness + loop engine 雙執行緒——RT 執行緒（clock_nanosleep 絕對時間 + engine 四相位，零 printf/stdin）、主執行緒（stdin→cmd ring、telemetry ring→狀態列、hn_supervise 心跳監督） |
 
 ## 一鍵 Demo
 
@@ -52,6 +52,7 @@ make
 ./pc_master --bringup 1        # 先跑 WP2 單軸 bring-up 再進全棧
 ./pc_master                    # 直接進全棧
 ./pc_master --right none       # 單臂（只有 vcan0）
+./pc_master --rate 400         # 400 Hz 檔位（WP-C 預設檔位;預設 500）
 ./pc_master --seconds 10       # 跑 10 秒自動結束（CI 用）
 ```
 

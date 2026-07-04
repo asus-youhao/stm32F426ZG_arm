@@ -21,3 +21,12 @@ void HAL_Delay(uint32_t ms)
     struct timespec ts = { (time_t)(ms / 1000u), (long)(ms % 1000u) * 1000000L };
     nanosleep(&ts, NULL);
 }
+
+/* loop engine 的 port 層（eng_port.h）：與 RT 迴圈的 clock_nanosleep
+ * 共用 CLOCK_MONOTONIC 時基,deadline 才能直接換算 timespec。 */
+uint64_t port_now_us(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000u + (uint64_t)ts.tv_nsec / 1000u;
+}
