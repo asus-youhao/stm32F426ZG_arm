@@ -46,6 +46,7 @@
 | 2026-07-03 | [P5 3D×真實CAN整合](./changes/2026-07-03-p5-canopen-realbus-integration.md) | ws_server 真實 CAN 模式：PC 當假 CiA402 從站測 F746，3D 反映 |
 | 2026-07-03 | [PC 端 CANopen 主站(SocketCAN)](./changes/2026-07-03-pc-master-socketcan.md) | 同套韌體編成 Linux 主站，vcan×2 對打 14 顆假從站，免板子 |
 | 2026-07-03 | [UI 整合：監聽模式](./changes/2026-07-03-ui-integration-monitor.md) | ws_server --monitor 旁聽雙 vcan，3D 動畫+資料流看真實主站交握 |
+| 2026-07-04 | [EtherCAT 主站遷移規劃](./changes/2026-07-04-ethercat-migration-plan.md) | CANopen→EtherCAT(CoE) 深度規劃：F746 直接當主站、SOEM、DC 1kHz |
 
 ## 設計文件
 
@@ -55,6 +56,7 @@
 | [CAN/CAN-FD Bus Architecture](./design/can-bus-architecture.md) | CAN-FD 支援評估與雙臂匯流排拓樸/頻寬   |
 | [EYOU PHU Motor Analysis](./design/eyou-phu-motor-analysis.md) | EYOU PHU 關節選型與 CAN 類型判定（依原廠 datasheet） |
 | [CANopen vs EtherCAT](./design/canopen-vs-ethercat.md) | CANopen / EtherCAT / CoE 比較與通訊選型 |
+| [EtherCAT 主站遷移規劃](./design/ethercat-coe-master-plan.md) | CANopen→EtherCAT(CoE) 遷移：硬體前提、SOEM、PDO/DC 設計、WP-E 工作分解 |
 | [Dual-Arm Control Plan](./design/dual-arm-control-plan.md) | 雙臂控制工作分解（joint/task-space 1kHz、整合） |
 | [CubeMX 整合說明](./design/firmware-cubemx-integration.md) | F746 CubeMX 設定與韌體接線 |
 | [WP2 單軸 Bring-up](./design/wp2-single-axis-bringup.md) | SDO 驗證 + 單軸轉動測試流程 |
