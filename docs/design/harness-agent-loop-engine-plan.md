@@ -104,6 +104,14 @@ RT 域（隔離核心、SCHED_FIFO 80、mlockall）
 > 從站是錯誤資訊；CANopen 側連環補發更會瞬間超出 90% 匯流排負載預算。
 > 這直接修掉現況 P4 的 burst 行為。
 
+**相位微調 hook（DC 跟隨模式，方案 A/SOEM 需要）**：SOEM 路徑的主站是 DC
+「跟隨者」——要用 PI 鎖相把 `clock_nanosleep` 喚醒點對齊從站 DC 柵格
+（`linux-rt-ethercat-master-plan.md` §5.2 / WP-L2.2）。engine 因此提供
+`eng_phase_trim_us(e, trim)`：BusAgent 每 tick 依 `ec_DCtime` 相位誤差經 PI
+算出微調量，加到下一個 deadline 上；trim 有限幅（±5% 週期）防止把 SKIP 政策
+打亂。CANopen（主站自己就是 SYNC 源）與 IgH（主站是發號者，
+`ecrt_master_application_time()` 反向對時）trim 恆為 0，行為不變。
+
 ### 3.2 相位化週期（解 P1、P2）
 
 每個 base tick 固定走五個相位，agent 把自己的工作掛到對應相位：
@@ -269,6 +277,13 @@ harness 每 100 ms 檢查 engine 心跳（engine 每 tick 遞增的 seq，共享
 > 注意分工：**毫秒級反應必須在 RT 域內由 agent/SafetyAgent 完成**（harness 的
 > 100 ms 巡檢來不及）；harness 只做秒級的策略決策與「RT 執行緒本身死掉」的兜底。
 
+**降頻語意（方案 C「EMCY 風暴→自動降頻」的落地方式）**：策略表中的「降頻運行」
+**不是無縫變速**——engine 的 `dt` 在 activate 時固定。降頻走 harness 生命週期：
+`RUN → hold（deactivate，AxisAgent 目標鎖實際位置、使能維持）→ 以新 rate
+重新 activate`，切換中斷目標 < 100 ms。這對故障應變（EMCY 風暴、miss 率超標、
+500→400 Hz 檔位退避）可接受；正常運行不提供動態變速，避免 divisor/預算
+語意在運行中漂移。
+
 ### 5.3 非 RT 服務
 
 - **SDO/CoE 背景通道**：非 RT 側佇列請求（讀參數、改 OD、韌體更新），
@@ -290,8 +305,19 @@ typedef struct bus_if {
     void (*latch)(void *ctx, jstate_t *js, int n);     /* RT: LATCH   */
     void (*commit_tx)(void *ctx, const jcmd_t *jc, int n); /* RT: BUS_TX（含 SYNC/DC） */
     void (*housekeep)(void *ctx);                      /* RT: mailbox/SDO 步進 */
+    void (*health)(void *ctx, bus_health_t *out);      /* RT: HOUSEKEEP，HealthAgent 消化 */
     int  (*bg_xfer)(void *ctx, sdo_req_t *req);        /* 非 RT 佇列入口 */
 } bus_if_t;
+
+/* bus-agnostic 健康快照：HealthAgent 只認這個結構，不認協定 */
+typedef struct bus_health {
+    uint32_t tx_drop, rx_lost;    /* 通用：發送丟棄 / 回授缺席計數 */
+    uint32_t err_events;          /* CANopen: EMCY 幀數；EtherCAT: AL 異常次數 */
+    uint8_t  link_ok;             /* CAN: 非 bus-off；ECAT: link up */
+    uint8_t  sync_ok;             /* CAN: SYNC 如期送出；ECAT: DC 鎖定 */
+    uint16_t load_pct;            /* CAN: busload%；ECAT: 週期頻寬佔比 */
+    uint32_t proto[4];            /* 協定特有：CAN error counter / ECAT WKC、AL states */
+} bus_health_t;
 ```
 
 | 面向 | `bus_canopen_socketcan`（方案 C） | `bus_ecat_igh`（方案 B）/`bus_ecat_soem`（方案 A） |
@@ -299,7 +325,8 @@ typedef struct bus_if {
 | base rate | 500 Hz（Classic CAN 物理上限） | 1 kHz（可到 2 kHz） |
 | 同步機制 | SYNC（0x80）在 BUS_TX 開頭發、從站 SYNC 鎖存 | DC sync0，`ecrt_master_application_time()` 對時 |
 | 回授延遲模型 | 本 tick 收到的是上一 SYNC 週期的 TPDO | receive/process 拿到上一週期 domain |
-| 診斷 | EMCY、heartbeat、error counter（HealthAgent 消化） | AL status、working counter、CoE emergency |
+| 診斷 | EMCY、heartbeat、error counter → `bus_health_t` | AL status、WKC、CoE emergency → 同一 `bus_health_t` |
+| engine 相位微調 | 不用（主站即 SYNC 源，trim=0） | SOEM：`eng_phase_trim_us()` PI 鎖相；IgH：不用（主站發號） |
 | 背景通道 | SDO client 狀態機分片步進 | CoE mailbox（IgH 提供非同步 API） |
 
 AxisAgent / MotionAgent / SafetyAgent **完全 bus-agnostic**：只讀寫
@@ -339,8 +366,8 @@ engine 核心 platform-free（§2 決策 2），F746 移植只做 port 層：
 | **H1** agent 化重構 | `app_main_tick()` 拆成 §4.2 七類 agent，行為不變 | SIL vcan 迴歸：重構前後 candump 逐幀 diff 一致；使能時序/safe stop 語意不變 |
 | **H2** harness | 生命週期狀態機、設定檔、cmd/telemetry/log ring、printf/stdin 全面移出 RT 路徑 | RUN 中 stdout 被塞住（`pv -L 1` 掐管線）tick 不受影響；`--bus/--rate` 執行期切換 |
 | **H3** RT 化 + 觀測 | SCHED_FIFO/綁核/mlockall/prefault、trace ring + dump 工具 | 24.04 Pro PREEMPT_RT 上：late p99 < 5% 週期、cyclictest 達 §3.5 門檻；產出每相位 histogram 報告 |
-| **H4** CANopen 後端收斂 | `bus_if_t` 抽象、SYNC 相位化、EMCY（G5）、HealthAgent busload（G6）、SDO 背景通道 | SIL 故障注入全表通過；與 WP-C 真機計畫銜接（PCAN 上重跑 H3 報告） |
-| **H5** EtherCAT 後端 | `bus_ecat_igh.c` 實作同一 `bus_if_t`，DC 對齊 BUS_TX 相位 | 同一 binary `--bus ethercat --rate 1000` 起跑；AxisAgent/MotionAgent 零修改 |
+| **H4** CANopen 後端收斂 | `bus_if_t` + `bus_health_t` 統一健康結構、SYNC 相位化、EMCY（G5）、HealthAgent busload（G6）、SDO 背景通道、降頻退避（§5.2 降頻語意） | SIL 故障注入全表通過；與 WP-C 真機計畫銜接（PCAN 上重跑 H3 報告） |
+| **H5** EtherCAT 後端 | `bus_ecat_igh.c` 實作同一 `bus_if_t`，DC 對齊 BUS_TX 相位；WKC/AL state 對映進 `bus_health_t`；engine 補 `eng_phase_trim_us()`（SOEM 後端 DC 跟隨用，IgH 不需） | 同一 binary `--bus ethercat --rate 1000` 起跑；AxisAgent/MotionAgent 零修改 |
 | **H6** F746 port | port 層 + TIM6 tick 源 + 縮小版 harness | 既有 bring-up 測試在 agent 化韌體上重跑通過 |
 
 依賴：H0→H1→H2→(H3 ∥ H4)→H5；H6 在 H1 後即可並行。H1–H4 全程可在
@@ -360,5 +387,12 @@ SIL 完成，**不阻塞方案 C 真機時程**（WP-C0 佈建/硬體採購可�
 
 - 本文是**橫切架構層**：方案 A/B/C 是「跑在哪、走什麼線」，本文是「程式怎麼組織」。
   H4 落地方案 C 的 G3/G5/G6，H5 落地方案 A/B 的主站程式框架。
+- **已對 WP-L（A）/WP-I（B）/WP-C（C）逐項交叉盤點**（2026-07-04）：三份計畫的
+  軟體組織需求均可由 WP-H 承接，其中「telemetry_ring/命令信箱」（WP-L3.7/L6.2）
+  ＝ H2 的 ring、「dual_arm 多後端 build flag」（WP-L3.2/I3.2）升級為執行期
+  `bus_if_t`、「檔位化 control_rate」（WP-C3.2）升級為 `--rate`。盤點補進本文的
+  三個缺口：§3.1 `eng_phase_trim_us()`（SOEM DC 跟隨）、§5.2 降頻語意
+  （EMCY 風暴退避）、§6 `bus_health_t`（WKC/AL 與 CAN 診斷同構）。硬體採購、
+  佈建 SOP、RT OS 調校、協定驗證等項與本文正交，仍歸各方案分支。
 - `control_rate.h` 的 500 Hz 物理分析仍然成立，只是常數改為設定檔預設值。
 - WP6 安全語意不變；WP7 上位機（ws_server）介面不變，資料來源升級為主站自報遙測。
