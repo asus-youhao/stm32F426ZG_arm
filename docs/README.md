@@ -51,6 +51,8 @@
 | 2026-07-04 | [IgH EtherCAT 主站規劃](./changes/2026-07-04-linux-igh-ethercat-master-plan.md) | 方案 B：Ubuntu 24.04 Pro + IgH(kernel-space)；WP-I0~I7；與 SOEM 對比定案 |
 | 2026-07-04 | [Linux CANopen 主站規劃](./changes/2026-07-04-linux-canopen-master-plan.md) | 方案 C：pc_master 上真機 14 軸；PCIe CAN 卡、SYNC、佈建 SOP；WP-C0~C5 |
 | 2026-07-04 | [方案 C 指定 PCAN FD 硬體](./changes/2026-07-04-pcan-fd-hardware-selection.md) | PCAN-USB FD / PCIe FD 選型階梯；FD 硬體+Classic 協定；FD 升級路（WP-C0.6） |
+| 2026-07-04 | [Harness/Agent/Loop Engine 架構規劃](./changes/2026-07-04-harness-agent-loop-engine-plan.md) | 三層架構橫切規劃：相位化 RT 迴圈、agent 自治降級、CANopen/EtherCAT 共用 bus 抽象；WP-H0~H6 |
+| 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件
 
@@ -64,6 +66,7 @@
 | [Linux RT EtherCAT 主站](./design/linux-rt-ethercat-master-plan.md) | Ubuntu 22.04 Pro PREEMPT_RT 主站：RT 調校、SOEM/IgH、1kHz DC 鎖相、WP-L 工作分解 |
 | [IgH EtherCAT 主站](./design/linux-igh-ethercat-master-plan.md) | Ubuntu 24.04 Pro + IgH kernel-space 主站：ecrt API 對映、DKMS、CLI/FoE、WP-I 工作分解 |
 | [Linux CANopen 主站（真機）](./design/linux-canopen-master-plan.md) | 方案 C：pc_master 驅動真實 14 軸；CAN 卡選型、SYNC 鎖存、佈建 SOP、WP-C 工作分解 |
+| [Harness/Agent/Loop Engine 架構](./design/harness-agent-loop-engine-plan.md) | 橫切架構：RT loop engine 相位化強化、agent 模型、非 RT harness 監督層；CANopen/EtherCAT/F746 三平台共用 |
 | [Dual-Arm Control Plan](./design/dual-arm-control-plan.md) | 雙臂控制工作分解（joint/task-space 1kHz、整合） |
 | [CubeMX 整合說明](./design/firmware-cubemx-integration.md) | F746 CubeMX 設定與韌體接線 |
 | [WP2 單軸 Bring-up](./design/wp2-single-axis-bringup.md) | SDO 驗證 + 單軸轉動測試流程 |
