@@ -50,13 +50,31 @@
 
 需求：**2 通道**（左/右臂各一路）Classic CAN 1 Mbps、SocketCAN 原生驅動、低且穩定的 TX 延遲（500 Hz 下每 bus 每週期要塞 7 幀 RPDO，序列化本身 ~112 µs/幀）。
 
+**選定品牌：PEAK-System PCAN（CAN FD 系列）**——Linux 主線內核原生 SocketCAN 驅動、硬體時戳、CAN FD 能力向下相容 Classic（EYOU 現況用 Classic，FD 留升級路，見 §3.1）：
+
 | 等級 | 介面 | 評估 |
 | --- | --- | --- |
 | ❌ 淘汰 | **CANable(slcan)**（現有） | ASCII 編碼 + USB CDC，單幀來回毫秒級；只留給「單軸手動調試」 |
-| ⚠️ 過渡 | CANable 刷 **candleLight(gs_usb)**、PCAN-USB、Kvaser Leaf | 原生 SocketCAN，但 USB 批次傳輸抖動 0.1–1 ms 級；單臂 7 軸勉強、雙臂 14 軸 @500 Hz 臨界。手上已有 CANable → **刷 candleLight 是零成本第一步** |
-| ✅ 目標 | **PCIe/M.2 雙通道 CAN 卡**（PEAK PCAN-PCIe FD 2ch / Kvaser PCIe 2xCAN / Advantech 等） | MMIO+中斷直達、硬體時戳、TX 延遲 µs 級；SocketCAN 原生驅動（peak_pciefd/kvaser_pciefd 在主線內核）；一張卡解決雙臂 |
+| ⚠️ 過渡 | **PCAN-USB FD**（單通道 USB，驅動 `peak_usb`）；或 CANable 刷 candleLight | 原生 SocketCAN，但 USB 批次傳輸抖動 0.1–1 ms 級；**單軸/單臂 bring-up（WP-C0/C1）可用**，雙臂 14 軸 @500 Hz 臨界 |
+| ⚠️ 過渡+ | **PCAN-USB Pro FD**（**雙通道** USB，`peak_usb`） | 一支 USB 解決雙臂佈建與功能驗證；即時性仍受 USB 限制，效能量測（WP-C2.4）不以它為準 |
+| ✅ 目標 | **PCAN-PCIe FD 雙通道**（PCIe，驅動 `peak_pciefd`，主線內核內建） | MMIO+中斷直達、硬體時戳、TX 延遲 µs 級；一張卡解決雙臂；RT 化與 skew 量測以它定案 |
 
-配套設定：`ip link set can0 type can bitrate 1000000`、`txqueuelen 32`（預設 10 太小，7 幀突發+重傳餘裕）、取樣點採 CiA 建議 87.5%、CAN 卡 IRQ 綁定到隔離核旁（沿用 RT 方法論的 IRQ affinity 表）。
+配套設定：`ip link set can0 type can bitrate 1000000`（Classic 模式，**先不開 `fd on`**，見 §3.1）、`txqueuelen 32`（預設 10 太小，7 幀突發+重傳餘裕）、取樣點採 CiA 建議 87.5%、CAN 卡 IRQ 綁定到隔離核旁（沿用 RT 方法論的 IRQ affinity 表）。PEAK 驅動已在主線內核（`peak_usb`/`peak_pciefd`），**不需要**裝 PEAK 官方 out-of-tree 驅動或 PCAN-Basic 函式庫；`candump -H` 硬體時戳、`ethtool -i canX` 確認驅動綁定。
+
+### 3.1 CAN FD 的角色：現在 Classic、未來升級路
+
+分清三層事實：
+
+| 層 | 事實 | 依據 |
+| --- | --- | --- |
+| 關節硬體 | 每顆 PHU 是 **CAN FD (In,Out)** 埠 | 規格書「驅動器接口」欄 |
+| 協定現況 | EYOU CANopen 走 **Classic CAN 2.0B，固定 1 Mbps**（`0x26A1` 選項最高 1 M，無 data-phase 波特率物件） | 通訊手冊 §2、`eyou-phu-motor-analysis.md` 判定 |
+| 主站硬體 | PCAN FD 系列**向下相容 Classic**，買 FD 版不吃虧 | PEAK 規格 |
+
+因此本規劃的運行組態是「**FD 硬體、Classic 協定**」：`ip link` 不開 `fd on`——主站若發 FD 幀，不支援的從站會回 error frame 打亂匯流排（列入風險表）。
+
+**FD 升級路（列為對 EYOU 的正式確認事項，WP-C0.6）**：若原廠韌體開放 CAN FD data phase（例如仲裁 1 M / 資料 5 Mbps，走 CiA 1301 CANopen-FD 或廠商自訂幀），頻寬天花板改寫：8 B PDO 的序列化時間縮到約 1/4–1/5，§5.2 的 95% 負載降到 ~25%，**500 Hz 滿載變輕載、甚至 1 kHz 進入可行區**——屆時方案 C 的定位從「備援」升級為「與 EtherCAT 平行的正式候選」。在原廠確認前，本規劃一律按 Classic 1 Mbps 預算，不押注。
+切換動作屆時只需：`ip link set can0 type can bitrate 1000000 dbitrate 5000000 fd on` + `co_frame_t` 擴 64 B + PDO 佈局重排，`co_bxcan.h` 抽象不變。
 
 接線（用戶手冊 §4.3）：關節側 3-pin JST GHS（CAN-H / CAN-L / E_GND），**每顆關節只有一個 CAN 連接器**（菊鏈靠線束在連接器內貫通）；**控制器端與鏈末端各一顆 120 Ω 終端電阻**；雙絞+屏蔽，總線 ≤ 25 m。
 
@@ -109,17 +127,18 @@
 
 ## 7. 深度工作分解（WP-C）
 
-> 每項含 DoD。C0/C1 用現有 CANable（刷 candleLight）即可開始，不等 PCIe 卡到貨。
+> 每項含 DoD。C0/C1 用 PCAN-USB FD（或現有 CANable 刷 candleLight）即可開始，不等 PCIe 卡到貨。
 
 ### WP-C0 — 硬體與佈建
 
 | # | 工作項 | 驗收（DoD） |
 | --- | --- | --- |
-| 0.1 | CANable 刷 candleLight（gs_usb） | `ip link` 見原生 can0（非 slcan0） |
-| 0.2 | PCIe 雙通道 CAN 卡採購/安裝 | `candump -H` 硬體時戳可用 |
+| 0.1 | **PCAN-USB FD**（單通道，bring-up 用）到貨接機；備選：CANable 刷 candleLight | `ip link` 見原生 can0、`ethtool -i` = peak_usb |
+| 0.2 | **PCAN-PCIe FD 雙通道**採購/安裝（雙臂與效能量測本體） | `ethtool -i` = peak_pciefd；`candump -H` 硬體時戳可用 |
 | 0.3 | `provision_joint.sh`（§4 SOP 腳本化：0x2100=2、node-id、save、驗證） | 一顆生關節 5 分鐘佈建完 |
 | 0.4 | 首顆真關節佈建 + 終端電阻 + 供電/STO（沿用 EtherCAT 版 §4） | heartbeat 出現於 candump |
 | 0.5 | `0x2025`/`0x26A2-A3` 實測 → `robot_config` 校正 | 校正表 + 文件（19-bit=524288 待實證） |
+| 0.6 | **向 EYOU 確認 CAN FD data phase 支援**（§3.1 升級路：CiA 1301 或廠商 FD 幀、data 波特率上限） | 書面回覆歸檔；有 → 開 FD 評估支線 |
 
 ### WP-C1 — 單軸真機（pc_master 首次接真馬達）
 
@@ -138,7 +157,7 @@
 | 2.1 | RT 環境沿用（22.04 Pro RT 機）+ pc_master RT 化 | tick 遲到 max < 100 µs @12 h |
 | 2.2 | SYNC producer + transmission type=1 下發 | 示波器/時戳：兩軸 TPDO 對 SYNC 對齊 |
 | 2.3 | 軸間 skew 量測（candump -H 硬體時戳） | skew 報告：SYNC 模式 vs async 模式對比 |
-| 2.4 | USB(candleLight) vs PCIe 卡延遲對比 | 對比報告 → 雙臂用卡定案 |
+| 2.4 | USB（PCAN-USB FD）vs PCIe（PCAN-PCIe FD）延遲/抖動對比 | 對比報告 → 雙臂用卡定案 |
 
 ### WP-C3 — 單臂 7 軸
 
@@ -178,7 +197,8 @@
 | 風險 | 等級 | 對策 |
 | --- | --- | --- |
 | 90–95% 匯流排負載無餘裕（重傳/EMCY 風暴即超載） | 高 | 預設 400 Hz 檔位；運行中禁 SDO；bus 儀表常駐；EMCY 風暴→自動降頻/safe stop |
-| USB CAN 介面抖動不可控 | 中 | 僅過渡用；PCIe 卡為雙臂前提（WP-C2.4 數據定案） |
+| USB CAN 介面抖動不可控 | 中 | PCAN-USB (Pro) FD 僅過渡用；PCAN-PCIe FD 為雙臂前提（WP-C2.4 數據定案） |
+| 誤開 `fd on` 打 Classic 從站（error frame 風暴） | 低 | link 設定腳本固定 Classic 模式；FD 僅在原廠書面確認（WP-C0.6）後開評估支線 |
 | EYOU 對 SYNC/transmission type=1 支援不明 | 中 | WP-C2.2 實測；不支援則退 async + 固定發送順序，如實記錄 skew |
 | `0x2100`/node-id 佈建失誤（save 時斷電、node 撞車） | 中 | SOP 腳本化 + 一次一顆 + 佈建清冊；save 期間 UPS/穩定供電 |
 | 500 Hz 天花板被誤當長期方案 | 低 | 文件明定定位（§1）：力控/1 kHz 一律走 EtherCAT |

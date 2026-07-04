@@ -50,6 +50,7 @@
 | 2026-07-04 | [Linux RT EtherCAT 主站規劃](./changes/2026-07-04-linux-rt-ethercat-master-plan.md) | 主站改 Ubuntu 22.04 Pro PREEMPT_RT；STM32 暫緩；WP-L0~L7 工作分解 |
 | 2026-07-04 | [IgH EtherCAT 主站規劃](./changes/2026-07-04-linux-igh-ethercat-master-plan.md) | 方案 B：Ubuntu 24.04 Pro + IgH(kernel-space)；WP-I0~I7；與 SOEM 對比定案 |
 | 2026-07-04 | [Linux CANopen 主站規劃](./changes/2026-07-04-linux-canopen-master-plan.md) | 方案 C：pc_master 上真機 14 軸；PCIe CAN 卡、SYNC、佈建 SOP；WP-C0~C5 |
+| 2026-07-04 | [方案 C 指定 PCAN FD 硬體](./changes/2026-07-04-pcan-fd-hardware-selection.md) | PCAN-USB FD / PCIe FD 選型階梯；FD 硬體+Classic 協定；FD 升級路（WP-C0.6） |
 
 ## 設計文件
 
