@@ -24,6 +24,11 @@ typedef struct {
     int32_t  target_vel;      /* 0x60FF (counts/s) */
     int32_t  max_step;        /* CSP 每 tick 最大位移(counts) */
     bool     enabled;
+    /* WP-H4/G3：transmission type=1（0x1400/0x1800:02）→ SYNC 鎖存模式 */
+    bool     sync_mode;
+    bool     rpdo_pending;    /* 已收 RPDO,等下個 SYNC 才套用 */
+    uint16_t pend_cw;
+    int32_t  pend_tp;
 } phu_node_t;
 
 void phu_init(phu_node_t *n, uint8_t node_id);

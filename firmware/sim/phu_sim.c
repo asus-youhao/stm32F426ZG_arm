@@ -71,6 +71,11 @@ static int sdo_write_resp(phu_node_t *n, uint16_t idx, uint8_t sub,
         case 0x6060: n->mode = (int8_t)val; break;
         case 0x607A: n->target_pos = (int32_t)val; break;
         case 0x60FF: n->target_vel = (int32_t)val; break;
+        /* WP-H4/G3：RPDO1/TPDO1 transmission type（sub 0x02）=1 → SYNC 鎖存 */
+        case 0x1400:
+        case 0x1800:
+            if (sub == 0x02) n->sync_mode = (val == 1);
+            break;
         /* 0x1600/0x1A00 PDO 映射、0x6083/0x6084 等：接受即可 */
         default: break;
     }
@@ -84,11 +89,37 @@ static int sdo_write_resp(phu_node_t *n, uint16_t idx, uint8_t sub,
     return 1;
 }
 
+/* TPDO1 回授：[SW u16][actual pos i32] */
+static int emit_tpdo1(const phu_node_t *n, co_frame_t *out)
+{
+    out->id = (uint16_t)(CO_COBID_TPDO1_BASE + n->node_id);
+    out->dlc = 6;
+    out->data[0] = (uint8_t)(n->statusword & 0xFF);
+    out->data[1] = (uint8_t)(n->statusword >> 8);
+    out->data[2] = (uint8_t)(n->actual_pos & 0xFF);
+    out->data[3] = (uint8_t)((n->actual_pos >> 8) & 0xFF);
+    out->data[4] = (uint8_t)((n->actual_pos >> 16) & 0xFF);
+    out->data[5] = (uint8_t)((n->actual_pos >> 24) & 0xFF);
+    return 1;
+}
+
 int phu_on_frame(phu_node_t *n, const co_frame_t *in,
                  co_frame_t *out, int max_out)
 {
     if (max_out < 1) return 0;
     uint16_t id = in->id;
+
+    /* SYNC（0x080）：同步模式從站在 SYNC 邊緣套用上次 RPDO、回 TPDO（G3） */
+    if (id == CO_COBID_SYNC) {
+        if (!n->sync_mode || n->nmt_state != CO_NODE_OPERATIONAL) return 0;
+        if (n->rpdo_pending) {
+            apply_controlword(n, n->pend_cw);
+            n->target_pos = n->pend_tp;
+            n->rpdo_pending = false;
+        }
+        phu_step_dynamics(n);
+        return emit_tpdo1(n, out);
+    }
 
     /* NMT（0x000）：data[0]=cmd, data[1]=node(0=broadcast) */
     if (id == CO_COBID_NMT && in->dlc >= 2) {
@@ -121,27 +152,25 @@ int phu_on_frame(phu_node_t *n, const co_frame_t *in,
         }
     }
 
-    /* RPDO1（0x200+node）：[CW u16][target pos i32] → 回 TPDO1 */
+    /* RPDO1（0x200+node）：[CW u16][target pos i32]
+       async（預設）：立即套用 + 回 TPDO1（等效 transmission type 255）
+       sync 模式    ：只暫存,下個 SYNC 才鎖存（transmission type 1） */
     if (id == (uint16_t)(CO_COBID_RPDO1_BASE + n->node_id) && in->dlc >= 6) {
         uint16_t cw = (uint16_t)(in->data[0] | (in->data[1] << 8));
         int32_t tp = (int32_t)((uint32_t)in->data[2]
                    | ((uint32_t)in->data[3] << 8)
                    | ((uint32_t)in->data[4] << 16)
                    | ((uint32_t)in->data[5] << 24));
+        if (n->sync_mode) {
+            n->pend_cw = cw;
+            n->pend_tp = tp;
+            n->rpdo_pending = true;
+            return 0;
+        }
         apply_controlword(n, cw);
         n->target_pos = tp;
         phu_step_dynamics(n);
-
-        /* TPDO1 回授：[SW u16][actual pos i32] */
-        out->id = (uint16_t)(CO_COBID_TPDO1_BASE + n->node_id);
-        out->dlc = 6;
-        out->data[0] = (uint8_t)(n->statusword & 0xFF);
-        out->data[1] = (uint8_t)(n->statusword >> 8);
-        out->data[2] = (uint8_t)(n->actual_pos & 0xFF);
-        out->data[3] = (uint8_t)((n->actual_pos >> 8) & 0xFF);
-        out->data[4] = (uint8_t)((n->actual_pos >> 16) & 0xFF);
-        out->data[5] = (uint8_t)((n->actual_pos >> 24) & 0xFF);
-        return 1;
+        return emit_tpdo1(n, out);
     }
 
     return 0;

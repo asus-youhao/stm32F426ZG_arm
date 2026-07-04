@@ -17,6 +17,7 @@
 #include "joint_space.h"       /* L2 */
 #include "dual_arm_ctrl.h"     /* L4 */
 #include "safety.h"            /* WP6 */
+#include "co_emcy.h"           /* WP-H4/G5 */
 #include "stm32f7xx_hal.h"
 
 /* app_main.c 內部存取（同 board/main.c 的 extern 慣例） */
@@ -46,9 +47,15 @@ static void safety_compute(void *ctx)
 {
     (void)ctx;
     uint32_t now = HAL_GetTick();
-    for (int j = 0; j < NJ; j++)
+    uint16_t ecode;
+    for (int j = 0; j < NJ; j++) {
         if (g_jstate[j].fb_fresh)
             safety_report_joint(j, g_jstate[j].statusword, now);
+        /* WP-H4/G5：EMCY 事件 → safe stop 條款（與 app_main_tick 逐字一致） */
+        if (g_jstate[j].present &&
+            co_emcy_take(g_joints[j].bus, g_joints[j].node_id, &ecode))
+            safety_report_emcy(j, ecode != 0);
+    }
     bool allow = safety_update(now);
     dual_arm_set_safe_stop(!allow, safety_safe_controlword());
 }

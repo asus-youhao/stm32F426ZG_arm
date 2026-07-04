@@ -28,4 +28,7 @@ uint32_t co_pdo_feedback_seq(co_bus_t bus, uint8_t node);
 /** @brief 清空全部回授快取/序號（bus 重啟或重新 init 時呼叫,避免殘留舊回授）。 */
 void co_pdo_reset(void);
 
+/** @brief 發 SYNC（COB 0x080, dlc 0）。同步模式下每週期於 BUS_TX 開頭呼叫（G3）。 */
+co_status_t co_pdo_send_sync(co_bus_t bus);
+
 #endif /* CO_PDO_H */

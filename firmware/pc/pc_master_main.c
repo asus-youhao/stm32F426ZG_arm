@@ -55,10 +55,11 @@ static void on_sigint(int sig) { (void)sig; s_quit = 1; }
 
 static void usage(const char *argv0)
 {
-    printf("用法: %s [--left IF] [--right IF|none] [--rate HZ] [--bringup NODE] [--seconds N]\n"
+    printf("用法: %s [--left IF] [--right IF|none] [--rate HZ] [--sync] [--bringup NODE] [--seconds N]\n"
            "  --left IF      左臂 SocketCAN 介面（預設 vcan0）\n"
            "  --right IF     右臂 SocketCAN 介面（預設 vcan1;'none' 停用 → 單臂）\n"
            "  --rate HZ      控制頻率（100..1000,預設 %u;WP-C 檔位 400/500）\n"
+           "  --sync         SYNC 同步鎖存模式（transmission type=1,G3）\n"
            "  --bringup N    先對左臂 node N 跑 WP2 單軸 bring-up\n"
            "  --seconds N    跑 N 秒後自動結束（0=直到 Ctrl-C）\n"
            "互動命令（stdin）：\n"
@@ -157,6 +158,7 @@ int main(int argc, char **argv)
         if (!strcmp(argv[i], "--left") && i + 1 < argc)         left = argv[++i];
         else if (!strcmp(argv[i], "--right") && i + 1 < argc)   right = argv[++i];
         else if (!strcmp(argv[i], "--rate") && i + 1 < argc)    rate_hz = atol(argv[++i]);
+        else if (!strcmp(argv[i], "--sync"))                    dual_arm_set_sync(true);
         else if (!strcmp(argv[i], "--bringup") && i + 1 < argc) bringup_node = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--seconds") && i + 1 < argc) run_seconds = atol(argv[++i]);
         else { usage(argv[0]); return (strcmp(argv[i], "--help") == 0) ? 0 : 2; }
@@ -174,8 +176,10 @@ int main(int argc, char **argv)
     co_socketcan_set_ifname(CO_BUS_LEFT, left);
     co_socketcan_set_ifname(CO_BUS_RIGHT, right);
 
-    printf("=== PC CANopen 主站（harness + loop engine, WP-H2）===\n");
-    printf("左臂=%s  右臂=%s  rate=%ld Hz\n", left, right[0] ? right : "(停用)", rate_hz);
+    printf("=== PC CANopen 主站（harness + loop engine, WP-H2/H4）===\n");
+    printf("左臂=%s  右臂=%s  rate=%ld Hz  sync=%s\n",
+           left, right[0] ? right : "(停用)", rate_hz,
+           dual_arm_sync_enabled() ? "on" : "off");
 
     /* （選配）WP2 單軸 bring-up（BUS_UP 前的自檢,非 RT、可阻塞） */
     if (bringup_node > 0) {
@@ -225,6 +229,7 @@ int main(int argc, char **argv)
 
     /* 主執行緒：50 Hz 輪詢 stdin + 遙測列印 + 10 Hz 監督 */
     app_tele_t tele = {0}, t;
+    app_health_t hl[CO_BUS_COUNT] = {0}, hrec;
     char line[128];
     uint64_t loops = 0, last_print_tick = 0;
     const long loop_ms = 20;
@@ -235,18 +240,25 @@ int main(int argc, char **argv)
         loops++;
 
         while (app_io_tele_pop(&t)) tele = t;      /* 取最新快照 */
+        while (app_io_health_pop(&hrec))           /* 取最新 bus 健康（G6） */
+            if (hrec.bus < CO_BUS_COUNT) hl[hrec.bus] = hrec;
 
         if (loops % 5 == 0) hn_supervise(&hn);     /* 10 Hz 監督 */
 
         if (tele.tick >= last_print_tick + (uint64_t)rate_hz) {   /* ~1 Hz 狀態 */
             last_print_tick = tele.tick;
             printf("[app] t=%llus hn=%s sys=%s J0 sw=0x%04X pos=%ld tgt=%ld "
-                   "drops=%lu late_max=%uus miss=%llu\n",
+                   "drops=%lu late_max=%uus miss=%llu | L load=%u%% emcy=%lu "
+                   "R load=%u%% emcy=%lu\n",
                    (unsigned long long)(tele.tick / (uint64_t)rate_hz),
                    hn_state_str(&hn), app_sys_state(), tele.sw0,
                    (long)tele.pos0, (long)tele.tgt0,
                    (unsigned long)tele.tx_drops, (unsigned)tele.late_max_us,
-                   (unsigned long long)tele.miss);
+                   (unsigned long long)tele.miss,
+                   hl[CO_BUS_LEFT].h.load_pct,
+                   (unsigned long)hl[CO_BUS_LEFT].h.err_events,
+                   hl[CO_BUS_RIGHT].h.load_pct,
+                   (unsigned long)hl[CO_BUS_RIGHT].h.err_events);
             fflush(stdout);
         }
 

@@ -53,6 +53,16 @@ void dual_arm_tick(void);
 /** @brief 累計 PDO 下發丟幀數（co_bxcan_send 回 CO_ERR_TX,通常 mailbox 滿 → 頻寬不足）。 */
 uint32_t dual_arm_tx_drops(void);
 
+/**
+ * @brief WP-H4/G3：SYNC 同步鎖存模式。須在 dual_arm_init() **之前**設定——
+ *        init 會對從站寫 RPDO1/TPDO1 transmission type=1,tick 會先發 SYNC。
+ */
+void dual_arm_set_sync(bool on);
+bool dual_arm_sync_enabled(void);
+
+/** @brief WP-H4/G6：per-bus 成功收/發幀累計（HealthAgent busload 估算用）。 */
+void dual_arm_frame_counts(co_bus_t bus, uint32_t *tx, uint32_t *rx);
+
 /** @brief 把所有收到的 CAN frame 分派給 NMT/PDO 處理（於 tick 內或背景呼叫）。 */
 void dual_arm_pump_rx(void);
 

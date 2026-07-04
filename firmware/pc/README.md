@@ -53,6 +53,7 @@ make
 ./pc_master                    # 直接進全棧
 ./pc_master --right none       # 單臂（只有 vcan0）
 ./pc_master --rate 400         # 400 Hz 檔位（WP-C 預設檔位;預設 500）
+./pc_master --sync             # SYNC 同步鎖存模式（transmission type=1,G3）
 ./pc_master --seconds 10       # 跑 10 秒自動結束（CI 用）
 ```
 

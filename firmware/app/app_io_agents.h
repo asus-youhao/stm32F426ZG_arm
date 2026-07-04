@@ -12,6 +12,7 @@
 #define APP_IO_AGENTS_H
 
 #include "loop_engine.h"
+#include "bus_if.h"
 #include <stdbool.h>
 
 /* ---- 命令（非 RT → RT）---- */
@@ -37,15 +38,23 @@ typedef struct {
     float    lpos[3], rpos[3]; /* 左/右末端位置（m） */
 } app_tele_t;
 
+/* ---- bus 健康快照（RT → 非 RT;WP-H4/G6）---- */
+typedef struct {
+    uint8_t      bus;    /* co_bus_t */
+    bus_health_t h;
+} app_health_t;
+
 /**
- * @brief 註冊 CommandAgent（divisor 10）與 TelemetryAgent（divisor 5）。
- * @param e 已 eng_init 的 engine（用於 TelemetryAgent 讀 stats）。
+ * @brief 註冊 CommandAgent（divisor 10）、TelemetryAgent（divisor 5）、
+ *        HealthAgent（divisor 100,per-bus busload/EMCY/heartbeat 儀表）。
+ * @param e 已 eng_init 的 engine（讀 stats 與 dt）。
  */
 int app_io_register(loop_engine_t *e);
 
 /* 非 RT 端 API */
 bool     app_io_cmd_push(const app_cmd_t *c);   /* 滿回 false */
 bool     app_io_tele_pop(app_tele_t *t);        /* 空回 false */
+bool     app_io_health_pop(app_health_t *h);    /* 空回 false */
 uint32_t app_io_tele_drops(void);               /* RT 端 ring 滿丟棄計數 */
 
 #endif /* APP_IO_AGENTS_H */

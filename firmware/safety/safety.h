@@ -40,6 +40,12 @@ void safety_set_estop(bool active);
 void safety_report_joint(int joint, uint16_t statusword, uint32_t now_ms);
 
 /**
+ * @brief 回報某軸 EMCY 事件（WP-H4 / G5：EMCY = safe stop 條款）。
+ * @param active true=非零故障碼（進 FAULT）;false=error reset 0x0000（解除）
+ */
+void safety_report_emcy(int joint, bool active);
+
+/**
  * @brief 週期更新（1 kHz）。彙整狀態、判斷故障/逾時。
  * @return 是否允許運動輸出。
  */

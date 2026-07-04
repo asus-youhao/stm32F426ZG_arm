@@ -15,6 +15,7 @@
 #include "task_space.h"        /* L3 */
 #include "dual_arm_ctrl.h"     /* L4 */
 #include "safety.h"            /* WP6 */
+#include "co_emcy.h"           /* WP-H4/G5 */
 #include "robot_config.h"
 #include "control_rate.h"
 #include "stm32f7xx_hal.h"
@@ -68,9 +69,15 @@ void app_main_tick(void)
     /* 2) WP6 安全：只在「真的收到新 TPDO」的軸更新看門狗時間戳,
        否則某軸失聯時 last_ms 會被持續刷新而永遠偵測不到（修正前的 bug）。 */
     uint32_t now = HAL_GetTick();
-    for (int j = 0; j < 14; j++)
+    uint16_t ecode;
+    for (int j = 0; j < 14; j++) {
         if (g_jstate[j].fb_fresh)
             safety_report_joint(j, g_jstate[j].statusword, now);
+        /* WP-H4/G5：EMCY 事件 → safe stop 條款（0x0000=error reset 解除） */
+        if (g_jstate[j].present &&
+            co_emcy_take(g_joints[j].bus, g_joints[j].node_id, &ecode))
+            safety_report_emcy(j, ecode != 0);
+    }
     bool allow = safety_update(now);
     dual_arm_set_safe_stop(!allow, safety_safe_controlword());
 

@@ -70,6 +70,14 @@ bool co_pdo_get_feedback(co_bus_t bus, uint8_t node,
     return true;
 }
 
+co_status_t co_pdo_send_sync(co_bus_t bus)
+{
+    co_frame_t f = {0};
+    f.id = CO_COBID_SYNC;
+    f.dlc = 0;
+    return co_bxcan_send(bus, &f);
+}
+
 void co_pdo_reset(void)
 {
     for (int b = 0; b < CO_BUS_COUNT; b++)

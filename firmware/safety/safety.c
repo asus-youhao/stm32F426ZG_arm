@@ -17,13 +17,14 @@ static bool     s_estop;
 static sys_state_t s_state;
 static uint16_t s_sw[SAFETY_JOINTS];
 static uint32_t s_last_ms[SAFETY_JOINTS];
+static bool     s_emcy[SAFETY_JOINTS];   /* WP-H4/G5：EMCY 未復歸的軸 */
 
 void safety_init(const safety_cfg_t *cfg)
 {
     s_cfg = *cfg;
     s_estop = false;
     s_state = SYS_INIT;
-    for (int i=0;i<SAFETY_JOINTS;i++){ s_sw[i]=0; s_last_ms[i]=0; }
+    for (int i=0;i<SAFETY_JOINTS;i++){ s_sw[i]=0; s_last_ms[i]=0; s_emcy[i]=false; }
 }
 
 void safety_set_estop(bool active){ s_estop = active; }
@@ -35,6 +36,12 @@ void safety_report_joint(int j, uint16_t sw, uint32_t now_ms)
     s_last_ms[j] = now_ms;
 }
 
+void safety_report_emcy(int j, bool active)
+{
+    if (j<0 || j>=SAFETY_JOINTS) return;
+    s_emcy[j] = active;   /* 非零故障碼鎖存;error reset(0x0000) 解除 */
+}
+
 bool safety_update(uint32_t now_ms)
 {
     if (s_estop) { s_state = SYS_ESTOP; return false; }
@@ -43,6 +50,7 @@ bool safety_update(uint32_t now_ms)
     bool all_enabled = true, any_enabled = false;
     for (int j=0;j<SAFETY_JOINTS;j++){
         if (s_sw[j] & SW_FAULT_BIT) any_fault = true;
+        if (s_emcy[j]) any_fault = true;   /* EMCY = safe stop 條款（G5） */
         /* last_ms==0 表示此軸尚未收過任何回授（啟動初期）→ 不視為失聯,
            待第一筆回授後才納入看門狗。已活過再失聯則會被偵測。 */
         if (s_last_ms[j] != 0 &&

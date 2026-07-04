@@ -59,6 +59,15 @@ static void rx_push(co_bus_t bus, const co_frame_t *f)
     q->b[q->head] = *f; q->head = n;
 }
 
+/* 故障注入（測試用）：把任意 frame 塞進主站 RX 佇列（如模擬從站發 EMCY） */
+void sim_bus_inject_rx(co_bus_t bus, const co_frame_t *f)
+{
+    if (bus >= CO_BUS_COUNT || !f) return;
+    rx_push(bus, f);
+    g_sim_rx_count[bus]++;
+    if (s_tap) s_tap(bus, 0, f);
+}
+
 co_status_t co_bxcan_init(co_bus_t bus)
 {
     if (bus >= CO_BUS_COUNT) return CO_ERR_PARAM;
@@ -82,6 +91,18 @@ co_status_t co_bxcan_send(co_bus_t bus, const co_frame_t *f)
         /* 廣播給全部節點 */
         for (int id = 1; id <= NODES_PER_BUS; id++)
             (void)phu_on_frame(&s_nodes[bus][id], f, out, 2);
+    } else if (f->id == CO_COBID_SYNC) {
+        /* SYNC 廣播：同步模式的從站於此鎖存並回 TPDO（WP-H4/G3） */
+        for (int id = 1; id <= NODES_PER_BUS; id++) {
+            nr = phu_on_frame(&s_nodes[bus][id], f, out, 2);
+            for (int i = 0; i < nr; i++) {
+                rx_push(bus, &out[i]);
+                g_sim_rx_count[bus]++;
+                log_frame(bus, "RX", &out[i]);
+                if (s_tap) s_tap(bus, 0, &out[i]);
+            }
+        }
+        nr = 0;
     } else {
         /* 取出目標 node id（低 7 位） */
         int id = f->id & 0x7F;

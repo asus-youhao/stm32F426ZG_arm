@@ -20,6 +20,7 @@ SRC = \
   ../canopen/co_sdo.c \
   ../canopen/co_nmt.c \
   ../canopen/co_pdo.c \
+  ../canopen/co_emcy.c \
   ../canopen/cia402.c \
   ../control/linalg.c \
   ../control/trajectory.c \

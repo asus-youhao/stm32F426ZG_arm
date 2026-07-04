@@ -6,11 +6,11 @@ INC    = -I. -I../sim -I../canopen -I../app -I../control -I../safety -I../host -
 SRC = \
   test_main.c test_trajectory.c test_kinematics.c test_ik.c \
   test_cia402.c test_hostif.c test_canopen.c test_safety.c \
-  test_engine.c test_agents.c test_harness.c \
+  test_engine.c test_agents.c test_harness.c test_h4.c \
   ../engine/loop_engine.c ../engine/spsc_ring.c ../engine/harness.c \
   ../app/app_main.c ../app/app_agents.c ../app/app_io_agents.c \
   ../sim/hal_shim.c ../sim/co_bxcan_sim.c ../sim/phu_sim.c \
-  ../canopen/co_sdo.c ../canopen/co_nmt.c ../canopen/co_pdo.c ../canopen/cia402.c \
+  ../canopen/co_sdo.c ../canopen/co_nmt.c ../canopen/co_pdo.c ../canopen/co_emcy.c ../canopen/cia402.c \
   ../control/linalg.c ../control/trajectory.c ../control/joint_space.c \
   ../control/kinematics.c ../control/ik.c ../control/task_space.c ../control/dual_arm_ctrl.c \
   ../safety/safety.c ../host/host_if.c \

@@ -7,6 +7,7 @@
  */
 #include "dual_arm.h"
 #include "co_bxcan.h"
+#include "co_emcy.h"
 #include "co_nmt.h"
 #include "co_pdo.h"
 #include "co_sdo.h"
@@ -60,6 +61,18 @@ static bool s_bus_ok[CO_BUS_COUNT];
 static bool s_safe_stop = false;
 static uint16_t s_safe_cw = 0x0002;   /* quick stop */
 static uint32_t s_tx_drops = 0;
+static bool s_sync_mode = false;      /* WP-H4/G3：SYNC 同步鎖存模式 */
+static uint32_t s_tx_frames[CO_BUS_COUNT], s_rx_frames[CO_BUS_COUNT]; /* G6 儀表 */
+
+void dual_arm_set_sync(bool on) { s_sync_mode = on; }
+bool dual_arm_sync_enabled(void) { return s_sync_mode; }
+
+void dual_arm_frame_counts(co_bus_t bus, uint32_t *tx, uint32_t *rx)
+{
+    if (bus >= CO_BUS_COUNT) { if (tx) *tx = 0; if (rx) *rx = 0; return; }
+    if (tx) *tx = s_tx_frames[bus];
+    if (rx) *rx = s_rx_frames[bus];
+}
 
 co_status_t dual_arm_init(void)
 {
@@ -71,8 +84,11 @@ co_status_t dual_arm_init(void)
     s_safe_stop = false;
     s_safe_cw = 0x0002;
     s_tx_drops = 0;
+    memset(s_tx_frames, 0, sizeof(s_tx_frames));
+    memset(s_rx_frames, 0, sizeof(s_rx_frames));
     co_pdo_reset();
     co_nmt_reset_cache();
+    co_emcy_reset();
     s_bus_ok[CO_BUS_LEFT]  = (co_bxcan_init(CO_BUS_LEFT)  == CO_OK);
     s_bus_ok[CO_BUS_RIGHT] = (co_bxcan_init(CO_BUS_RIGHT) == CO_OK);
     if (!s_bus_ok[CO_BUS_LEFT] && !s_bus_ok[CO_BUS_RIGHT]) return CO_ERR_STATE;
@@ -94,6 +110,13 @@ co_status_t dual_arm_init(void)
         if (!s_bus_ok[jc->bus]) continue;
         if (cia402_set_mode(jc->bus, jc->node_id, MODE_CSP) != CO_OK) continue;
         if (map_pdo_csp(jc->bus, jc->node_id) != CO_OK) continue;
+        /* G3：同步模式 → RPDO1/TPDO1 transmission type=1（下個 SYNC 鎖存/回傳） */
+        if (s_sync_mode) {
+            if (co_sdo_write(jc->bus, jc->node_id, 0x1400, 0x02, 1, 1, 50) != CO_OK)
+                continue;
+            if (co_sdo_write(jc->bus, jc->node_id, 0x1800, 0x02, 1, 1, 50) != CO_OK)
+                continue;
+        }
         js->present = true;
         js->controlword = CW_SHUTDOWN;
         present++;
@@ -130,6 +153,8 @@ void dual_arm_pump_rx(void)
     for (int b = 0; b < CO_BUS_COUNT; b++) {
         co_frame_t f;
         while (co_bxcan_recv((co_bus_t)b, &f)) {
+            s_rx_frames[b]++;
+            if (co_emcy_process_frame((co_bus_t)b, &f)) continue;   /* G5 */
             co_nmt_process_frame((co_bus_t)b, &f);
             co_pdo_process_frame((co_bus_t)b, &f);
         }
@@ -151,6 +176,13 @@ uint32_t dual_arm_tx_drops(void) { return s_tx_drops; }
 
 void dual_arm_tick(void)
 {
+    /* 0) G3：同步模式 → BUS_TX 開頭先發 SYNC（從站於 SYNC 邊緣鎖存/回傳,
+       軸間 skew 從幀序列化散布壓到 SYNC 抖動等級） */
+    if (s_sync_mode)
+        for (int b = 0; b < CO_BUS_COUNT; b++)
+            if (s_bus_ok[b] && co_pdo_send_sync((co_bus_t)b) == CO_OK)
+                s_tx_frames[b]++;
+
     /* 1) 收進回授 */
     dual_arm_pump_rx();
 
@@ -177,7 +209,7 @@ void dual_arm_tick(void)
         /* WP6 安全停止覆寫：強制安全控制字、目標維持實際位置 */
         if (s_safe_stop) {
             st = co_pdo_send_csp(jc->bus, jc->node_id, s_safe_cw, js->pos_actual);
-            if (st == CO_ERR_TX) s_tx_drops++;
+            if (st == CO_ERR_TX) s_tx_drops++; else if (st == CO_OK) s_tx_frames[jc->bus]++;
             continue;
         }
 
@@ -190,5 +222,6 @@ void dual_arm_tick(void)
 
         st = co_pdo_send_csp(jc->bus, jc->node_id, js->controlword, tgt);
         if (st == CO_ERR_TX) s_tx_drops++;   /* mailbox 滿 → 頻寬不足 */
+        else if (st == CO_OK) s_tx_frames[jc->bus]++;
     }
 }
