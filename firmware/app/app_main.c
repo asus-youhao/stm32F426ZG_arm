@@ -92,6 +92,10 @@ void app_set_right_pose(const pose_t *p) { da_ctrl_set_right_target(&s_dc, p); }
 void app_set_mode(da_mode_t m)           { da_ctrl_set_mode(&s_dc, m); }
 void app_joint_move(int joint, float rad){ js_move_to(joint, rad); }
 
+/* ---- WP-H1：agent 化需要的內部存取（app_agents.c 用）---- */
+dual_arm_ctrl_t *app_ctrl(void) { return &s_dc; }
+bool app_is_ready(void) { return s_ready; }
+
 /* ---- 觀測 API（讀「實際被控」的 s_dc 內部臂,非初始化用的 s_left/s_right）---- */
 void app_get_left_pose(pose_t *p)  { ts_get_pose(&s_dc.left, p); }
 void app_get_right_pose(pose_t *p) { ts_get_pose(&s_dc.right, p); }

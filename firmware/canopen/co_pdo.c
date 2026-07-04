@@ -69,3 +69,10 @@ bool co_pdo_get_feedback(co_bus_t bus, uint8_t node,
     if (pos_actual) *pos_actual = fb->pos_actual;
     return true;
 }
+
+void co_pdo_reset(void)
+{
+    for (int b = 0; b < CO_BUS_COUNT; b++)
+        for (int n = 0; n < MAX_NODE; n++)
+            s_fb[b][n] = (fb_t){0};
+}

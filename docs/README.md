@@ -52,6 +52,7 @@
 | 2026-07-04 | [Linux CANopen 主站規劃](./changes/2026-07-04-linux-canopen-master-plan.md) | 方案 C：pc_master 上真機 14 軸；PCIe CAN 卡、SYNC、佈建 SOP；WP-C0~C5 |
 | 2026-07-04 | [方案 C 指定 PCAN FD 硬體](./changes/2026-07-04-pcan-fd-hardware-selection.md) | PCAN-USB FD / PCIe FD 選型階梯；FD 硬體+Classic 協定；FD 升級路（WP-C0.6） |
 | 2026-07-04 | [Harness/Agent/Loop Engine 架構規劃](./changes/2026-07-04-harness-agent-loop-engine-plan.md) | 三層架構橫切規劃：相位化 RT 迴圈、agent 自治降級、CANopen/EtherCAT 共用 bus 抽象；WP-H0~H6 |
+| 2026-07-04 | [WP-H1 agent 化重構](./changes/2026-07-04-wp-h1-agents-refactor.md) | app_main_tick 拆四 agent；33,858 幀逐 byte diff 驗收；修重複 init 殘留狀態 bug |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件

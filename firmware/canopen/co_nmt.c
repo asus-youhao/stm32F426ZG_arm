@@ -47,3 +47,10 @@ uint32_t co_nmt_node_age_ms(co_bus_t bus, uint8_t node)
     if (bus >= CO_BUS_COUNT || node >= MAX_NODE) return 0xFFFFFFFFu;
     return HAL_GetTick() - s_node[bus][node].last_ms;
 }
+
+void co_nmt_reset_cache(void)
+{
+    for (int b = 0; b < CO_BUS_COUNT; b++)
+        for (int n = 0; n < MAX_NODE; n++)
+            s_node[b][n] = (node_info_t){ CO_NODE_UNKNOWN, 0 };
+}

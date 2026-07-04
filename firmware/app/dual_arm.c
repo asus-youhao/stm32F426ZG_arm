@@ -11,6 +11,7 @@
 #include "co_pdo.h"
 #include "co_sdo.h"
 #include "stm32f7xx_hal.h"
+#include <string.h>
 
 #define NIDX(arm, j)  ((arm) * JOINTS_PER_ARM + (j))
 
@@ -56,10 +57,22 @@ static co_status_t map_pdo_csp(co_bus_t bus, uint8_t node)
 }
 
 static bool s_bus_ok[CO_BUS_COUNT];
+static bool s_safe_stop = false;
+static uint16_t s_safe_cw = 0x0002;   /* quick stop */
+static uint32_t s_tx_drops = 0;
 
 co_status_t dual_arm_init(void)
 {
-    /* 1) 初始化兩條 bxCAN channel——單條失敗不中止（單臂/HIL 降級運轉） */
+    /* 1) 初始化兩條 bxCAN channel——單條失敗不中止（單臂/HIL 降級運轉）。
+       先清本層與協定層快取：重複 init（bus 重啟）時不可殘留舊回授/舊心跳/
+       舊使能狀態——否則殘留的 enabled/statusword 會讓主站對剛重置的從站
+       直接下 CW_ENABLE_OP,跳過 CiA402 使能交握。 */
+    memset(g_jstate, 0, sizeof(g_jstate));
+    s_safe_stop = false;
+    s_safe_cw = 0x0002;
+    s_tx_drops = 0;
+    co_pdo_reset();
+    co_nmt_reset_cache();
     s_bus_ok[CO_BUS_LEFT]  = (co_bxcan_init(CO_BUS_LEFT)  == CO_OK);
     s_bus_ok[CO_BUS_RIGHT] = (co_bxcan_init(CO_BUS_RIGHT) == CO_OK);
     if (!s_bus_ok[CO_BUS_LEFT] && !s_bus_ok[CO_BUS_RIGHT]) return CO_ERR_STATE;
@@ -128,15 +141,12 @@ void dual_arm_set_target(uint8_t idx, int32_t target_pos)
     if (idx < ARM_COUNT * JOINTS_PER_ARM) g_jstate[idx].target_pos = target_pos;
 }
 
-static bool s_safe_stop = false;
-static uint16_t s_safe_cw = 0x0002; /* quick stop */
 void dual_arm_set_safe_stop(bool on, uint16_t safe_cw)
 {
     s_safe_stop = on;
     s_safe_cw = safe_cw;
 }
 
-static uint32_t s_tx_drops = 0;
 uint32_t dual_arm_tx_drops(void) { return s_tx_drops; }
 
 void dual_arm_tick(void)

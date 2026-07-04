@@ -14,8 +14,8 @@
 #include <string.h>
 
 /* ---- 假時鐘 ---- */
-static uint64_t s_now;
-uint64_t port_now_us(void) { return s_now; }
+uint64_t g_fake_now_us;   /* 供 test_agents.c 共用 */
+uint64_t port_now_us(void) { return g_fake_now_us; }
 
 /* ---- 升級通知計數 ---- */
 static int s_esc;
@@ -47,7 +47,7 @@ static int  t_act(void *c)   { tagent_t *t = c; t->act_n++; return t->act_ret; }
 static void t_deact(void *c) { tagent_t *t = c; t->deact_n++; }
 static void t_read(void *c)  { tagent_t *t = c; t->read_n++;  seq_log(t, ENG_PH_READ); }
 static void t_comp(void *c)  { tagent_t *t = c; t->comp_n++;  seq_log(t, ENG_PH_COMPUTE);
-                               s_now += t->comp_advance_us; }
+                               g_fake_now_us += t->comp_advance_us; }
 static void t_write(void *c) { tagent_t *t = c; t->write_n++; seq_log(t, ENG_PH_WRITE); }
 static void t_house(void *c) { tagent_t *t = c; t->house_n++; seq_log(t, ENG_PH_HOUSE); }
 static void t_fault(void *c, agent_fault_t f) { tagent_t *t = c; t->fault_n++; t->last_fault = f; }
@@ -64,7 +64,7 @@ static void tagent_bind(agent_t *a, tagent_t *t, const char *name)
 /* 準時推進：睡到 deadline 再 tick */
 static void tick_on_time(loop_engine_t *e)
 {
-    s_now = eng_next_deadline_us(e);
+    g_fake_now_us = eng_next_deadline_us(e);
     eng_tick(e);
 }
 
@@ -84,7 +84,7 @@ void test_engine(void)
         CHECK(eng_register(&e, &a2) == 0);
         CHECK(eng_configure(&e) == 0 && e.state == ENG_CONFIGURED);
         CHECK(t1.cfg_n == 1 && t2.cfg_n == 1);
-        s_now = 0;
+        g_fake_now_us = 0;
         CHECK(eng_activate(&e) == 0 && e.state == ENG_ACTIVE);
         CHECK(eng_register(&e, &a1) == -1);        /* ACTIVE 不可註冊 */
         CHECK(eng_next_deadline_us(&e) == 1000);   /* now+dt */
@@ -114,7 +114,7 @@ void test_engine(void)
         tagent_bind(&a1, &t1, "a1"); tagent_bind(&a2, &t2, "a2");
         eng_init(&e, &CFG);
         eng_register(&e, &a1); eng_register(&e, &a2);
-        eng_configure(&e); s_now = 0; eng_activate(&e);
+        eng_configure(&e); g_fake_now_us = 0; eng_activate(&e);
         s_seq_n = 0;
         tick_on_time(&e);
         const int want[8] = { 10, 20, 11, 21, 12, 22, 13, 23 };
@@ -131,7 +131,7 @@ void test_engine(void)
         tagent_bind(&a2o0, &t2, "div2");   a2o0.divisor = 2;
         eng_init(&e, &CFG);
         eng_register(&e, &af); eng_register(&e, &a4); eng_register(&e, &a2o0);
-        eng_configure(&e); s_now = 0; eng_activate(&e);
+        eng_configure(&e); g_fake_now_us = 0; eng_activate(&e);
         for (int i = 0; i < 8; i++) tick_on_time(&e);     /* tick 0..7 */
         CHECK(tf.comp_n == 8);
         CHECK(t4.comp_n == 2);                            /* tick 1,5 */
@@ -147,17 +147,17 @@ void test_engine(void)
         tagent_bind(&a, &t, "a");
         eng_init(&e, &CFG);
         eng_register(&e, &a);
-        eng_configure(&e); s_now = 0; eng_activate(&e);   /* deadline=1000 */
+        eng_configure(&e); g_fake_now_us = 0; eng_activate(&e);   /* deadline=1000 */
 
         /* 輕度遲到：late=200（warn=100 ≤ 200 < dt=1000）→ miss，deadline 照排 */
-        s_now = 1200; eng_tick(&e);
+        g_fake_now_us = 1200; eng_tick(&e);
         CHECK(eng_stats(&e)->miss == 1 && eng_stats(&e)->overruns == 0);
         CHECK(eng_next_deadline_us(&e) == 2000);          /* 不重錨定 */
         CHECK(eng_stats(&e)->late_max_us == 200);
 
         /* overrun：late=3500 ≥ dt → 跳過 3 tick、重錨定 now+dt、agent 只多跑一次 */
         int before = t.comp_n;
-        s_now = 5500; eng_tick(&e);
+        g_fake_now_us = 5500; eng_tick(&e);
         CHECK(eng_stats(&e)->overruns == 1);
         CHECK(eng_stats(&e)->skipped == 3);
         CHECK(eng_next_deadline_us(&e) == 6500);          /* now+dt 重錨定 */
@@ -171,17 +171,17 @@ void test_engine(void)
         tagent_bind(&a, &t, "a");
         eng_init(&e, &CFG);                               /* escalate_n 預設 3 */
         eng_register(&e, &a);
-        eng_configure(&e); s_now = 0; eng_activate(&e);
+        eng_configure(&e); g_fake_now_us = 0; eng_activate(&e);
         s_esc = 0;
         for (int i = 0; i < 4; i++) {                     /* 連續 4 次 overrun */
-            s_now = eng_next_deadline_us(&e) + 2000;
+            g_fake_now_us = eng_next_deadline_us(&e) + 2000;
             eng_tick(&e);
         }
         CHECK(s_esc == 1);                                /* 只在 ==3 時通知一次 */
         tick_on_time(&e);                                 /* 準時 → consec 歸零 */
         CHECK(eng_stats(&e)->overrun_consec == 0);
         for (int i = 0; i < 3; i++) {
-            s_now = eng_next_deadline_us(&e) + 2000;
+            g_fake_now_us = eng_next_deadline_us(&e) + 2000;
             eng_tick(&e);
         }
         CHECK(s_esc == 2);                                /* 新 streak 再通知 */
@@ -194,7 +194,7 @@ void test_engine(void)
         tagent_bind(&a, &t, "hog"); a.budget_us = 50;
         eng_init(&e, &CFG);                               /* budget_over_n 預設 3 */
         eng_register(&e, &a);
-        eng_configure(&e); s_now = 0; eng_activate(&e);
+        eng_configure(&e); g_fake_now_us = 0; eng_activate(&e);
 
         for (int i = 0; i < 4; i++) tick_on_time(&e);     /* 4 次都超標 */
         CHECK(t.fault_n == 1 && t.last_fault == AG_FAULT_BUDGET);

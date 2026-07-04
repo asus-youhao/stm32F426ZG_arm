@@ -25,4 +25,7 @@ bool co_pdo_get_feedback(co_bus_t bus, uint8_t node,
 /** @brief 回授序號（每收到一個 TPDO 遞增）。比較前後值即可判斷是否有新回授。 */
 uint32_t co_pdo_feedback_seq(co_bus_t bus, uint8_t node);
 
+/** @brief 清空全部回授快取/序號（bus 重啟或重新 init 時呼叫,避免殘留舊回授）。 */
+void co_pdo_reset(void);
+
 #endif /* CO_PDO_H */

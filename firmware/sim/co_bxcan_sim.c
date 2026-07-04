@@ -27,6 +27,10 @@ unsigned long g_sim_rx_count[CO_BUS_COUNT];
 
 void sim_bus_set_log(int en) { s_log_enable = en; }
 
+/* frame tap：測試用逐幀記錄（等效 candump）。dir_tx=1 主站→從站。 */
+static void (*s_tap)(co_bus_t bus, int dir_tx, const co_frame_t *f) = 0;
+void sim_bus_set_tap(void (*fn)(co_bus_t, int, const co_frame_t *)) { s_tap = fn; }
+
 static const char *frame_kind(uint16_t id)
 {
     if (id == 0x000) return "NMT";
@@ -69,6 +73,7 @@ co_status_t co_bxcan_send(co_bus_t bus, const co_frame_t *f)
     if (bus >= CO_BUS_COUNT || !f) return CO_ERR_PARAM;
     g_sim_tx_count[bus]++;
     log_frame(bus, "TX", f);
+    if (s_tap) s_tap(bus, 1, f);
 
     co_frame_t out[2];
     int nr = 0;
@@ -86,6 +91,7 @@ co_status_t co_bxcan_send(co_bus_t bus, const co_frame_t *f)
                 rx_push(bus, &out[i]);
                 g_sim_rx_count[bus]++;
                 log_frame(bus, "RX", &out[i]);
+                if (s_tap) s_tap(bus, 0, &out[i]);
             }
         }
     }
