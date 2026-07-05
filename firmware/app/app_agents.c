@@ -13,16 +13,17 @@
  * H1 驗收 = tests/test_agents.c 以 C 假硬體逐幀 diff 舊/新兩版的 bus 行為。
  */
 #include "app_agents.h"
-#include "dual_arm.h"          /* L1 */
+#include "bus_if.h"            /* WP-H5：經 vtable 收發,不再直呼 dual_arm_* */
+#include "dual_arm.h"          /* g_jstate / 關節數常數（資料面共用） */
 #include "joint_space.h"       /* L2 */
 #include "dual_arm_ctrl.h"     /* L4 */
 #include "safety.h"            /* WP6 */
-#include "co_emcy.h"           /* WP-H4/G5 */
 #include "stm32f7xx_hal.h"
 
 /* app_main.c 內部存取（同 board/main.c 的 extern 慣例） */
 dual_arm_ctrl_t *app_ctrl(void);
 bool app_is_ready(void);
+const bus_if_t *app_bus(void);
 
 #define NJ (ARM_COUNT * JOINTS_PER_ARM)
 
@@ -39,7 +40,7 @@ static int ag_ready(void *ctx)
 static void busrx_read(void *ctx)
 {
     (void)ctx;
-    dual_arm_pump_rx();
+    app_bus()->pump_rx();
 }
 
 /* ---- agent: safety ——原步驟 2（逐字保留：只在 fb_fresh 的軸刷看門狗） ---- */
@@ -51,13 +52,12 @@ static void safety_compute(void *ctx)
     for (int j = 0; j < NJ; j++) {
         if (g_jstate[j].fb_fresh)
             safety_report_joint(j, g_jstate[j].statusword, now);
-        /* WP-H4/G5：EMCY 事件 → safe stop 條款（與 app_main_tick 逐字一致） */
-        if (g_jstate[j].present &&
-            co_emcy_take(g_joints[j].bus, g_joints[j].node_id, &ecode))
+        /* WP-H4/G5：故障事件 → safe stop 條款（與 app_main_tick 逐字一致） */
+        if (g_jstate[j].present && app_bus()->take_fault(j, &ecode))
             safety_report_emcy(j, ecode != 0);
     }
     bool allow = safety_update(now);
-    dual_arm_set_safe_stop(!allow, safety_safe_controlword());
+    app_bus()->set_safe_stop(!allow, safety_safe_controlword());
 }
 
 /* ---- agent: motion ——原步驟 1 後半 + 步驟 3 + 步驟 4 前半 ---- */
@@ -83,14 +83,14 @@ static void motion_write(void *ctx)
     (void)ctx;
     bool run = (safety_state() == SYS_RUNNING);
     for (int j = 0; j < NJ; j++)
-        dual_arm_set_target(j, run ? s_cnt[j] : g_jstate[j].pos_actual);
+        app_bus()->set_target((uint8_t)j, run ? s_cnt[j] : g_jstate[j].pos_actual);
 }
 
 /* ---- agent: bus_tx ——原步驟 4 後半（註冊最後,write pass 收尾送 PDO） ---- */
 static void bustx_write(void *ctx)
 {
     (void)ctx;
-    dual_arm_tick();
+    app_bus()->tick();
 }
 
 /* budget 為觀測用初值（500Hz 週期 2000µs 的相對量級）;H1 不掛 on_fault */

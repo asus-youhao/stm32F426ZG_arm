@@ -16,6 +16,7 @@ void test_agents(void);
 void test_harness(void);
 void test_h4(void);
 void test_ecat(void);
+void test_h5(void);
 
 int main(void)
 {
@@ -33,6 +34,7 @@ int main(void)
     RUN(test_harness);
     RUN(test_h4);
     RUN(test_ecat);
+    RUN(test_h5);
 
     printf("\n----------------------------------------\n");
     printf("總計 %d 檢查, %d 失敗 → %s\n", g_tests, g_fails,

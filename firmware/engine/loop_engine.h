@@ -82,6 +82,13 @@ void eng_deactivate(loop_engine_t *e);
 uint64_t eng_next_deadline_us(const loop_engine_t *e);
 
 /**
+ * @brief 相位微調（WP-H5;SOEM DC 跟隨模式的 PI 鎖相用）。
+ *        把下一個 deadline 平移 trim µs,內部限幅 ±5% 週期。
+ *        CANopen（主站即 SYNC 源）與 IgH（主站發號）不需呼叫。
+ */
+void eng_phase_trim_us(loop_engine_t *e, int32_t trim);
+
+/**
  * @brief 執行一個週期（平台睡醒後呼叫）。內部：
  *        遲到分級（正常 / miss / overrun-SKIP 重錨定 + 升級通知）
  *        → 四相位 pass → 每 agent 耗時/預算記帳。

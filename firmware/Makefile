@@ -56,9 +56,11 @@ C_SOURCES = \
   canopen/co_nmt.c \
   canopen/co_sdo.c \
   canopen/co_pdo.c \
+  canopen/co_emcy.c \
   canopen/cia402.c \
   app/app_main.c \
   app/dual_arm.c \
+  app/bus_canopen.c \
   app/robot_config.c \
   control/linalg.c \
   control/trajectory.c \

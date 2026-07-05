@@ -8,7 +8,7 @@ CC      ?= gcc
 # -D_GNU_SOURCE：clock_nanosleep / SocketCAN / strncpy 等 POSIX+GNU 宣告
 CFLAGS  ?= -O2 -Wall -Wextra -std=c11 -D_GNU_SOURCE
 # include：pc 優先,再 sim（stm32f7xx_hal.h 替身）,其餘為韌體本體
-INC     = -I. -I../sim -I../canopen -I../app -I../control -I../safety -I../test -I../engine
+INC     = -I. -I../sim -I../canopen -I../app -I../control -I../safety -I../test -I../engine -I../ecat
 
 # 與 firmware/Makefile（板端）同一套韌體源碼;僅底層/進入點不同：
 #   co_bxcan.c → co_bxcan_socketcan.c;board/main.c → pc_master_main.c
@@ -35,6 +35,10 @@ SRC = \
   ../app/app_main.c \
   ../app/app_agents.c \
   ../app/app_io_agents.c \
+  ../app/bus_canopen.c \
+  ../app/bus_ecat.c \
+  ../ecat/ec_master_sim.c \
+  ../sim/phu_sim.c \
   ../engine/loop_engine.c \
   ../engine/spsc_ring.c \
   ../engine/harness.c

@@ -15,7 +15,7 @@
 #include "task_space.h"        /* L3 */
 #include "dual_arm_ctrl.h"     /* L4 */
 #include "safety.h"            /* WP6 */
-#include "co_emcy.h"           /* WP-H4/G5 */
+#include "bus_if.h"            /* WP-H5 */
 #include "robot_config.h"
 #include "control_rate.h"
 #include "stm32f7xx_hal.h"
@@ -25,13 +25,22 @@ static volatile bool s_ready = false;
 static dual_arm_ctrl_t s_dc;
 static task_arm_t s_left, s_right;
 
+/* WP-H5：匯流排後端 vtable。預設 CANopen;init 前可 app_select_bus() 切換。
+   COMPUTE 側（safety/motion）只碰 g_jstate,經由 s_bus 收發 → bus-agnostic。 */
+extern const bus_if_t g_bus_canopen;
+static const bus_if_t *s_bus = &g_bus_canopen;
+
+void app_select_bus(const bus_if_t *bus) { if (bus) s_bus = bus; }
+const bus_if_t *app_bus(void) { return s_bus; }
+int app_present_count(void) { return s_bus->present_count(); }
+
 /** @brief 執行期頻率版 init（WP-H2 `--rate`；對應 WP-C3.2 檔位化）。hz≤0 用預設。 */
 void app_main_init_hz(float hz)
 {
     if (hz <= 0.0f) hz = CONTROL_HZ;
 
-    /* L1：bxCAN + CANopen + CiA402（雙 channel） */
-    if (dual_arm_init() != CO_OK) return;
+    /* L1：匯流排 bus-up（CANopen: NMT/PDO/CSP;EtherCAT: PREOP/OP/DC） */
+    if (s_bus->init() != 0) return;
 
     /* L2：joint_space（14 軸設定,dt = 1/hz） */
     js_init(1.0f / hz, robot_js_cfg());
@@ -58,7 +67,7 @@ void app_main_tick(void)
     if (!s_ready) return;
 
     /* 1) 收回授 + 回灌（counts → rad） */
-    dual_arm_pump_rx();
+    s_bus->pump_rx();
     float q_fb[14];
     for (int j = 0; j < 14; j++) {
         js_update_feedback(j, g_jstate[j].pos_actual);
@@ -73,13 +82,12 @@ void app_main_tick(void)
     for (int j = 0; j < 14; j++) {
         if (g_jstate[j].fb_fresh)
             safety_report_joint(j, g_jstate[j].statusword, now);
-        /* WP-H4/G5：EMCY 事件 → safe stop 條款（0x0000=error reset 解除） */
-        if (g_jstate[j].present &&
-            co_emcy_take(g_joints[j].bus, g_joints[j].node_id, &ecode))
+        /* WP-H4/G5：故障事件（EMCY / CiA402 fault）→ safe stop 條款 */
+        if (g_jstate[j].present && s_bus->take_fault(j, &ecode))
             safety_report_emcy(j, ecode != 0);
     }
     bool allow = safety_update(now);
-    dual_arm_set_safe_stop(!allow, safety_safe_controlword());
+    s_bus->set_safe_stop(!allow, safety_safe_controlword());
 
     /* 3) L4→L3→L2：產生 counts 目標 */
     int32_t cnt[14];
@@ -90,8 +98,8 @@ void app_main_tick(void)
        實際位置：使能交握照常進行,但不產生運動。 */
     bool run = (safety_state() == SYS_RUNNING);
     for (int j = 0; j < 14; j++)
-        dual_arm_set_target(j, run ? cnt[j] : g_jstate[j].pos_actual);
-    dual_arm_tick();
+        s_bus->set_target((uint8_t)j, run ? cnt[j] : g_jstate[j].pos_actual);
+    s_bus->tick();
 }
 
 /* WP6 對外：急停 / 系統狀態 */

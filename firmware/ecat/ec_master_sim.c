@@ -26,6 +26,7 @@ static phu_node_t s_node[EC_AXES_MAX];
 static bool       s_offline[EC_AXES_MAX];
 static ec_out_t   s_out[EC_AXES_MAX];
 static ec_in_t    s_in[EC_AXES_MAX];
+static uint8_t    s_fresh[EC_AXES_MAX];
 static int        s_n;
 static sim_state_t s_state = ST_IDLE;
 static int        s_last_wkc;
@@ -54,6 +55,7 @@ int ec_master_init(int expected_axes)
     memset(s_offline, 0, sizeof(s_offline));
     memset(s_out, 0, sizeof(s_out));
     memset(s_in, 0, sizeof(s_in));
+    memset(s_fresh, 0, sizeof(s_fresh));
     s_last_wkc = 0;
     s_wkc_err_events = 0;
     for (int a = 0; a < s_n; a++) {
@@ -103,9 +105,11 @@ int ec_master_exchange(void)
     /* ② SYNC 廣播：鎖存 + 動力學 + TxPDO → 輸入區 */
     f.id = CO_COBID_SYNC;
     f.dlc = 0;
+    memset(s_fresh, 0, sizeof(s_fresh));
     for (int a = 0; a < s_n; a++) {
         if (s_offline[a]) continue;             /* 掉軸：輸入凍結 */
         if (node_frame(a, &f, &resp) == 1 && resp.dlc >= 6) {
+            s_fresh[a] = 1;
             s_in[a].statusword = (uint16_t)(resp.data[0] | (resp.data[1] << 8));
             s_in[a].pos_actual = (int32_t)((uint32_t)resp.data[2]
                                | ((uint32_t)resp.data[3] << 8)
@@ -128,6 +132,11 @@ void ec_axis_set_output(int axis, const ec_out_t *o)
 void ec_axis_get_input(int axis, ec_in_t *i)
 {
     if (axis >= 0 && axis < s_n) *i = s_in[axis];
+}
+
+int ec_axis_fresh(int axis)
+{
+    return (axis >= 0 && axis < s_n) ? s_fresh[axis] : 0;
 }
 
 int ec_coe_read(int axis, uint16_t idx, uint8_t sub, uint32_t *val)

@@ -55,6 +55,9 @@ int  ec_master_expected_wkc(void);
 void ec_axis_set_output(int axis, const ec_out_t *o);
 void ec_axis_get_input(int axis, ec_in_t *i);
 
+/** @brief 上次 exchange 是否更新了該軸輸入（掉軸=0;真後端以 WKC/AL 判定）。 */
+int  ec_axis_fresh(int axis);
+
 /** @brief 週期外 CoE SDO（PREOP 組態/診斷用;RUN 中請走背景通道）。回 0 成功。 */
 int  ec_coe_read(int axis, uint16_t idx, uint8_t sub, uint32_t *val);
 int  ec_coe_write(int axis, uint16_t idx, uint8_t sub, uint32_t val);

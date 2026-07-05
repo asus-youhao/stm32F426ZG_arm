@@ -39,6 +39,9 @@
 /* app_main.c 對外 API（無公用標頭,與 board/main.c 同樣以 extern 取用） */
 void app_main_init_hz(float hz);
 const char *app_sys_state(void);
+void app_select_bus(const bus_if_t *bus);
+int  app_present_count(void);
+extern const bus_if_t g_bus_ecat;
 
 /* bringup.c 的弱連結 log → 導到 stdout */
 void bringup_log(const char *fmt, ...)
@@ -55,7 +58,8 @@ static void on_sigint(int sig) { (void)sig; s_quit = 1; }
 
 static void usage(const char *argv0)
 {
-    printf("用法: %s [--left IF] [--right IF|none] [--rate HZ] [--sync] [--bringup NODE] [--seconds N]\n"
+    printf("用法: %s [--bus canopen|ethercat] [--left IF] [--right IF|none] [--rate HZ] [--sync] [--bringup NODE] [--seconds N]\n"
+           "  --bus B        協定（預設 canopen;ethercat 目前接 sim 後端=SIL）\n"
            "  --left IF      左臂 SocketCAN 介面（預設 vcan0）\n"
            "  --right IF     右臂 SocketCAN 介面（預設 vcan1;'none' 停用 → 單臂）\n"
            "  --rate HZ      控制頻率（100..1000,預設 %u;WP-C 檔位 400/500）\n"
@@ -150,13 +154,15 @@ static void handle_cmd(const char *line, const app_tele_t *last)
 int main(int argc, char **argv)
 {
     const char *left = "vcan0", *right = "vcan1";
+    const char *bus = "canopen";
     int bringup_node = 0;
     long run_seconds = 0;
-    long rate_hz = (long)CONTROL_HZ;
+    long rate_hz = 0;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--left") && i + 1 < argc)         left = argv[++i];
         else if (!strcmp(argv[i], "--right") && i + 1 < argc)   right = argv[++i];
+        else if (!strcmp(argv[i], "--bus") && i + 1 < argc)     bus = argv[++i];
         else if (!strcmp(argv[i], "--rate") && i + 1 < argc)    rate_hz = atol(argv[++i]);
         else if (!strcmp(argv[i], "--sync"))                    dual_arm_set_sync(true);
         else if (!strcmp(argv[i], "--bringup") && i + 1 < argc) bringup_node = atoi(argv[++i]);
@@ -164,6 +170,16 @@ int main(int argc, char **argv)
         else { usage(argv[0]); return (strcmp(argv[i], "--help") == 0) ? 0 : 2; }
     }
     if (!strcmp(right, "none")) right = "";
+
+    /* WP-H5：同一 binary 切協定。ethercat 目前連結 fake 後端（SIL）,
+       真後端（SOEM/IgH）之後以同一 ec_master.h 門面替換。 */
+    bool is_ecat = (strcmp(bus, "ethercat") == 0);
+    if (!is_ecat && strcmp(bus, "canopen") != 0) {
+        fprintf(stderr, "--bus 只支援 canopen|ethercat\n");
+        return 2;
+    }
+    if (is_ecat) app_select_bus(&g_bus_ecat);
+    if (rate_hz == 0) rate_hz = is_ecat ? 1000 : (long)CONTROL_HZ;
     if (rate_hz < 100 || rate_hz > 1000) {
         fprintf(stderr, "--rate 需在 100..1000（Classic CAN 上限 500）\n");
         return 2;
@@ -176,13 +192,16 @@ int main(int argc, char **argv)
     co_socketcan_set_ifname(CO_BUS_LEFT, left);
     co_socketcan_set_ifname(CO_BUS_RIGHT, right);
 
-    printf("=== PC CANopen 主站（harness + loop engine, WP-H2/H4）===\n");
-    printf("左臂=%s  右臂=%s  rate=%ld Hz  sync=%s\n",
-           left, right[0] ? right : "(停用)", rate_hz,
-           dual_arm_sync_enabled() ? "on" : "off");
+    printf("=== PC 主站（harness + loop engine, WP-H2/H4/H5）===\n");
+    if (is_ecat)
+        printf("bus=ethercat(sim 後端)  rate=%ld Hz\n", rate_hz);
+    else
+        printf("bus=canopen  左臂=%s  右臂=%s  rate=%ld Hz  sync=%s\n",
+               left, right[0] ? right : "(停用)", rate_hz,
+               dual_arm_sync_enabled() ? "on" : "off");
 
-    /* （選配）WP2 單軸 bring-up（BUS_UP 前的自檢,非 RT、可阻塞） */
-    if (bringup_node > 0) {
+    /* （選配）WP2 單軸 bring-up（BUS_UP 前的自檢,非 RT、可阻塞;CANopen 限定） */
+    if (bringup_node > 0 && !is_ecat) {
         bringup_report_t rep;
         co_status_t st = bringup_single_axis(CO_BUS_LEFT, (uint8_t)bringup_node,
                                              5000, 1000, &rep);
@@ -194,8 +213,8 @@ int main(int argc, char **argv)
     /* BUS_UP：L1–L4 全棧初始化（SDO 往返、可阻塞 → 在 harness 執行緒做） */
     printf("\n=== harness: BUS_UP（init L1-L4 stack）===\n");
     app_main_init_hz((float)rate_hz);
-    int present = dual_arm_present_count();
-    printf("dual_arm present joints = %d / 14%s\n", present,
+    int present = app_present_count();
+    printf("present joints = %d / 14%s\n", present,
            present ? "" : "  (init FAILED — 從站沒起來?)");
     if (present == 0) return 1;
 

@@ -82,6 +82,16 @@ void eng_deactivate(loop_engine_t *e)
 
 uint64_t eng_next_deadline_us(const loop_engine_t *e) { return e->next_us; }
 
+void eng_phase_trim_us(loop_engine_t *e, int32_t trim)
+{
+    /* DC 跟隨模式（SOEM,WP-L2.2）的鎖相微調：限幅 ±5% 週期,
+       避免大 trim 打亂 overrun/SKIP 判定（設計文件 §3.1）。 */
+    int32_t lim = (int32_t)(e->cfg.dt_us / 20u);
+    if (trim >  lim) trim =  lim;
+    if (trim < -lim) trim = -lim;
+    e->next_us = (uint64_t)((int64_t)e->next_us + trim);
+}
+
 /** @brief agent 本 tick 是否輪到（divisor/phase_offset 錯峰）。 */
 static int agent_due(const loop_engine_t *e, const agent_t *a)
 {
