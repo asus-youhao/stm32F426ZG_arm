@@ -21,6 +21,7 @@ void test_sdo_bg(void);
 void test_escalation(void);
 void test_log(void);
 void test_trace(void);
+void test_selfcheck(void);
 
 int main(void)
 {
@@ -43,6 +44,7 @@ int main(void)
     RUN(test_escalation);
     RUN(test_log);
     RUN(test_trace);
+    RUN(test_selfcheck);
 
     printf("\n----------------------------------------\n");
     printf("總計 %d 檢查, %d 失敗 → %s\n", g_tests, g_fails,

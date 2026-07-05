@@ -63,6 +63,7 @@
 | 2026-07-05 | [升級策略完整化](./changes/2026-07-05-escalation-policy.md) | §5.2 逐格：miss 率視窗、降頻退避(一次機會)、bus 重啟條款、非關鍵 agent 停用 |
 | 2026-07-05 | [log ring](./changes/2026-07-05-log-ring.md) | RT 域結構化事件日誌(safe stop/EMCY/overrun)；sdo_bg 依賴切割修板端符號閉合 |
 | 2026-07-05 | [trace ring + 報表](./changes/2026-07-05-trace-ring.md) | WP-H3 儀器：每 tick 24B 紀錄(late/四相位)、--trace CSV、trace_report.py p99/直方圖/§3.5 判定 |
+| 2026-07-05 | [開機自檢](./changes/2026-07-05-rt-selfcheck.md) | WP-L7.1：RT 內核/isolcpus/RTPRIO/mlockall/介面自檢清單;--rt-strict 不符拒絕進 OP |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件

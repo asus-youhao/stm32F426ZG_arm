@@ -89,3 +89,11 @@ unshare -rn bash -c '
 - 這條路測的是**協定與控制邏輯**，不是 bxCAN 硬體時序;燒板前仍建議跑一次
   `firmware/Makefile` 的板端 bring-up。
 - 真實 CANable/真馬達的情境見 `sim_py/README.md` 與 P5 變更文件。
+
+## 開機自檢（WP-L7.1）
+
+pc_master 起機先跑 RT 環境自檢（PREEMPT_RT 內核 / isolcpus / SCHED_FIFO
+權限 / mlockall / bus 介面 + 三個警告項），印出清單：
+
+- 預設：必要項不過 → 警告後**降級運行**（開發機 / SIL 用）。
+- `--rt-strict`：必要項不過 → **拒絕進 OP**（exit 3）。真機 runbook 必帶。

@@ -24,6 +24,7 @@
 #include "app_io_agents.h"
 #include "eng_log.h"
 #include "eng_trace.h"
+#include "rt_selfcheck.h"
 #include "safety.h"
 #include "stm32f7xx_hal.h"
 
@@ -67,6 +68,7 @@ static void usage(const char *argv0)
            "  --rate HZ      控制頻率（100..1000,預設 %u;WP-C 檔位 400/500）\n"
            "  --sync         SYNC 同步鎖存模式（transmission type=1,G3）\n"
            "  --trace FILE   每 tick 抖動紀錄→CSV（WP-H3;離線用 tools/trace_report.py）\n"
+           "  --rt-strict    開機自檢（L7.1）必要項不過 → 拒絕進 OP（真機用）\n"
            "  --bringup N    先對左臂 node N 跑 WP2 單軸 bring-up\n"
            "  --seconds N    跑 N 秒後自動結束（0=直到 Ctrl-C）\n"
            "互動命令（stdin）：\n"
@@ -171,6 +173,7 @@ int main(int argc, char **argv)
     const char *left = "vcan0", *right = "vcan1";
     const char *bus = "canopen";
     const char *trace_path = NULL;
+    int rt_strict = 0;
     int bringup_node = 0;
     long run_seconds = 0;
     long rate_hz = 0;
@@ -182,6 +185,7 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--rate") && i + 1 < argc)    rate_hz = atol(argv[++i]);
         else if (!strcmp(argv[i], "--sync"))                    dual_arm_set_sync(true);
         else if (!strcmp(argv[i], "--trace") && i + 1 < argc)   trace_path = argv[++i];
+        else if (!strcmp(argv[i], "--rt-strict"))               rt_strict = 1;
         else if (!strcmp(argv[i], "--bringup") && i + 1 < argc) bringup_node = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--seconds") && i + 1 < argc) run_seconds = atol(argv[++i]);
         else { usage(argv[0]); return (strcmp(argv[i], "--help") == 0) ? 0 : 2; }
@@ -200,6 +204,23 @@ int main(int argc, char **argv)
     if (rate_hz < 100 || rate_hz > 1000) {
         fprintf(stderr, "--rate 需在 100..1000（Classic CAN 上限 500）\n");
         return 2;
+    }
+
+    /* 開機自檢（WP-L7.1）：BOOT 最前面、mlockall 之前（探測會 munlockall）。
+       必要項不過：strict 拒絕進 OP;否則警告後降級運行（開發機/SIL）。 */
+    {
+        const char *ifs[3] = { NULL, NULL, NULL };
+        if (!is_ecat) { ifs[0] = left; ifs[1] = right; }
+        rt_report_t rep;
+        int nfail = rt_selfcheck_run(&rep, is_ecat ? NULL : ifs);
+        rt_selfcheck_print(&rep, stdout);
+        if (nfail) {
+            if (rt_strict) {
+                fprintf(stderr, "[selfcheck] 必要項不過 → 拒絕進 OP（L7.1）\n");
+                return 3;
+            }
+            fprintf(stderr, "[selfcheck] 警告：非 RT 環境,降級運行（真機請帶 --rt-strict）\n");
+        }
     }
 
     signal(SIGINT, on_sigint);
