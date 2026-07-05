@@ -11,6 +11,7 @@
 #include "co_nmt.h"
 #include "co_pdo.h"
 #include "co_sdo.h"
+#include "sdo_bg.h"
 #include "stm32f7xx_hal.h"
 #include <string.h>
 
@@ -155,6 +156,7 @@ void dual_arm_pump_rx(void)
         while (co_bxcan_recv((co_bus_t)b, &f)) {
             s_rx_frames[b]++;
             if (co_emcy_process_frame((co_bus_t)b, &f)) continue;   /* G5 */
+            if (sdo_bg_on_frame((co_bus_t)b, &f)) continue;         /* 背景 SDO 回應 */
             co_nmt_process_frame((co_bus_t)b, &f);
             co_pdo_process_frame((co_bus_t)b, &f);
         }

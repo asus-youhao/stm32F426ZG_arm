@@ -10,6 +10,7 @@
 #include "dual_arm.h"
 #include "co_emcy.h"
 #include "co_nmt.h"
+#include "sdo_bg.h"
 
 static uint32_t s_last_tx[CO_BUS_COUNT], s_last_rx[CO_BUS_COUNT];
 
@@ -62,4 +63,5 @@ const bus_if_t g_bus_canopen = {
     .tx_drops      = dual_arm_tx_drops,
     .take_fault    = bc_take_fault,
     .health        = bc_health,
+    .sdo_bg_step   = sdo_bg_step_canopen,
 };

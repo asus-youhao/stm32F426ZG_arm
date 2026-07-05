@@ -37,6 +37,7 @@ SRC = \
   ../app/app_io_agents.c \
   ../app/bus_canopen.c \
   ../app/bus_ecat.c \
+  ../app/sdo_bg.c \
   ../ecat/ec_master_sim.c \
   ../sim/phu_sim.c \
   ../engine/loop_engine.c \

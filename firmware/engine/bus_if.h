@@ -44,6 +44,8 @@ typedef struct bus_if {
     bool     (*take_fault)(int j, uint16_t *code);
     /** RT HOUSEKEEP：bus_idx 儀表快照;window_us = 統計視窗。 */
     void     (*health)(int bus_idx, uint32_t window_us, bus_health_t *out);
+    /** RT HOUSEKEEP：SDO/CoE 背景通道推進一小步（sdo_bg 模組）。 */
+    void     (*sdo_bg_step)(void);
 } bus_if_t;
 
 #endif /* ENG_BUS_IF_H */

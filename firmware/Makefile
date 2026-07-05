@@ -61,6 +61,7 @@ C_SOURCES = \
   app/app_main.c \
   app/dual_arm.c \
   app/bus_canopen.c \
+  app/sdo_bg.c \
   app/robot_config.c \
   control/linalg.c \
   control/trajectory.c \

@@ -16,6 +16,7 @@
 #include "dual_arm.h"      /* g_jstate / 關節數常數（資料面共用） */
 #include "ec_master.h"
 #include "cia402.h"
+#include "sdo_bg.h"
 #include <string.h>
 
 #define NJ (ARM_COUNT * JOINTS_PER_ARM)
@@ -148,4 +149,5 @@ const bus_if_t g_bus_ecat = {
     .tx_drops      = be_tx_drops,
     .take_fault    = be_take_fault,
     .health        = be_health,
+    .sdo_bg_step   = sdo_bg_step_ecat,
 };

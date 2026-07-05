@@ -12,6 +12,7 @@
 #include "dual_arm_ctrl.h"
 #include "task_space.h"
 #include "safety.h"
+#include "sdo_bg.h"
 #include <string.h>
 
 /* app_main.c 內部存取（同 app_agents.c 慣例） */
@@ -96,6 +97,16 @@ static agent_t s_ag_tele = {
     .name = "telemetry", .divisor = 5, .phase_offset = 1, .budget_us = 100,
     .housekeep = tele_housekeep,
 };
+static void sdobg_housekeep(void *ctx)
+{
+    (void)ctx;
+    app_bus()->sdo_bg_step();
+}
+
+static agent_t s_ag_sdobg = {
+    .name = "sdo_bg", .divisor = 2, .phase_offset = 0, .budget_us = 100,
+    .housekeep = sdobg_housekeep,
+};
 static agent_t s_ag_health = {
     .name = "health", .divisor = 100, .phase_offset = 7, .budget_us = 100,
     .housekeep = health_housekeep,
@@ -112,6 +123,8 @@ int app_io_register(loop_engine_t *e)
     if (eng_register(e, &s_ag_cmd))    return -1;
     if (eng_register(e, &s_ag_tele))   return -1;
     if (eng_register(e, &s_ag_health)) return -1;
+    sdo_bg_init(0);
+    if (eng_register(e, &s_ag_sdobg))  return -1;
     return 0;
 }
 
