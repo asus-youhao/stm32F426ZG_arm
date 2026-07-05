@@ -57,6 +57,7 @@
 | 2026-07-04 | [WP-H2 harness+ring+engine 驅動](./changes/2026-07-04-wp-h2-harness-runtime.md) | 監督層/心跳防線、cmd/telemetry ring、pc_master 雙執行緒 RT 分域、--rate 檔位 |
 | 2026-07-05 | [WP-H4 SYNC/EMCY/健康儀表](./changes/2026-07-05-wp-h4-sync-emcy-health.md) | 方案 C G3/G5/G6：SYNC 鎖存(--sync)、EMCY→safe stop 條款、busload/HealthAgent |
 | 2026-07-05 | [WP-C0.3 佈建腳本](./changes/2026-07-05-wp-c0-3-provision-script.md) | provision_joint.sh：0x2100/0x26A0/存檔/驗證/清冊 SOP 腳本化,寫入大小自動探測 |
+| 2026-07-05 | [EtherCAT 門面+fake 後端](./changes/2026-07-05-ecat-facade-sim-backend.md) | WP-L3.1/L3.5：ec_master.h 三後端門面、phu_sim 重用、WKC/掉軸/使能免硬體全驗 |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件
