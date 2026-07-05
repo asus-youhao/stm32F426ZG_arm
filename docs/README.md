@@ -52,6 +52,7 @@
 | 2026-07-04 | [Linux CANopen 主站規劃](./changes/2026-07-04-linux-canopen-master-plan.md) | 方案 C：pc_master 上真機 14 軸；PCIe CAN 卡、SYNC、佈建 SOP；WP-C0~C5 |
 | 2026-07-04 | [方案 C 指定 PCAN FD 硬體](./changes/2026-07-04-pcan-fd-hardware-selection.md) | PCAN-USB FD / PCIe FD 選型階梯；FD 硬體+Classic 協定；FD 升級路（WP-C0.6） |
 | 2026-07-05 | [WP-C0.3 佈建腳本](./changes/2026-07-05-wp-c0-3-provision-script.md) | provision_joint.sh：0x2100/0x26A0/存檔/驗證/清冊 SOP 腳本化,寫入大小自動探測 |
+| 2026-07-05 | [WP-C0.6 EYOU 確認清單](./changes/2026-07-05-wp-c0-6-eyou-inquiry.md) | CAN FD data phase/SYNC type=1/佈建細節 14 題詢問清單 + 回覆動作對照 |
 
 ## 設計文件
 
@@ -65,6 +66,7 @@
 | [Linux RT EtherCAT 主站](./design/linux-rt-ethercat-master-plan.md) | Ubuntu 22.04 Pro PREEMPT_RT 主站：RT 調校、SOEM/IgH、1kHz DC 鎖相、WP-L 工作分解 |
 | [IgH EtherCAT 主站](./design/linux-igh-ethercat-master-plan.md) | Ubuntu 24.04 Pro + IgH kernel-space 主站：ecrt API 對映、DKMS、CLI/FoE、WP-I 工作分解 |
 | [Linux CANopen 主站（真機）](./design/linux-canopen-master-plan.md) | 方案 C：pc_master 驅動真實 14 軸；CAN 卡選型、SYNC 鎖存、佈建 SOP、WP-C 工作分解 |
+| [EYOU CAN FD 確認清單](./design/eyou-canfd-inquiry.md) | WP-C0.6：給原廠的 FD/SYNC/佈建 14 題（待寄出,回覆後回填） |
 | [Dual-Arm Control Plan](./design/dual-arm-control-plan.md) | 雙臂控制工作分解（joint/task-space 1kHz、整合） |
 | [CubeMX 整合說明](./design/firmware-cubemx-integration.md) | F746 CubeMX 設定與韌體接線 |
 | [WP2 單軸 Bring-up](./design/wp2-single-axis-bringup.md) | SDO 驗證 + 單軸轉動測試流程 |
