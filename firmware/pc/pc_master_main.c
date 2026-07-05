@@ -260,7 +260,10 @@ int main(int argc, char **argv)
 
         while (app_io_tele_pop(&t)) tele = t;      /* 取最新快照 */
         while (app_io_health_pop(&hrec))           /* 取最新 bus 健康（G6） */
-            if (hrec.bus < CO_BUS_COUNT) hl[hrec.bus] = hrec;
+            if (hrec.bus < CO_BUS_COUNT) {
+                hl[hrec.bus] = hrec;
+                hn_feed_health(&hn, hrec.bus, &hrec.h);   /* §5.2 link 條款 */
+            }
 
         if (loops % 5 == 0) hn_supervise(&hn);     /* 10 Hz 監督 */
 

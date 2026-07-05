@@ -18,6 +18,7 @@ void test_h4(void);
 void test_ecat(void);
 void test_h5(void);
 void test_sdo_bg(void);
+void test_escalation(void);
 
 int main(void)
 {
@@ -37,6 +38,7 @@ int main(void)
     RUN(test_ecat);
     RUN(test_h5);
     RUN(test_sdo_bg);
+    RUN(test_escalation);
 
     printf("\n----------------------------------------\n");
     printf("總計 %d 檢查, %d 失敗 → %s\n", g_tests, g_fails,

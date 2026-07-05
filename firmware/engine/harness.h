@@ -15,6 +15,7 @@
 #define ENG_HARNESS_H
 
 #include "loop_engine.h"
+#include "bus_if.h"
 
 /** @brief 生命週期狀態（§5.1；DEGRADED 的 per-axis 策略屬 WP-H4）。 */
 typedef enum {
@@ -29,6 +30,19 @@ typedef struct {
     uint32_t stall_checks;  /**< 連續幾次 supervise 無 tick 進展→SAFE_STOP；0→3 */
     void   (*enter_safe_stop)(void *user); /**< 非 RT、可阻塞；可為 NULL */
     void    *user;
+
+    /* ---- §5.2 策略表（0/NULL = 該條款停用,超標一律 SAFE_STOP）---- */
+    uint32_t miss_pct_max;    /**< 視窗 miss+overrun+skip 率門檻 %（0→5） */
+    uint32_t degrade_dt_us;   /**< >0：超標第一次先降頻到此週期（§5.2 降頻
+                                   語意：deactivate→改 dt→reactivate,非無縫）;
+                                   0：直接 SAFE_STOP */
+    void   (*on_rate_changed)(void *user, uint32_t dt_us); /**< 降頻後通知
+                                   平台（更新 js dt 等）;可為 NULL */
+    int    (*restart_bus)(void *user);  /**< link 掉時嘗試重啟;可為 NULL */
+    uint32_t bus_fail_checks; /**< 重啟後 link 仍掉的 supervise 次數→SAFE_STOP（0→3） */
+    uint32_t agent_over_n;    /**< 非關鍵 agent 連續超預算門檻→停用（0→10） */
+    const int *noncritical;   /**< 可停用的 agent 索引表（telemetry/health 等） */
+    int      n_noncritical;
 } hn_cfg_t;
 
 typedef struct {
@@ -39,6 +53,13 @@ typedef struct {
     uint32_t       stall;        /**< 連續停滯的 supervise 次數 */
     uint32_t       esc_pending;  /**< RT on_escalate 設 1，supervise 消化 */
     uint32_t       safe_stops;   /**< 進入 SAFE_STOP 的累計次數（統計） */
+    /* ---- §5.2 策略狀態 ---- */
+    uint64_t       last_miss;    /**< 上次視窗的 miss+overrun+skip 累計 */
+    uint8_t        degraded;     /**< 已用過降頻退避（再超標→SAFE_STOP） */
+    uint8_t        link_down;    /**< health 回報任一 bus link 掉 */
+    uint8_t        restart_tried;
+    uint32_t       bus_fail;     /**< link 持續掉的 supervise 計數 */
+    uint32_t       agents_disabled;
 } harness_t;
 
 void hn_init(harness_t *h, loop_engine_t *e, const hn_cfg_t *cfg);
@@ -64,6 +85,15 @@ void hn_supervise(harness_t *h);
 
 /** @brief 外部（急停命令、訊號）主動要求 SAFE_STOP。 */
 void hn_request_safe_stop(harness_t *h);
+
+/** @brief 平台取得 health 快照後餵入（非 RT）。任一 bus link_ok=0 → link down。 */
+void hn_feed_health(harness_t *h, int bus_idx, const bus_health_t *bh);
+
+/**
+ * @brief 降頻退避（§5.2：RUN → deactivate → 改 dt → reactivate,
+ *        中斷 < 100 ms、非無縫變速）。回 0 成功（狀態回 RUN）。
+ */
+int hn_change_rate(harness_t *h, uint32_t dt_us);
 
 /** @brief RUN/SAFE_STOP→SHUTDOWN（內部 eng_deactivate）。 */
 void hn_shutdown(harness_t *h);

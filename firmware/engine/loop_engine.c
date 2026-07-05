@@ -35,6 +35,7 @@ int eng_register(loop_engine_t *e, agent_t *a)
 {
     if (e->state == ENG_ACTIVE || e->n_agents >= ENG_AGENT_MAX) return -1;
     if (a->divisor == 0) a->divisor = 1;
+    e->enabled[e->n_agents] = 1;
     e->agents[e->n_agents++] = a;
     return 0;
 }
@@ -82,6 +83,16 @@ void eng_deactivate(loop_engine_t *e)
 
 uint64_t eng_next_deadline_us(const loop_engine_t *e) { return e->next_us; }
 
+void eng_agent_set_enabled(loop_engine_t *e, int idx, int enabled)
+{
+    if (idx >= 0 && idx < e->n_agents) e->enabled[idx] = (uint8_t)(enabled != 0);
+}
+
+int eng_agent_enabled(const loop_engine_t *e, int idx)
+{
+    return (idx >= 0 && idx < e->n_agents) ? e->enabled[idx] : 0;
+}
+
 void eng_phase_trim_us(loop_engine_t *e, int32_t trim)
 {
     /* DC 跟隨模式（SOEM,WP-L2.2）的鎖相微調：限幅 ±5% 週期,
@@ -103,6 +114,7 @@ static void run_phase(loop_engine_t *e, int phase)
 {
     for (int i = 0; i < e->n_agents; i++) {
         agent_t *a = e->agents[i];
+        if (!e->enabled[i]) continue;           /* harness 停用的非關鍵 agent */
         if (!agent_due(e, a)) continue;
 
         void (*fn)(void *) =

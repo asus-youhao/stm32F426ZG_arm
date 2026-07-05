@@ -54,6 +54,7 @@ typedef struct loop_engine {
     eng_state_t   state;
     agent_t      *agents[ENG_AGENT_MAX];
     agent_stats_t astats[ENG_AGENT_MAX];
+    uint8_t       enabled[ENG_AGENT_MAX]; /**< 0=停用（harness §5.2 非關鍵 agent） */
     int           n_agents;
     uint64_t      next_us;  /**< 下一 tick 絕對 deadline（µs） */
     uint64_t      tick;     /**< 週期計數（divisor/phase_offset 判斷用） */
@@ -97,5 +98,9 @@ void eng_tick(loop_engine_t *e);
 
 const eng_stats_t   *eng_stats(const loop_engine_t *e);
 const agent_stats_t *eng_agent_stats(const loop_engine_t *e, int idx);
+
+/** @brief 停用/啟用 agent（harness §5.2 第二層,僅限非關鍵 agent）。 */
+void eng_agent_set_enabled(loop_engine_t *e, int idx, int enabled);
+int  eng_agent_enabled(const loop_engine_t *e, int idx);
 
 #endif /* LOOP_ENGINE_H */
