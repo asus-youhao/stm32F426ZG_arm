@@ -25,6 +25,7 @@
 #include "eng_log.h"
 #include "eng_trace.h"
 #include "safety.h"
+#include "viz_bridge.h"
 #include "stm32f7xx_hal.h"
 
 #include <pthread.h>
@@ -60,13 +61,15 @@ static void on_sigint(int sig) { (void)sig; s_quit = 1; }
 
 static void usage(const char *argv0)
 {
-    printf("用法: %s [--bus canopen|ethercat] [--left IF] [--right IF|none] [--rate HZ] [--sync] [--trace FILE] [--bringup NODE] [--seconds N]\n"
+    printf("用法: %s [--bus canopen|ethercat] [--left IF] [--right IF|none] [--rate HZ] [--sync] [--trace FILE] [--viz PORT] [--bringup NODE] [--seconds N]\n"
            "  --bus B        協定（預設 canopen;ethercat 目前接 sim 後端=SIL）\n"
            "  --left IF      左臂 SocketCAN 介面（預設 vcan0）\n"
            "  --right IF     右臂 SocketCAN 介面（預設 vcan1;'none' 停用 → 單臂）\n"
            "  --rate HZ      控制頻率（100..1000,預設 %u;WP-C 檔位 400/500）\n"
            "  --sync         SYNC 同步鎖存模式（transmission type=1,G3）\n"
            "  --trace FILE   每 tick 抖動紀錄→CSV（WP-H3;離線用 tools/trace_report.py）\n"
+           "  --viz PORT     視覺化橋 UDP 埠（ws_server.py --bridge PORT 接 3D）\n"
+           "  --miss-pct N   §5.2 miss 率門檻 %%（預設 5;非 RT 開發機建議 30+）\n"
            "  --bringup N    先對左臂 node N 跑 WP2 單軸 bring-up\n"
            "  --seconds N    跑 N 秒後自動結束（0=直到 Ctrl-C）\n"
            "互動命令（stdin）：\n"
@@ -112,6 +115,14 @@ static void enter_safe_stop_cb(void *user)
     co_nmt_send(CO_BUS_LEFT,  CO_NMT_STOP, 0);
     co_nmt_send(CO_BUS_RIGHT, CO_NMT_STOP, 0);
     fprintf(stderr, "[harness] SAFE_STOP：estop + NMT stop 已下發\n");
+}
+
+/* §5.2 降頻退避（一次機會）成功後的通知 */
+static void on_rate_changed_cb(void *user, uint32_t dt_us)
+{
+    (void)user;
+    fprintf(stderr, "[harness] miss 率超標 → 降頻至 %.0f Hz（§5.2 一次機會）\n",
+            1e6 / (double)dt_us);
 }
 
 /* trace ring 排水：pop → CSV 一行（主執行緒;buffered stdio,離 RT 路徑） */
@@ -171,6 +182,8 @@ int main(int argc, char **argv)
     const char *left = "vcan0", *right = "vcan1";
     const char *bus = "canopen";
     const char *trace_path = NULL;
+    int viz_port = 0;
+    long miss_pct = 0;                 /* 0 → harness 預設 5% */
     int bringup_node = 0;
     long run_seconds = 0;
     long rate_hz = 0;
@@ -182,6 +195,8 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--rate") && i + 1 < argc)    rate_hz = atol(argv[++i]);
         else if (!strcmp(argv[i], "--sync"))                    dual_arm_set_sync(true);
         else if (!strcmp(argv[i], "--trace") && i + 1 < argc)   trace_path = argv[++i];
+        else if (!strcmp(argv[i], "--viz") && i + 1 < argc)     viz_port = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--miss-pct") && i + 1 < argc) miss_pct = atol(argv[++i]);
         else if (!strcmp(argv[i], "--bringup") && i + 1 < argc) bringup_node = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--seconds") && i + 1 < argc) run_seconds = atol(argv[++i]);
         else { usage(argv[0]); return (strcmp(argv[i], "--help") == 0) ? 0 : 2; }
@@ -259,7 +274,22 @@ int main(int argc, char **argv)
         eng_trace_init(trace_mem, 8192);
     }
 
-    hn_cfg_t hcfg = { .stall_checks = 3, .enter_safe_stop = enter_safe_stop_cb };
+    /* 視覺化橋（項目 4）：UDP 只活在主執行緒,RT 路徑零觸碰 */
+    if (viz_port > 0) {
+        if (viz_open(viz_port) < 0) {
+            fprintf(stderr, "--viz 開埠失敗：%d\n", viz_port);
+            return 1;
+        }
+        printf("viz 橋開啟：udp://127.0.0.1:%d（ws_server.py --bridge %d 接 3D）\n",
+               viz_port, viz_port);
+    }
+
+    /* §5.2 升級階梯完整接線：超標先降頻（×2 週期,一次機會）再 SAFE_STOP。
+       非 RT 開發機啟動爆發期常瞬間超 5% 視窗,--miss-pct 可放寬（真機用預設）。 */
+    hn_cfg_t hcfg = { .stall_checks = 3, .enter_safe_stop = enter_safe_stop_cb,
+                      .miss_pct_max = (uint32_t)miss_pct,
+                      .degrade_dt_us = 2u * ecfg.dt_us,
+                      .on_rate_changed = on_rate_changed_cb };
     hn_init(&hn, &eng, &hcfg);
     if (hn_configure(&hn) || hn_activate(&hn)) {
         fprintf(stderr, "harness configure/activate 失敗\n");
@@ -296,6 +326,13 @@ int main(int argc, char **argv)
 
         trace_drain(tf);                            /* trace ring 排水（H3） */
 
+        if (viz_port > 0) {                         /* 視覺化橋（項目 4） */
+            while (viz_poll_cmd(line, sizeof(line)))
+                handle_cmd(line, &tele);            /* 與 stdin 同一條解析路 */
+            if (loops % 2 == 0)                     /* 25 Hz 遙測外送 */
+                viz_send_tele(&tele, app_sys_state());
+        }
+
         while (app_io_health_pop(&hrec))           /* 取最新 bus 健康（G6） */
             if (hrec.bus < CO_BUS_COUNT) {
                 hl[hrec.bus] = hrec;
@@ -310,8 +347,8 @@ int main(int argc, char **argv)
                    "drops=%lu late_max=%uus miss=%llu | L load=%u%% emcy=%lu "
                    "R load=%u%% emcy=%lu\n",
                    (unsigned long long)(tele.tick / (uint64_t)rate_hz),
-                   hn_state_str(&hn), app_sys_state(), tele.sw0,
-                   (long)tele.pos0, (long)tele.tgt0,
+                   hn_state_str(&hn), app_sys_state(), tele.sw[0],
+                   (long)tele.pos[0], (long)tele.tgt[0],
                    (unsigned long)tele.tx_drops, (unsigned)tele.late_max_us,
                    (unsigned long long)tele.miss,
                    hl[CO_BUS_LEFT].h.load_pct,
@@ -328,6 +365,7 @@ int main(int argc, char **argv)
     s_rt_stop = 1;
     pthread_join(rt, NULL);
     hn_shutdown(&hn);
+    viz_close();
     if (tf) {
         trace_drain(tf);                            /* RT 已停,收尾排空 */
         fclose(tf);

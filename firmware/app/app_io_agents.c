@@ -66,9 +66,11 @@ static void tele_housekeep(void *ctx)
 
     t.tick        = st->ticks;
     t.sys_state   = (uint8_t)safety_state();
-    t.sw0         = g_jstate[0].statusword;
-    t.pos0        = g_jstate[0].pos_actual;
-    t.tgt0        = g_jstate[0].target_pos;
+    for (int j = 0; j < APP_TELE_NJ; j++) {
+        t.sw[j]  = g_jstate[j].statusword;
+        t.pos[j] = g_jstate[j].pos_actual;
+        t.tgt[j] = g_jstate[j].target_pos;
+    }
     t.tx_drops    = app_bus()->tx_drops();
     t.late_max_us = st->late_max_us;
     t.miss        = (uint64_t)st->miss + st->overruns;

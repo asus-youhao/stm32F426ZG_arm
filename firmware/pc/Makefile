@@ -14,6 +14,7 @@ INC     = -I. -I../sim -I../canopen -I../app -I../control -I../safety -I../test 
 #   co_bxcan.c → co_bxcan_socketcan.c;board/main.c → pc_master_main.c
 SRC = \
   pc_master_main.c \
+  viz_bridge.c \
   co_bxcan_socketcan.c \
   hal_linux.c \
   ../test/bringup.c \

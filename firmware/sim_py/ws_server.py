@@ -323,6 +323,73 @@ def monitor_loop(interface, channels, bitrate):
         threading.Thread(target=_monitor_sniff, daemon=True, args=(b, bus)).start()
 
 
+# ===== bridge 模式：pc_master 遙測鏡射（UDP;項目 4）=====
+# pc_master --viz PORT 是資料源（真 C 主站+loop engine,--bus ethercat 免硬體）,
+# 這裡只做鏡射與命令轉發,不跑物理——與 monitor 模式同一套「寫 sim.M」策略,
+# 3D/前端零改動。
+BRIDGE_SOCK = None
+BRIDGE_ADDR = None
+
+def bridge_loop(port):
+    global BRIDGE_SOCK, BRIDGE_ADDR
+    BRIDGE_ADDR = ("127.0.0.1", port)
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0.5)
+    BRIDGE_SOCK = s
+    sim.source = "pc_master:udp:%d" % port
+    last_hello = 0.0
+    while True:
+        now = time.time()
+        if now - last_hello >= 1.0:          # 訂閱 + 保活（pc_master 記對端）
+            try: s.sendto(b"hello\n", BRIDGE_ADDR)
+            except OSError: pass
+            last_hello = now
+        try:
+            data, _ = s.recvfrom(4096)
+        except socket.timeout:
+            continue
+        try:
+            t = json.loads(data)
+        except ValueError:
+            continue
+        q, qt, sw = t.get("q", []), t.get("qt", []), t.get("sw", [])
+        with sim.lock:
+            sim.estop = (t.get("sys") == "ESTOP")
+            for i, m in enumerate(sim.M):
+                if i < len(q):  m.q = float(q[i])                # ← 3D 資料源
+                if i < len(qt): m.target_counts = int(round(float(qt[i]) * CPR))
+                if i < len(sw):
+                    m.statusword = int(sw[i])
+                    m.controlword = 0x0F if (int(sw[i]) & 0x6F) == 0x27 else 0x06
+
+def bridge_command(msg):
+    """UI 命令 → pc_master 文字命令（與其 stdin 同格式）→ UDP。"""
+    if BRIDGE_SOCK is None:
+        return
+    c = msg.get("cmd")
+    out = []
+    if c == "jog":
+        out.append("j %d %.4f" % (int(msg["joint"]), float(msg["value"])))
+    elif c == "move":
+        j = int(msg["joint"])
+        with sim.lock:
+            cur = sim.M[j].q
+        out.append("j %d %.4f" % (j, cur + float(msg.get("delta", 0.3))))
+    elif c == "estop":
+        out.append("e 1")
+    elif c == "enable":
+        out.append("e 0")
+    elif c == "preset":                      # 具名姿態展開成逐軸命令
+        pre = sim.config.get("presets", {}).get(msg.get("name"), {})
+        for i, jn in enumerate(sim.config.get("joints", {}).keys()):
+            if jn in pre and i < len(sim.M):
+                out.append("j %d %.4f" % (i, float(pre[jn])))
+    # 其餘（read/write/mode/set_config）屬 sim 專有,bridge 模式忽略
+    for line in out:
+        try: BRIDGE_SOCK.sendto(line.encode(), BRIDGE_ADDR)
+        except OSError: pass
+
+
 # ===== 極簡 WebSocket（RFC6455）=====
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 clients = set(); clients_lock = threading.Lock()
@@ -370,7 +437,9 @@ def handle_client(conn):
         while True:
             msg=ws_recv(conn)
             if msg is None: break
-            try: sim.command(json.loads(msg))
+            try:
+                m = json.loads(msg)
+                bridge_command(m) if MODE == "bridge" else sim.command(m)
             except Exception: pass
     except Exception:
         pass
@@ -428,6 +497,9 @@ def main():
     ap.add_argument("--monitor", action="store_true",
                     help="被動監聽：不當從站,旁聽 bus 鏡射到 3D/資料流"
                          "（主站+從站另跑,如 pc_master + can_slave.py）")
+    ap.add_argument("--bridge", type=int, metavar="PORT",
+                    help="pc_master 視覺化橋：鏡射 pc_master --viz PORT 的遙測"
+                         "（真 C 主站+loop engine;--bus ethercat 免硬體 1kHz）")
     args = ap.parse_args()
 
     http_port=start_http(args.http_port)
@@ -435,7 +507,10 @@ def main():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(("0.0.0.0", args.ws_port)); s.listen(8)
 
-    if args.interface:
+    if args.bridge:
+        MODE = "bridge"
+        threading.Thread(target=bridge_loop, daemon=True, args=(args.bridge,)).start()
+    elif args.interface:
         if args.monitor:
             MODE = "monitor"
             threading.Thread(target=monitor_loop, daemon=True,
@@ -445,7 +520,8 @@ def main():
             threading.Thread(target=can_loop, daemon=True,
                              args=(args.interface, args.channel, args.bitrate, parse_nodes(args.nodes))).start()
 
-    mode_str = {"sim": "純軟體 sim", "can": "真實 CAN 假從站", "monitor": "真實 CAN 監聽"}[MODE]
+    mode_str = {"sim": "純軟體 sim", "can": "真實 CAN 假從站", "monitor": "真實 CAN 監聽",
+                "bridge": "pc_master 橋"}[MODE]
     print("假硬體伺服器啟動（模式：%s）：" % mode_str)
     print("  WebSocket : ws://localhost:%d"%args.ws_port)
     if http_port:
@@ -455,7 +531,9 @@ def main():
             print("  (偏好埠 %d 被占用，自動改用 %d)"%(args.http_port, http_port))
     else:
         print("  [警告] HTTP 埠 %d..%d 皆被占用；請指定空埠：python3 ws_server.py 8765 <free-port>"%(args.http_port, args.http_port+20))
-    if args.interface:
+    if args.bridge:
+        print("  橋接      : udp://127.0.0.1:%d ← pc_master --viz %d" % (args.bridge, args.bridge))
+    if args.interface and not args.bridge:
         if args.monitor:
             print("  CAN       : 監聽 %s @ %s%s" % (args.interface, args.channel,
                   ("+" + args.channel2) if args.channel2 else ""))

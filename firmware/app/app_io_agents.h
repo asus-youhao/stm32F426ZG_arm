@@ -27,11 +27,13 @@ typedef struct {
 } app_cmd_t;
 
 /* ---- 遙測快照（RT → 非 RT）---- */
+#define APP_TELE_NJ 14      /* 雙臂 14 軸（ARM_COUNT × JOINTS_PER_ARM） */
 typedef struct {
     uint64_t tick;          /* engine tick 計數 */
     uint8_t  sys_state;     /* sys_state_t */
-    uint16_t sw0;           /* J0 statusword（狀態列用） */
-    int32_t  pos0, tgt0;    /* J0 實際/目標 counts */
+    uint16_t sw[APP_TELE_NJ];            /* 每軸 statusword */
+    int32_t  pos[APP_TELE_NJ];           /* 每軸實際 counts */
+    int32_t  tgt[APP_TELE_NJ];           /* 每軸目標 counts */
     uint32_t tx_drops;      /* dual_arm 發送丟棄 */
     uint32_t late_max_us;   /* engine 遲到最大值（累計） */
     uint64_t miss;          /* miss + overrun 合計 */

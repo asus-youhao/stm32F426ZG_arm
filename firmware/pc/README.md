@@ -89,3 +89,18 @@ unshare -rn bash -c '
 - 這條路測的是**協定與控制邏輯**，不是 bxCAN 硬體時序;燒板前仍建議跑一次
   `firmware/Makefile` 的板端 bring-up。
 - 真實 CANable/真馬達的情境見 `sim_py/README.md` 與 P5 變更文件。
+
+## 3D 視覺化（免硬體 demo,項目 4）
+
+pc_master 開 `--viz` 後,`sim_py/ws_server.py --bridge` 把遙測鏡射給
+既有的 3D 檢視器（資料源=真 C 主站+loop engine,非 Python 假馬達）;
+UI 的 jog/急停/姿態 preset 會反向轉成 pc_master 命令（與 stdin 同格式）：
+
+```bash
+./pc_master --bus ethercat --rate 500 --miss-pct 40 --viz 9601   # 終端 1
+(cd ../sim_py && python3 ws_server.py --bridge 9601)             # 終端 2
+# 瀏覽器開 http://localhost:8090/ui/viewer3d.html（右上角 源：pc_master）
+```
+
+> `--miss-pct 40`：非 RT 開發機放寬 §5.2 miss 率門檻用;PREEMPT_RT 真機
+> 請用預設（5%）,超標會先降頻一次（×2 週期）再 SAFE_STOP。
