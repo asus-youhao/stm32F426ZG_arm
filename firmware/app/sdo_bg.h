@@ -44,9 +44,14 @@ bool sdo_bg_poll(sdo_bg_rsp_t *out);          /* 無回應回 false */
 
 /* ---- RT 端（由 bus 後端的 sdo_bg_step 呼叫）---- */
 void sdo_bg_step_canopen(void);
-void sdo_bg_step_ecat(void);
 
 /** @brief pump 分派：是「目前 in-flight 請求」的 SDO 回應則消化並回 true。 */
 bool sdo_bg_on_frame(co_bus_t bus, const co_frame_t *f);
+
+/* ---- 其他後端自組 step 用（bus_ecat.c 的 CoE 版在該檔內實作,
+ *      避免本模組帶入 ec_master 連結依賴）---- */
+bool sdo_bg_take_req(sdo_bg_req_t *out);                 /* RT：取一筆請求 */
+void sdo_bg_respond_ext(uint32_t tag, int8_t status,
+                        uint8_t size, uint32_t value);   /* RT：回填回應 */
 
 #endif /* SDO_BG_H */

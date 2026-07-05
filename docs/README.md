@@ -61,6 +61,7 @@
 | 2026-07-05 | [WP-H5 bus vtable 雙後端](./changes/2026-07-05-wp-h5-bus-vtable.md) | bus_if_t 定案、--bus ethercat @1kHz(sim)、eng_phase_trim；H1 agents 零修改跑雙協定 |
 | 2026-07-05 | [SDO 背景通道](./changes/2026-07-05-sdo-bg-channel.md) | RUN 中讀寫 OD：非 RT 佇列+HOUSEKEEP 分片步進；PDO 流量一幀不差硬驗證 |
 | 2026-07-05 | [升級策略完整化](./changes/2026-07-05-escalation-policy.md) | §5.2 逐格：miss 率視窗、降頻退避(一次機會)、bus 重啟條款、非關鍵 agent 停用 |
+| 2026-07-05 | [log ring](./changes/2026-07-05-log-ring.md) | RT 域結構化事件日誌(safe stop/EMCY/overrun)；sdo_bg 依賴切割修板端符號閉合 |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件

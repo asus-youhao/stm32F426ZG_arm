@@ -39,6 +39,7 @@ C_INCLUDES = \
   -Iboard \
   -Icanopen \
   -Iapp \
+  -Iengine \
   -Icontrol \
   -Isafety \
   -Ihost \
@@ -62,6 +63,8 @@ C_SOURCES = \
   app/dual_arm.c \
   app/bus_canopen.c \
   app/sdo_bg.c \
+  engine/spsc_ring.c \
+  engine/eng_log.c \
   app/robot_config.c \
   control/linalg.c \
   control/trajectory.c \

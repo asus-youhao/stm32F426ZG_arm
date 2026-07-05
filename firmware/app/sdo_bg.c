@@ -6,13 +6,11 @@
  * 回應由 pump（dual_arm_pump_rx → sdo_bg_on_frame）分派進來,
  * step 只負責計逾時。每 step 至多送一幀——對 §5.2 的 95% 匯流排
  * 負載預算,額外流量 = 每 timeout 窗最多 2 幀,可忽略。
- * EtherCAT：CoE 走 ec_coe_read/write（sim 立即完成;真後端之後換
- * mailbox 分片,本模組介面不變）。
+ * EtherCAT：CoE 版 step 在 bus_ecat.c（避免本模組帶 ec_master 依賴）。
  */
 #include "sdo_bg.h"
 #include "spsc_ring.h"
 #include "co_bxcan.h"
-#include "ec_master.h"
 #include <string.h>
 
 #define REQ_CAP 8
@@ -108,21 +106,11 @@ bool sdo_bg_on_frame(co_bus_t bus, const co_frame_t *f)
     return true;
 }
 
-void sdo_bg_step_ecat(void)
+bool sdo_bg_take_req(sdo_bg_req_t *out) { return spsc_pop(&s_req_q, out); }
+
+void sdo_bg_respond_ext(uint32_t tag, int8_t status, uint8_t size, uint32_t value)
 {
-    sdo_bg_req_t r;
-    if (!spsc_pop(&s_req_q, &r)) return;
-    s_cur = r;                                       /* respond() 用 tag */
-    if (r.is_write) {
-        if (ec_coe_write((int)r.node, r.index, r.sub, r.value) == 0)
-            respond(SDO_BG_OK, r.size, 0);
-        else
-            respond(SDO_BG_ABORT, 0, 0);
-    } else {
-        uint32_t v = 0;
-        if (ec_coe_read((int)r.node, r.index, r.sub, &v) == 0)
-            respond(SDO_BG_OK, 4, v);
-        else
-            respond(SDO_BG_ABORT, 0, 0);
-    }
+    sdo_bg_rsp_t rsp = { .tag = tag, .status = status,
+                         .size = size, .value = value };
+    (void)spsc_push(&s_rsp_q, &rsp);
 }

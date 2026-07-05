@@ -3,6 +3,7 @@
  * @brief   非 RT 監督層核心實作（WP-H2）
  */
 #include "harness.h"
+#include "eng_log.h"
 
 void hn_init(harness_t *h, loop_engine_t *e, const hn_cfg_t *cfg)
 {
@@ -46,7 +47,10 @@ int hn_activate(harness_t *h)
 void hn_notify_escalation(void *h_void, int reason)
 {
     (void)reason;                       /* 目前僅 ENG_ESC_OVERRUN 一種 */
-    ((harness_t *)h_void)->esc_pending = 1;
+    harness_t *h = (harness_t *)h_void;
+    h->esc_pending = 1;
+    eng_log(EL_ERR, ELC_OVERRUN_ESC,
+            (int32_t)eng_stats(h->eng)->overrun_consec, 0);
 }
 
 static void enter_safe_stop(harness_t *h)

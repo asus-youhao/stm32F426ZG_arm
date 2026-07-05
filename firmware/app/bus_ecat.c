@@ -138,6 +138,25 @@ static void be_health(int bus_idx, uint32_t window_us, bus_health_t *out)
     }
 }
 
+/* CoE 版背景通道 step（sim 立即完成;真 IgH 換 mailbox 分片,介面不變） */
+static void be_sdo_bg_step(void)
+{
+    sdo_bg_req_t r;
+    if (!sdo_bg_take_req(&r)) return;
+    if (r.is_write) {
+        if (ec_coe_write((int)r.node, r.index, r.sub, r.value) == 0)
+            sdo_bg_respond_ext(r.tag, SDO_BG_OK, r.size, 0);
+        else
+            sdo_bg_respond_ext(r.tag, SDO_BG_ABORT, 0, 0);
+    } else {
+        uint32_t v = 0;
+        if (ec_coe_read((int)r.node, r.index, r.sub, &v) == 0)
+            sdo_bg_respond_ext(r.tag, SDO_BG_OK, 4, v);
+        else
+            sdo_bg_respond_ext(r.tag, SDO_BG_ABORT, 0, 0);
+    }
+}
+
 const bus_if_t g_bus_ecat = {
     .name          = "ethercat",
     .init          = be_init,
@@ -149,5 +168,5 @@ const bus_if_t g_bus_ecat = {
     .tx_drops      = be_tx_drops,
     .take_fault    = be_take_fault,
     .health        = be_health,
-    .sdo_bg_step   = sdo_bg_step_ecat,
+    .sdo_bg_step   = be_sdo_bg_step,
 };

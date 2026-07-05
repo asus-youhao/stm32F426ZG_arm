@@ -18,6 +18,7 @@
 #include "joint_space.h"       /* L2 */
 #include "dual_arm_ctrl.h"     /* L4 */
 #include "safety.h"            /* WP6 */
+#include "eng_log.h"           /* log ring（§5.3） */
 #include "stm32f7xx_hal.h"
 
 /* app_main.c 內部存取（同 board/main.c 的 extern 慣例） */
@@ -53,11 +54,22 @@ static void safety_compute(void *ctx)
         if (g_jstate[j].fb_fresh)
             safety_report_joint(j, g_jstate[j].statusword, now);
         /* WP-H4/G5：故障事件 → safe stop 條款（與 app_main_tick 逐字一致） */
-        if (g_jstate[j].present && app_bus()->take_fault(j, &ecode))
+        if (g_jstate[j].present && app_bus()->take_fault(j, &ecode)) {
             safety_report_emcy(j, ecode != 0);
+            eng_log(EL_WARN, ELC_FAULT_EVT, j, (int32_t)ecode);
+        }
     }
     bool allow = safety_update(now);
     app_bus()->set_safe_stop(!allow, safety_safe_controlword());
+
+    /* safe stop 邊緣 → log ring（RT 只記代碼,格式化在非 RT） */
+    static bool s_prev_allow = true;
+    if (allow != s_prev_allow) {
+        s_prev_allow = allow;
+        eng_log(allow ? EL_INFO : EL_ERR,
+                allow ? ELC_SAFE_STOP_OFF : ELC_SAFE_STOP_ON,
+                (int32_t)safety_state(), 0);
+    }
 }
 
 /* ---- agent: motion ——原步驟 1 後半 + 步驟 3 + 步驟 4 前半 ---- */

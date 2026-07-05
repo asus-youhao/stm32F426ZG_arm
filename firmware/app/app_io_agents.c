@@ -13,6 +13,7 @@
 #include "task_space.h"
 #include "safety.h"
 #include "sdo_bg.h"
+#include "eng_log.h"
 #include <string.h>
 
 /* app_main.c 內部存取（同 app_agents.c 慣例） */
@@ -124,6 +125,7 @@ int app_io_register(loop_engine_t *e)
     if (eng_register(e, &s_ag_tele))   return -1;
     if (eng_register(e, &s_ag_health)) return -1;
     sdo_bg_init(0);
+    eng_log_init();
     if (eng_register(e, &s_ag_sdobg))  return -1;
     return 0;
 }

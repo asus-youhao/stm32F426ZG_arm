@@ -22,6 +22,7 @@
 #include "harness.h"
 #include "app_agents.h"
 #include "app_io_agents.h"
+#include "eng_log.h"
 #include "safety.h"
 #include "stm32f7xx_hal.h"
 
@@ -259,6 +260,13 @@ int main(int argc, char **argv)
         loops++;
 
         while (app_io_tele_pop(&t)) tele = t;      /* 取最新快照 */
+        eng_log_rec_t lr;                           /* log ring 排水（§5.3） */
+        while (eng_log_pop(&lr))
+            fprintf(stderr, "[log %c t=%.3fs] %s a=%ld b=%ld\n",
+                    "IWE"[lr.level > 2 ? 2 : lr.level],
+                    (double)lr.t_us / 1e6, eng_log_code_str(lr.code),
+                    (long)lr.a, (long)lr.b);
+
         while (app_io_health_pop(&hrec))           /* 取最新 bus 健康（G6） */
             if (hrec.bus < CO_BUS_COUNT) {
                 hl[hrec.bus] = hrec;
@@ -292,7 +300,7 @@ int main(int argc, char **argv)
     pthread_join(rt, NULL);
     hn_shutdown(&hn);
     printf("\n結束：ticks=%llu skipped=%llu miss=%lu overruns=%lu "
-           "late_max=%uus drops=%lu tele_drops=%lu hn=%s sys=%s\n",
+           "late_max=%uus drops=%lu tele_drops=%lu log_drops=%lu hn=%s sys=%s\n",
            (unsigned long long)eng_stats(&eng)->ticks,
            (unsigned long long)eng_stats(&eng)->skipped,
            (unsigned long)eng_stats(&eng)->miss,
@@ -300,6 +308,7 @@ int main(int argc, char **argv)
            (unsigned)eng_stats(&eng)->late_max_us,
            (unsigned long)dual_arm_tx_drops(),
            (unsigned long)app_io_tele_drops(),
+           (unsigned long)eng_log_drops(),
            hn_state_str(&hn), app_sys_state());
     return 0;
 }

@@ -42,7 +42,8 @@ SRC = \
   ../sim/phu_sim.c \
   ../engine/loop_engine.c \
   ../engine/spsc_ring.c \
-  ../engine/harness.c
+  ../engine/harness.c \
+  ../engine/eng_log.c
 
 TARGET = pc_master
 
