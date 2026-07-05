@@ -48,6 +48,7 @@
 | 2026-07-03 | [UI 整合：監聽模式](./changes/2026-07-03-ui-integration-monitor.md) | ws_server --monitor 旁聽雙 vcan，3D 動畫+資料流看真實主站交握 |
 | 2026-07-04 | [EtherCAT 主站遷移規劃](./changes/2026-07-04-ethercat-migration-plan.md) | CANopen→EtherCAT(CoE) 深度規劃：F746 直接當主站、SOEM、DC 1kHz |
 | 2026-07-04 | [Linux RT EtherCAT 主站規劃](./changes/2026-07-04-linux-rt-ethercat-master-plan.md) | 主站改 Ubuntu 22.04 Pro PREEMPT_RT；STM32 暫緩；WP-L0~L7 工作分解 |
+| 2026-07-05 | [WP-L0.4 rt_setup.sh](./changes/2026-07-05-wp-l0-4-rt-setup.md) | RT 調校一鍵腳本：grub 隔離核/IRQ 綁核/governor/dma_latency/--check 驗收,A/B/C 共用 |
 
 ## 設計文件
 
