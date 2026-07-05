@@ -97,3 +97,10 @@ pc_master 起機先跑 RT 環境自檢（PREEMPT_RT 內核 / isolcpus / SCHED_FI
 
 - 預設：必要項不過 → 警告後**降級運行**（開發機 / SIL 用）。
 - `--rt-strict`：必要項不過 → **拒絕進 OP**（exit 3）。真機 runbook 必帶。
+
+## 設定檔（項目 7）
+
+`--config FILE`：key=value 覆寫編譯期預設（軸表 counts_per_rad/限位/
+vmax/amax/零點偏移、IK、初始姿態、肩基座、DH），範例見
+`dual_arm.cfg.example`。WP0.4 實機量測值放檔案，免重編譯、逐機一份。
+壞檔整檔放棄並拒絕啟動（半套用的機器人參數比沒有更危險）。

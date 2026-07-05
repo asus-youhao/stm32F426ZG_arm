@@ -6,7 +6,7 @@ INC    = -I. -I../sim -I../canopen -I../app -I../control -I../safety -I../host -
 SRC = \
   test_main.c test_trajectory.c test_kinematics.c test_ik.c \
   test_cia402.c test_hostif.c test_canopen.c test_safety.c \
-  test_engine.c test_agents.c test_harness.c test_h4.c test_ecat.c test_h5.c test_sdo_bg.c test_escalation.c test_log.c test_trace.c test_selfcheck.c \
+  test_engine.c test_agents.c test_harness.c test_h4.c test_ecat.c test_h5.c test_sdo_bg.c test_escalation.c test_log.c test_trace.c test_selfcheck.c test_config.c \
   ../pc/rt_selfcheck.c \
   ../ecat/ec_master_sim.c \
   ../engine/loop_engine.c ../engine/spsc_ring.c ../engine/harness.c ../engine/eng_log.c ../engine/eng_trace.c \

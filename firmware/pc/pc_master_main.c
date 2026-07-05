@@ -18,6 +18,7 @@
 #include "dual_arm_ctrl.h"
 #include "task_space.h"
 #include "control_rate.h"
+#include "robot_config.h"
 #include "bringup.h"
 #include "harness.h"
 #include "app_agents.h"
@@ -69,6 +70,7 @@ static void usage(const char *argv0)
            "  --sync         SYNC 同步鎖存模式（transmission type=1,G3）\n"
            "  --trace FILE   每 tick 抖動紀錄→CSV（WP-H3;離線用 tools/trace_report.py）\n"
            "  --rt-strict    開機自檢（L7.1）必要項不過 → 拒絕進 OP（真機用）\n"
+           "  --config FILE  key=value 覆寫軸表/DH/IK（見 dual_arm.cfg.example）\n"
            "  --bringup N    先對左臂 node N 跑 WP2 單軸 bring-up\n"
            "  --seconds N    跑 N 秒後自動結束（0=直到 Ctrl-C）\n"
            "互動命令（stdin）：\n"
@@ -173,6 +175,7 @@ int main(int argc, char **argv)
     const char *left = "vcan0", *right = "vcan1";
     const char *bus = "canopen";
     const char *trace_path = NULL;
+    const char *cfg_path = NULL;
     int rt_strict = 0;
     int bringup_node = 0;
     long run_seconds = 0;
@@ -186,6 +189,7 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--sync"))                    dual_arm_set_sync(true);
         else if (!strcmp(argv[i], "--trace") && i + 1 < argc)   trace_path = argv[++i];
         else if (!strcmp(argv[i], "--rt-strict"))               rt_strict = 1;
+        else if (!strcmp(argv[i], "--config") && i + 1 < argc)  cfg_path = argv[++i];
         else if (!strcmp(argv[i], "--bringup") && i + 1 < argc) bringup_node = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--seconds") && i + 1 < argc) run_seconds = atol(argv[++i]);
         else { usage(argv[0]); return (strcmp(argv[i], "--help") == 0) ? 0 : 2; }
@@ -246,6 +250,18 @@ int main(int argc, char **argv)
         printf("=== bring-up result = %d (0=OK) ===\n", st);
         printf("  pos_before=%ld pos_after=%ld moved=%d\n",
                (long)rep.pos_before, (long)rep.pos_after, rep.moved);
+    }
+
+    /* 設定檔（項目 7）：必須在 app_main_init 之前（js/kin 於 init 複製設定）。
+       壞檔直接拒絕啟動——半套用的機器人參數比沒有更危險。 */
+    if (cfg_path) {
+        int n = robot_config_load(cfg_path);
+        if (n < 0) {
+            fprintf(stderr, "--config 載入失敗：%s（%s）\n", cfg_path,
+                    n == -1 ? "開檔失敗" : "壞鍵/格式,已整檔放棄");
+            return 2;
+        }
+        printf("config：%s 套用 %d 鍵\n", cfg_path, n);
     }
 
     /* BUS_UP：L1–L4 全棧初始化（SDO 往返、可阻塞 → 在 harness 執行緒做） */
