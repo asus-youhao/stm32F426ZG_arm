@@ -7,7 +7,9 @@
  * 補發過期設定點對從站是錯誤資訊，CANopen 90% 負載下連環補發會灌爆匯流排。
  */
 #include "loop_engine.h"
+#include "eng_log.h"
 #include "eng_port.h"
+#include "eng_trace.h"
 #include <string.h>
 
 /* histogram 桶界（µs）：≤10/25/50/100/250/500/1000/其餘 */
@@ -109,9 +111,11 @@ static int agent_due(const loop_engine_t *e, const agent_t *a)
     return (e->tick % a->divisor) == (a->phase_offset % a->divisor);
 }
 
-/** @brief 跑一個相位 pass：量測每 agent 耗時、compute 相位做預算記帳。 */
-static void run_phase(loop_engine_t *e, int phase)
+/** @brief 跑一個相位 pass：量測每 agent 耗時、compute 相位做預算記帳。
+ *         回傳本相位總耗時（trace ring 用）。 */
+static uint32_t run_phase(loop_engine_t *e, int phase)
 {
+    uint32_t sum = 0;
     for (int i = 0; i < e->n_agents; i++) {
         agent_t *a = e->agents[i];
         if (!e->enabled[i]) continue;           /* harness 停用的非關鍵 agent */
@@ -126,6 +130,7 @@ static void run_phase(loop_engine_t *e, int phase)
         uint64_t t0 = port_now_us();
         fn(a->ctx);
         uint32_t dur = (uint32_t)(port_now_us() - t0);
+        sum += dur;
 
         agent_stats_t *st = &e->astats[i];
         if (dur > st->max_us[phase]) st->max_us[phase] = dur;
@@ -137,13 +142,17 @@ static void run_phase(loop_engine_t *e, int phase)
         if (dur > a->budget_us) {
             st->budget_over_total++;
             st->budget_over_consec++;
-            /* 連續達門檻的那一次通知（每段 streak 只通知一次） */
-            if (st->budget_over_consec == e->cfg.budget_over_n && a->on_fault)
-                a->on_fault(a->ctx, AG_FAULT_BUDGET);
+            /* 連續達門檻的那一次通知（每段 streak 只通知一次）;
+               同時記 log 上下文——事後回答「那 300 µs 去哪了」（§3.6） */
+            if (st->budget_over_consec == e->cfg.budget_over_n) {
+                eng_log(EL_WARN, ELC_BUDGET_OVER, i, (int32_t)dur);
+                if (a->on_fault) a->on_fault(a->ctx, AG_FAULT_BUDGET);
+            }
         } else {
             st->budget_over_consec = 0;
         }
     }
+    return sum;
 }
 
 void eng_tick(loop_engine_t *e)
@@ -151,15 +160,18 @@ void eng_tick(loop_engine_t *e)
     if (e->state != ENG_ACTIVE) return;
 
     /* ---- 遲到分級（設計文件 §3.1）---- */
-    uint64_t now = port_now_us();
-    uint32_t dt  = e->cfg.dt_us;
+    uint64_t now  = port_now_us();
+    uint32_t dt   = e->cfg.dt_us;
+    uint32_t late = 0;
+    uint8_t  trf  = 0;                       /* trace flags（ETR_*） */
     if (now >= e->next_us) {
-        uint32_t late = (uint32_t)(now - e->next_us);
+        late = (uint32_t)(now - e->next_us);
         hist_add(e->stats.late_hist, late);
         if (late > e->stats.late_max_us) e->stats.late_max_us = late;
 
         if (late >= dt) {
             /* overrun：SKIP 政策——跳過錯過的 tick，deadline 重錨定 now+dt */
+            trf |= ETR_OVERRUN;
             e->stats.overruns++;
             e->stats.skipped += late / dt;
             e->stats.overrun_consec++;
@@ -168,7 +180,7 @@ void eng_tick(loop_engine_t *e)
                 e->cfg.on_escalate)
                 e->cfg.on_escalate(e->cfg.user, ENG_ESC_OVERRUN);
         } else {
-            if (late >= e->cfg.late_warn_us) e->stats.miss++;
+            if (late >= e->cfg.late_warn_us) { e->stats.miss++; trf |= ETR_MISS; }
             e->stats.overrun_consec = 0;
             e->next_us += dt;
         }
@@ -179,10 +191,19 @@ void eng_tick(loop_engine_t *e)
     }
 
     /* ---- 四相位 pass（同相位內依註冊順序）---- */
-    run_phase(e, ENG_PH_READ);
-    run_phase(e, ENG_PH_COMPUTE);
-    run_phase(e, ENG_PH_WRITE);
-    run_phase(e, ENG_PH_HOUSE);
+    uint32_t ph[ENG_PH_N];
+    ph[ENG_PH_READ]    = run_phase(e, ENG_PH_READ);
+    ph[ENG_PH_COMPUTE] = run_phase(e, ENG_PH_COMPUTE);
+    ph[ENG_PH_WRITE]   = run_phase(e, ENG_PH_WRITE);
+    ph[ENG_PH_HOUSE]   = run_phase(e, ENG_PH_HOUSE);
+
+    /* ---- trace ring（§3.6 每 tick 一筆;未啟用時 push 為 no-op）---- */
+    if (eng_trace_enabled()) {
+        eng_trace_rec_t r = { .t_us = now, .late_us = late, .flags = trf };
+        for (int p = 0; p < ENG_PH_N; p++)
+            r.ph_us[p] = (ph[p] > 0xFFFFu) ? 0xFFFF : (uint16_t)ph[p];
+        eng_trace_push(&r);
+    }
 
     e->tick++;
     e->stats.ticks++;

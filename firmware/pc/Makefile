@@ -43,7 +43,8 @@ SRC = \
   ../engine/loop_engine.c \
   ../engine/spsc_ring.c \
   ../engine/harness.c \
-  ../engine/eng_log.c
+  ../engine/eng_log.c \
+  ../engine/eng_trace.c
 
 TARGET = pc_master
 

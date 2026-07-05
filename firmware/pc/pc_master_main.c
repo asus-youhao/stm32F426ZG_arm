@@ -23,6 +23,7 @@
 #include "app_agents.h"
 #include "app_io_agents.h"
 #include "eng_log.h"
+#include "eng_trace.h"
 #include "safety.h"
 #include "stm32f7xx_hal.h"
 
@@ -59,12 +60,13 @@ static void on_sigint(int sig) { (void)sig; s_quit = 1; }
 
 static void usage(const char *argv0)
 {
-    printf("用法: %s [--bus canopen|ethercat] [--left IF] [--right IF|none] [--rate HZ] [--sync] [--bringup NODE] [--seconds N]\n"
+    printf("用法: %s [--bus canopen|ethercat] [--left IF] [--right IF|none] [--rate HZ] [--sync] [--trace FILE] [--bringup NODE] [--seconds N]\n"
            "  --bus B        協定（預設 canopen;ethercat 目前接 sim 後端=SIL）\n"
            "  --left IF      左臂 SocketCAN 介面（預設 vcan0）\n"
            "  --right IF     右臂 SocketCAN 介面（預設 vcan1;'none' 停用 → 單臂）\n"
            "  --rate HZ      控制頻率（100..1000,預設 %u;WP-C 檔位 400/500）\n"
            "  --sync         SYNC 同步鎖存模式（transmission type=1,G3）\n"
+           "  --trace FILE   每 tick 抖動紀錄→CSV（WP-H3;離線用 tools/trace_report.py）\n"
            "  --bringup N    先對左臂 node N 跑 WP2 單軸 bring-up\n"
            "  --seconds N    跑 N 秒後自動結束（0=直到 Ctrl-C）\n"
            "互動命令（stdin）：\n"
@@ -112,6 +114,18 @@ static void enter_safe_stop_cb(void *user)
     fprintf(stderr, "[harness] SAFE_STOP：estop + NMT stop 已下發\n");
 }
 
+/* trace ring 排水：pop → CSV 一行（主執行緒;buffered stdio,離 RT 路徑） */
+static void trace_drain(FILE *tf)
+{
+    eng_trace_rec_t tr;
+    if (!tf) return;
+    while (eng_trace_pop(&tr))
+        fprintf(tf, "%llu,%lu,%u,%u,%u,%u,%u\n",
+                (unsigned long long)tr.t_us, (unsigned long)tr.late_us,
+                tr.ph_us[ENG_PH_READ], tr.ph_us[ENG_PH_COMPUTE],
+                tr.ph_us[ENG_PH_WRITE], tr.ph_us[ENG_PH_HOUSE], tr.flags);
+}
+
 /* 非阻塞讀 stdin 一行 */
 static bool poll_stdin(char *line, size_t cap)
 {
@@ -156,6 +170,7 @@ int main(int argc, char **argv)
 {
     const char *left = "vcan0", *right = "vcan1";
     const char *bus = "canopen";
+    const char *trace_path = NULL;
     int bringup_node = 0;
     long run_seconds = 0;
     long rate_hz = 0;
@@ -166,6 +181,7 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--bus") && i + 1 < argc)     bus = argv[++i];
         else if (!strcmp(argv[i], "--rate") && i + 1 < argc)    rate_hz = atol(argv[++i]);
         else if (!strcmp(argv[i], "--sync"))                    dual_arm_set_sync(true);
+        else if (!strcmp(argv[i], "--trace") && i + 1 < argc)   trace_path = argv[++i];
         else if (!strcmp(argv[i], "--bringup") && i + 1 < argc) bringup_node = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--seconds") && i + 1 < argc) run_seconds = atol(argv[++i]);
         else { usage(argv[0]); return (strcmp(argv[i], "--help") == 0) ? 0 : 2; }
@@ -232,6 +248,17 @@ int main(int argc, char **argv)
         fprintf(stderr, "agent 註冊失敗\n");
         return 1;
     }
+    /* trace ring（WP-H3 儀器）：RT 端每 tick 一筆,主執行緒排水成 CSV。
+       8192 筆 ≈ 1 kHz 下 8 s 緩衝,排水週期 20 ms 綽綽有餘。 */
+    static eng_trace_rec_t trace_mem[8192];
+    FILE *tf = NULL;
+    if (trace_path) {
+        tf = fopen(trace_path, "w");
+        if (!tf) { fprintf(stderr, "--trace 開檔失敗：%s\n", trace_path); return 1; }
+        fprintf(tf, "t_us,late_us,read_us,compute_us,write_us,house_us,flags\n");
+        eng_trace_init(trace_mem, 8192);
+    }
+
     hn_cfg_t hcfg = { .stall_checks = 3, .enter_safe_stop = enter_safe_stop_cb };
     hn_init(&hn, &eng, &hcfg);
     if (hn_configure(&hn) || hn_activate(&hn)) {
@@ -267,6 +294,8 @@ int main(int argc, char **argv)
                     (double)lr.t_us / 1e6, eng_log_code_str(lr.code),
                     (long)lr.a, (long)lr.b);
 
+        trace_drain(tf);                            /* trace ring 排水（H3） */
+
         while (app_io_health_pop(&hrec))           /* 取最新 bus 健康（G6） */
             if (hrec.bus < CO_BUS_COUNT) {
                 hl[hrec.bus] = hrec;
@@ -299,6 +328,12 @@ int main(int argc, char **argv)
     s_rt_stop = 1;
     pthread_join(rt, NULL);
     hn_shutdown(&hn);
+    if (tf) {
+        trace_drain(tf);                            /* RT 已停,收尾排空 */
+        fclose(tf);
+        printf("trace → %s（drops=%lu）;分析：python3 tools/trace_report.py %s\n",
+               trace_path, (unsigned long)eng_trace_drops(), trace_path);
+    }
     printf("\n結束：ticks=%llu skipped=%llu miss=%lu overruns=%lu "
            "late_max=%uus drops=%lu tele_drops=%lu log_drops=%lu hn=%s sys=%s\n",
            (unsigned long long)eng_stats(&eng)->ticks,

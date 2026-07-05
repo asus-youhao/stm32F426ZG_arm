@@ -22,6 +22,7 @@ enum {
     ELC_FAULT_EVT,       /* a=joint, b=code（EMCY/CiA402;b=0 復歸） */
     ELC_OVERRUN_ESC,     /* a=連續 overrun 數 */
     ELC_AXIS_STALE,      /* a=joint（回授失聯,保留給後續使用） */
+    ELC_BUDGET_OVER,     /* a=agent idx, b=耗時 µs（§3.6 遲到上下文） */
 };
 
 typedef struct {

@@ -38,6 +38,7 @@ const char *eng_log_code_str(uint16_t code)
         case ELC_FAULT_EVT:     return "FAULT_EVT";
         case ELC_OVERRUN_ESC:   return "OVERRUN_ESC";
         case ELC_AXIS_STALE:    return "AXIS_STALE";
+        case ELC_BUDGET_OVER:   return "BUDGET_OVER";
         default:                return "?";
     }
 }
