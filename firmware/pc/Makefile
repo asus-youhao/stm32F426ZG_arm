@@ -38,6 +38,7 @@ SRC = \
   ../app/bus_canopen.c \
   ../app/bus_ecat.c \
   ../ecat/ec_master_sim.c \
+  ../ecat/ec_dc_pll.c \
   ../sim/phu_sim.c \
   ../engine/loop_engine.c \
   ../engine/spsc_ring.c \

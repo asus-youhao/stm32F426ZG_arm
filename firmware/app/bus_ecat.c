@@ -16,6 +16,8 @@
 #include "dual_arm.h"      /* g_jstate / 關節數常數（資料面共用） */
 #include "ec_master.h"
 #include "cia402.h"
+#include "ec_dc_pll.h"
+#include "loop_engine.h"
 #include <string.h>
 
 #define NJ (ARM_COUNT * JOINTS_PER_ARM)
@@ -23,6 +25,18 @@
 static bool     s_safe_stop;
 static uint16_t s_safe_cw = 0x0002;
 static uint8_t  s_fault_latch[NJ];   /* CiA402 fault 邊緣偵測 */
+
+/* DC 鎖相（SOEM 跟隨模式;sim 後端用漂移模型驗證;IgH 不啟用） */
+static loop_engine_t *s_pll_eng;
+static ec_dc_pll_t    s_pll;
+
+void bus_ecat_dc_pll_enable(loop_engine_t *e)
+{
+    ec_dc_pll_init(&s_pll, 0.0f, 0.0f, 0);   /* 預設增益 */
+    s_pll_eng = e;
+}
+
+void bus_ecat_dc_pll_disable(void) { s_pll_eng = 0; }
 
 static int be_init(void)
 {
@@ -64,6 +78,9 @@ static int be_present(void)
 static void be_pump_rx(void)
 {
     (void)ec_master_exchange();
+    if (s_pll_eng)                            /* DC 跟隨：鎖喚醒點到柵格 */
+        eng_phase_trim_us(s_pll_eng,
+                          ec_dc_pll_step(&s_pll, ec_master_dc_error_us()));
     for (int a = 0; a < NJ; a++) {
         if (!g_jstate[a].present) continue;
         ec_in_t in;

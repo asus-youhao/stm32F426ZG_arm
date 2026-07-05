@@ -18,6 +18,7 @@
 #include "ec_master.h"
 #include "ec_master_sim.h"
 #include "canopen.h"
+#include "eng_port.h"
 #include <string.h>
 
 typedef enum { ST_IDLE, ST_PREOP, ST_OP } sim_state_t;
@@ -31,6 +32,10 @@ static int        s_n;
 static sim_state_t s_state = ST_IDLE;
 static int        s_last_wkc;
 static uint32_t   s_wkc_err_events;
+/* DC 漂移模型：從站柵格週期 = dt×(1+ppm/1e6),主站喚醒 vs 柵格的誤差 */
+static double     s_dc_grid;      /* 下一個柵格時刻（µs,0=未鎖定） */
+static double     s_dc_dt;        /* 柵格週期（µs;0=漂移模型停用） */
+static int32_t    s_dc_err_us;
 
 /* ---- 幀工具（行程內直達 phu_on_frame,無佇列）---- */
 static int node_frame(int axis, const co_frame_t *in, co_frame_t *out)
@@ -58,6 +63,9 @@ int ec_master_init(int expected_axes)
     memset(s_fresh, 0, sizeof(s_fresh));
     s_last_wkc = 0;
     s_wkc_err_events = 0;
+    s_dc_grid = 0.0;
+    s_dc_dt = 0.0;
+    s_dc_err_us = 0;
     for (int a = 0; a < s_n; a++) {
         phu_init(&s_node[a], (uint8_t)(a + 1));  /* 位址=鏈序（IN→OUT） */
         nmt_to(a, CO_NMT_RESET_COMM);
@@ -121,6 +129,13 @@ int ec_master_exchange(void)
 
     s_last_wkc = wkc;
     if (wkc != ec_master_expected_wkc()) s_wkc_err_events++;
+
+    if (s_dc_dt > 0.0) {                        /* DC 漂移模型 */
+        double t = (double)port_now_us();
+        if (s_dc_grid == 0.0) s_dc_grid = t;    /* 首次 exchange 對齊柵格 */
+        s_dc_err_us = (int32_t)(t - s_dc_grid);
+        s_dc_grid += s_dc_dt;
+    }
     return wkc;
 }
 
@@ -137,6 +152,16 @@ void ec_axis_get_input(int axis, ec_in_t *i)
 int ec_axis_fresh(int axis)
 {
     return (axis >= 0 && axis < s_n) ? s_fresh[axis] : 0;
+}
+
+int32_t ec_master_dc_error_us(void) { return s_dc_err_us; }
+
+void phu_ecat_set_dc_drift(uint32_t dt_us, int32_t drift_ppm)
+{
+    s_dc_dt = (dt_us == 0) ? 0.0
+            : (double)dt_us * (1.0 + (double)drift_ppm * 1e-6);
+    s_dc_grid = 0.0;
+    s_dc_err_us = 0;
 }
 
 int ec_coe_read(int axis, uint16_t idx, uint8_t sub, uint32_t *val)

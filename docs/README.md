@@ -59,6 +59,7 @@
 | 2026-07-05 | [WP-C0.3 佈建腳本](./changes/2026-07-05-wp-c0-3-provision-script.md) | provision_joint.sh：0x2100/0x26A0/存檔/驗證/清冊 SOP 腳本化,寫入大小自動探測 |
 | 2026-07-05 | [EtherCAT 門面+fake 後端](./changes/2026-07-05-ecat-facade-sim-backend.md) | WP-L3.1/L3.5：ec_master.h 三後端門面、phu_sim 重用、WKC/掉軸/使能免硬體全驗 |
 | 2026-07-05 | [WP-H5 bus vtable 雙後端](./changes/2026-07-05-wp-h5-bus-vtable.md) | bus_if_t 定案、--bus ethercat @1kHz(sim)、eng_phase_trim；H1 agents 零修改跑雙協定 |
+| 2026-07-05 | [DC 鎖相 PI(SIL)](./changes/2026-07-05-dc-pll-sil.md) | ec_dc_pll + sim 漂移模型：±200/-500ppm 收斂 \|err\|≤3µs；WP-L2.2 拍板點預演 |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件
