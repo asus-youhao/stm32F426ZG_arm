@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>職涯技能地圖 — STM32 學習手冊</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .tree{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;margin-top:16px;overflow-x:auto}
+  .ladder .num{background:rgba(255,158,109,.15);color:#ff9e6d;border:1px solid rgba(255,158,109,.4)}
+  .yr{margin-left:auto;font-size:.72rem;color:var(--muted);white-space:nowrap}
+  .maplv{display:inline-block;font-size:.7rem;border-radius:6px;padding:1px 8px;margin:2px 4px 0 0;border:1px solid var(--line)}
+  .m-b{background:rgba(126,224,194,.12);color:var(--basic)}
+  .m-m{background:rgba(110,168,254,.12);color:var(--mid)}
+  .m-a{background:rgba(198,156,255,.12);color:var(--adv)}
+  .m-p{background:rgba(255,204,102,.12);color:var(--proj)}
+  .flag{font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><span class="em">🤖</span>STM32 學習手冊</div>
+    <div class="tag">F7 雙臂機器人 · 從點燈到 14 軸</div>
+    <div class="navtitle">學習里程碑</div>
+    <a class="nav" href="index.html"><span class="dot d-basic"></span>學習樹總覽</a>
+    <a class="nav" href="l1-basic.html"><span class="dot d-basic"></span>L1 初階<span class="lv">6 節</span></a>
+    <a class="nav" href="l2-mid.html"><span class="dot d-mid"></span>L2 中階<span class="lv">6 節</span></a>
+    <a class="nav" href="l3-adv.html"><span class="dot d-adv"></span>L3 高階<span class="lv">6 節</span></a>
+    <div class="navtitle">🎯 最終專案</div>
+    <a class="nav" href="project-dual-arm.html"><span class="dot d-proj"></span>A · 雙臂 CANopen 主站</a>
+    <a class="nav" href="project-ecat-master.html"><span class="dot d-proj"></span>B · EtherCAT 1kHz 主站</a>
+    <div class="navtitle">🧭 職涯</div>
+    <a class="nav here" href="career-skills.html"><span class="dot d-career"></span>職涯技能地圖</a>
+    <div class="navtitle">本頁小節</div>
+    <a class="nav" href="#tree"><span class="dot d-career"></span>深度技能樹</a>
+    <a class="nav" href="#ladder"><span class="dot d-career"></span>初/中/高階</a>
+    <a class="nav" href="#jobs"><span class="dot d-career"></span>國內外職缺</a>
+    <a class="nav" href="#src"><span class="dot d-career"></span>資料來源</a>
+  </aside>
+
+  <main>
+    <div class="crumb"><a href="index.html">學習樹總覽</a> ／ 🧭 職涯技能地圖</div>
+    <header class="top">
+      <h1>🧭 職涯技能地圖</h1>
+      <div class="sub">把「學習樹」對應到真實世界的<b>機器人 / 馬達控制韌體工程師</b>（robotics / motion-control firmware engineer）職缺：需要哪些技能、初/中/高階各要會什麼、國內外實際要求對照。整理自公開招募與技術資源（來源見頁尾），投遞前以當下 JD 為準。</div>
+      <span class="pill">C/C++</span><span class="pill">STM32/Cortex-M</span><span class="pill">CANopen CiA 301/402</span>
+      <span class="pill">EtherCAT CoE/DC</span><span class="pill">RTOS / PREEMPT_RT</span><span class="pill">伺服/運動控制</span>
+    </header>
+
+    <!-- ============ DEEP SKILL TREE ============ -->
+    <section id="tree">
+      <h2 class="adv"><span class="em">🌳</span>深度技能樹（6 大主幹）</h2>
+      <p class="lead">一位能獨當一面的運動控制韌體工程師，能力大致分成六條主幹。愈往右愈進階，右側圖例對應本手冊 L1→L3 與最終專案。</p>
+      <div class="tree">
+        <svg viewBox="0 0 980 640" width="100%" role="img" aria-label="機器人馬達控制韌體工程師深度技能樹">
+          <defs>
+            <style>
+              .rt{fill:#ff9e6d}
+              .br{font:600 14px 'Noto Sans TC',sans-serif;fill:#e8ecf8}
+              .lf{font:12px 'Noto Sans TC',sans-serif;fill:#9aa3c4}
+              .cap{font:700 15px 'Noto Sans TC',sans-serif;fill:#0f1220}
+              .edge{stroke:#2c3458;stroke-width:2;fill:none}
+            </style>
+          </defs>
+
+          <!-- root -->
+          <line class="edge" x1="140" y1="320" x2="230" y2="60"/>
+          <line class="edge" x1="140" y1="320" x2="230" y2="160"/>
+          <line class="edge" x1="140" y1="320" x2="230" y2="260"/>
+          <line class="edge" x1="140" y1="320" x2="230" y2="360"/>
+          <line class="edge" x1="140" y1="320" x2="230" y2="460"/>
+          <line class="edge" x1="140" y1="320" x2="230" y2="560"/>
+          <rect x="18" y="292" width="132" height="56" rx="14" class="rt"/>
+          <text x="84" y="316" text-anchor="middle" class="cap">機器人/馬達控制</text>
+          <text x="84" y="336" text-anchor="middle" class="cap">韌體工程師</text>
+
+          <!-- branch 1 -->
+          <rect x="230" y="36" width="180" height="48" rx="11" fill="#1a1f36" stroke="#2c3458"/>
+          <text x="244" y="58" class="br">💻 語言與工具鏈</text>
+          <text x="244" y="76" class="lf">C · C++ · Python(工具)</text>
+          <text x="430" y="52" class="lf">arm-none-eabi · Makefile/CMake</text>
+          <text x="430" y="70" class="lf">Git · gdb/OpenOCD · CI</text>
+          <text x="430" y="88" class="lf">邏輯分析儀 · 示波器 · candump</text>
+
+          <!-- branch 2 -->
+          <rect x="230" y="136" width="180" height="48" rx="11" fill="#1a1f36" stroke="#2c3458"/>
+          <text x="244" y="158" class="br">⚙️ MCU 與周邊</text>
+          <text x="244" y="176" class="lf">Cortex-M · 時脈/NVIC</text>
+          <text x="430" y="152" class="lf">GPIO/UART/SPI/I2C · Timer/PWM</text>
+          <text x="430" y="170" class="lf">DMA · 讀 datasheet/schematic</text>
+          <text x="430" y="188" class="lf">board bring-up · 低階除錯</text>
+
+          <!-- branch 3 -->
+          <rect x="230" y="236" width="180" height="48" rx="11" fill="#1a1f36" stroke="#2c3458"/>
+          <text x="244" y="258" class="br">⏱️ 即時系統</text>
+          <text x="244" y="276" class="lf">裸機 ISR 架構 · RTOS</text>
+          <text x="430" y="252" class="lf">FreeRTOS task/queue · 優先權</text>
+          <text x="430" y="270" class="lf">Linux PREEMPT_RT · SCHED_FIFO</text>
+          <text x="430" y="288" class="lf">cyclictest · 抖動/延遲量測</text>
+
+          <!-- branch 4 -->
+          <rect x="230" y="336" width="180" height="48" rx="11" fill="#1a1f36" stroke="#2c3458"/>
+          <text x="244" y="358" class="br">🔌 工業現場匯流排</text>
+          <text x="244" y="376" class="lf">CAN/CAN FD · EtherCAT</text>
+          <text x="430" y="344" class="lf">CANopen CiA 301：NMT/SDO/PDO</text>
+          <text x="430" y="362" class="lf">EtherCAT：ESM/CoE/DC/ESI</text>
+          <text x="430" y="380" class="lf">頻寬預算 · 匯流排除錯</text>
+
+          <!-- branch 5 -->
+          <rect x="230" y="436" width="180" height="48" rx="11" fill="#1a1f36" stroke="#2c3458"/>
+          <text x="244" y="458" class="br">🦾 運動控制</text>
+          <text x="244" y="476" class="lf">CiA 402 · 伺服整合</text>
+          <text x="430" y="444" class="lf">狀態機/使能 · CSP/CSV/CST</text>
+          <text x="430" y="462" class="lf">FK/IK · 軌跡規劃 · 多軸同步</text>
+          <text x="430" y="480" class="lf">編碼器/單位換算 · PID/力控</text>
+
+          <!-- branch 6 -->
+          <rect x="230" y="536" width="180" height="48" rx="11" fill="#1a1f36" stroke="#2c3458"/>
+          <text x="244" y="558" class="br">🛡️ 安全與產品化</text>
+          <text x="244" y="576" class="lf">功能安全 · 量產思維</text>
+          <text x="430" y="544" class="lf">看門狗/急停/STO · 失效分析</text>
+          <text x="430" y="562" class="lf">可測試架構 · 模擬器 · 單元測試</text>
+          <text x="430" y="580" class="lf">文件紀律 · 認證(CE/機械指令)</text>
+
+          <!-- legend -->
+          <rect x="720" y="36" width="240" height="150" rx="12" fill="#141a30" stroke="#2c3458"/>
+          <text x="736" y="60" class="br">對應本手冊</text>
+          <circle cx="746" cy="82" r="6" fill="#7ee0c2"/><text x="762" y="87" class="lf">L1 → 工具鏈/MCU 周邊</text>
+          <circle cx="746" cy="106" r="6" fill="#6ea8fe"/><text x="762" y="111" class="lf">L2 → 匯流排/CANopen</text>
+          <circle cx="746" cy="130" r="6" fill="#c69cff"/><text x="762" y="135" class="lf">L3 → 402/運動學/RT</text>
+          <circle cx="746" cy="154" r="6" fill="#ffcc66"/><text x="762" y="159" class="lf">專案 A/B → 安全/產品化</text>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ============ CAREER LADDER ============ -->
+    <section id="ladder">
+      <h2 class="adv"><span class="em">🪜</span>初階 → 中階 → 高階</h2>
+      <p class="lead">年資只是參考，真正差別在<b>「能負責的範圍」</b>：從「照著做一個模組」到「一個人扛整條運動控制產品線」。</p>
+
+      <div class="topicblk ladder">
+        <div class="th"><span class="num">1</span><h3 class="topic">初階 Junior</h3><span class="yr">0–2 年</span></div>
+        <div class="goal">🎯 能在資深帶領下完成單一功能模組，會用工具把問題找出來。</div>
+        <ul class="chk">
+          <li>C 語言紮實：指標、struct、volatile、中斷安全的基本觀念</li>
+          <li>STM32 HAL：GPIO/UART/Timer 設起來、燒得進去、printf 除得了錯</li>
+          <li>看得懂 datasheet 的暫存器表與時序圖；會用邏輯分析儀/candump</li>
+          <li>知道 CAN 訊框長相，能照協定文件收發封包</li>
+          <li>Git 基本流、看得懂別人的韌體架構（如本 repo 的分層）</li>
+        </ul>
+        <div><span class="maplv m-b">對應 L1 全部</span><span class="maplv m-m">L2-7~9</span></div>
+      </div>
+
+      <div class="topicblk ladder">
+        <div class="th"><span class="num">2</span><h3 class="topic">中階 Mid-level</h3><span class="yr">3–6 年</span></div>
+        <div class="goal">🎯 能獨立設計並實作一個子系統：一條 fieldbus、一組多軸、一套安全機制。</div>
+        <ul class="chk">
+          <li>CANopen 全套：NMT/heartbeat、SDO/PDO、自己寫得出輕量主站</li>
+          <li>CiA 402 使能交握與 Fault 處理寫成可測試的程式碼</li>
+          <li>算得出頻寬預算並據此定架構（500Hz vs 1kHz 那種決策）</li>
+          <li>多軸同步控制：CSP 插補、軌跡限速、following error 除錯</li>
+          <li>安全設計：通訊看門狗、急停鏈路、使能門檻（含「餵狗條件」這種細節）</li>
+          <li>可測試架構：HAL 切層、PC 模擬、單元測試進 CI</li>
+        </ul>
+        <div><span class="maplv m-m">對應 L2 全部</span><span class="maplv m-a">L3-13~16</span><span class="maplv m-p">專案 A 完整</span></div>
+      </div>
+
+      <div class="topicblk ladder">
+        <div class="th"><span class="num">3</span><h3 class="topic">高階 / 資深 Senior</h3><span class="yr">7 年以上</span></div>
+        <div class="goal">🎯 能從 0 到 1 扛整條產品：架構選型、bring-up、量產、跨團隊，並為選型結論負責。</div>
+        <ul class="chk">
+          <li>EtherCAT 深水區：ESM 除錯（AL status）、DC 調校、ESI/PDO 客製、SOEM/IgH 改造</li>
+          <li>即時系統調校：PREEMPT_RT、CPU 隔離、抖動量測方法論，數據說話</li>
+          <li>系統選型能力：CANopen vs EtherCAT vs CAN FD，含廠商生態/控制權風險評估（本 repo 專案 B 的教訓）</li>
+          <li>7-DoF 冗餘 IK、力控/阻抗控制、雙臂協同這一級的控制理論落地</li>
+          <li>功能安全與認證思維：STO 鏈路、失效模式分析、機械指令/CE</li>
+          <li>帶人、code review、跨部門（機構/電控/軟體/演算法）協作與技術決策文件</li>
+        </ul>
+        <div><span class="maplv m-a">對應 L3 全部</span><span class="maplv m-p">專案 A+B 兩條都完整</span></div>
+      </div>
+    </section>
+
+    <!-- ============ JOBS ============ -->
+    <section id="jobs">
+      <h2 class="mid"><span class="em">🌍</span>國內外實際職缺對照</h2>
+      <p class="lead">以下整理自 2025–2026 公開招募平台與元件商技術文件中，機器人 / 伺服 / 運動控制韌體職缺的常見要求（來源見頁尾）。</p>
+
+      <h3 class="topic" style="margin-top:18px">🌏 國際</h3>
+      <table>
+        <tr><th>層級 / 類型</th><th>常見必備技能</th><th>加分 / 資深要求</th></tr>
+        <tr>
+          <td><span class="flag">🌐 Embedded/Firmware Engineer（Junior/Mid）</span></td>
+          <td>C/C++、Cortex-M（STM32/Nordic/TI 其一）、UART/SPI/I2C/CAN、RTOS（FreeRTOS/Zephyr）、示波器/邏輯分析儀除錯、Git</td>
+          <td>CANopen/EtherCAT 經驗、Python 測試自動化、CI/CD</td>
+        </tr>
+        <tr>
+          <td><span class="flag">🦾 Motion Control / Servo Drive Engineer（Mid/Senior）</span></td>
+          <td>CiA 402 profile（狀態機、CSP/CSV/CST、PDO 映射）、伺服調機、編碼器介面、EtherCAT CoE 或 CANopen 整合</td>
+          <td>DC 同步多軸系統、FOC/電流環、功能安全（STO/SS1）、IEC 61800</td>
+        </tr>
+        <tr>
+          <td><span class="flag">🤖 Robotics Software/Firmware（Senior）</span></td>
+          <td>Linux 即時系統（PREEMPT_RT/Xenomai）、EtherCAT 主站（IgH/SOEM/acontis）、運動學/軌跡規劃、ros2_control 類框架</td>
+          <td>整機從 0 到 1、跨團隊架構決策、量產與安全認證經驗</td>
+        </tr>
+      </table>
+
+      <h3 class="topic" style="margin-top:22px">🇹🇼 台灣（104 / CakeResume 常見）</h3>
+      <table>
+        <tr><th>層級</th><th>常見必備技能</th><th>加分 / 資深要求</th></tr>
+        <tr>
+          <td><span class="flag">初階 韌體工程師</span></td>
+          <td>C 語言、STM32/Cortex-M 開發經驗、UART/SPI/I2C、看得懂電路圖與 datasheet、示波器基本量測</td>
+          <td>CAN bus、RTOS 概念、馬達控制課程/專題</td>
+        </tr>
+        <tr>
+          <td><span class="flag">中階 機器人/運動控制韌體</span>（機械手臂、AMR、自動化設備廠）</td>
+          <td>CAN/CANopen 或 EtherCAT 實務、伺服馬達整合（含調機）、多軸控制、RTOS、與電控/機構協作</td>
+          <td>CiA 402、EtherCAT 主站經驗、Linux、安全迴路設計</td>
+        </tr>
+        <tr>
+          <td><span class="flag">資深 / 技術主管</span></td>
+          <td>整機系統架構、fieldbus 選型與頻寬設計、即時 Linux、帶隊 code review、量產導入</td>
+          <td>功能安全/認證、力控與協作機器人經驗、跨國供應商整合（如本 repo 對 EYOU 的整合經驗）</td>
+        </tr>
+      </table>
+
+      <div class="note tip"><b>怎麼用這張表：</b>照本手冊 L1→L3 打底（命中「初階」欄），做完<b>專案 A</b>（雙臂 CANopen 主站）就有中階職缺要的完整證據鏈：fieldbus 主站 + CiA402 + 多軸 + 安全 + 可測試架構。再補<b>專案 B</b>（EtherCAT + RT Linux）與它的除錯實戰紀錄，就是往資深走的敲門磚。資深職缺剩下的（量產、認證、帶人）要靠實戰累積，無法只靠自學速成。</div>
+    </section>
+
+    <!-- ============ SOURCES ============ -->
+    <section id="src">
+      <h2 class="basic"><span class="em">📚</span>資料來源</h2>
+      <p class="lead">本頁技能與職缺要求整理自下列公開資源（2026-07 檢索）。招募內容隨時間變動，投遞前請以各平台當下實際 JD 為準。</p>
+      <ul class="chk">
+        <li><a href="https://www.can-cia.org/can-knowledge/cia-402-series-canopen-device-profile-for-drives-and-motion-control">CAN in Automation — CiA 402 device profile</a>（IEC 61800-7-201 標準脈絡）</li>
+        <li><a href="https://www.kebamerica.com/blog/comprehensive-guide-to-the-cia-402-drive-profile/">KEB America — CiA 402 Drive Profile 指南</a>（PDO/TPDO/RPDO 實務）</li>
+        <li><a href="https://www.synapticon.com/en/motion-control-academy/cia-402-antriebsprofil-state-machine">Synapticon Motion Control Academy — CiA 402 狀態機/EtherCAT for Servo Drives</a></li>
+        <li><a href="https://github.com/kubabuda/ecat_servo">GitHub kubabuda/ecat_servo</a> — 開源 EtherCAT CiA402 從站實作（讀 code 學 profile）</li>
+        <li><a href="https://www.104.com.tw/jobs/search/?keyword=%E6%A9%9F%E5%99%A8%E4%BA%BA">104 人力銀行</a> / CakeResume — 台灣「韌體工程師 / 機器人 / 運動控制」職缺常見條件（如<a href="https://www.104.com.tw/job/8nwbb">廣明光電機器人工程師</a>類型 JD）</li>
+        <li><a href="https://www.ittraining.com.tw/ittraining/89-ittraining/501-ethercat-class">艾鍗學院 EtherCAT 實戰課程大綱</a> — 台灣業界對 EtherCAT 技能的需求側寫</li>
+        <li>Indeed / ZipRecruiter — "Embedded / Firmware Engineer (Motion Control, EtherCAT)" 職缺彙整</li>
+        <li>本 repo <code>docs/design/</code> 全部設計文件 — 技能樹的實戰對照組</li>
+      </ul>
+    </section>
+
+    <div class="pager">
+      <a href="project-ecat-master.html"><small>← 上一頁</small>⚡ 專案 B · EtherCAT 1kHz</a>
+      <a class="next" href="index.html"><small>回首頁 →</small>學習樹總覽</a>
+    </div>
+    <footer>職涯技能地圖 · STM32 學習手冊 · 說明見 <code>learn/docs/07-career-skills.md</code></footer>
+  </main>
+</div>
+</body>
+</html>
