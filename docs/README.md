@@ -65,6 +65,7 @@
 | 2026-07-05 | [trace ring + 報表](./changes/2026-07-05-trace-ring.md) | WP-H3 儀器：每 tick 24B 紀錄(late/四相位)、--trace CSV、trace_report.py p99/直方圖/§3.5 判定 |
 | 2026-07-05 | [開機自檢](./changes/2026-07-05-rt-selfcheck.md) | WP-L7.1：RT 內核/isolcpus/RTPRIO/mlockall/介面自檢清單;--rt-strict 不符拒絕進 OP |
 | 2026-07-05 | [設定檔外部化](./changes/2026-07-05-config-file.md) | 項目 7：軸表/DH/IK key=value 覆寫,--config 兩趟制不半套用;WP0.4 量測值免重編譯 |
+| 2026-07-05 | [DC 鎖相 PI(SIL)](./changes/2026-07-05-dc-pll-sil.md) | ec_dc_pll + sim 漂移模型：±200/-500ppm 收斂 \|err\|≤3µs；WP-L2.2 拍板點預演 |
 | 2026-07-06 | [24.04 RT 真機驗證](./changes/2026-07-06-u24-rt-verification.md) | H3 抖動 PASS(1kHz p99=27µs)、IgH 1.6.9 對 6.8-rt 建置+掛載(I0.4 退役)、SOEM OK、vcan SIL 全流程 |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 

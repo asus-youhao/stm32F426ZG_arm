@@ -58,6 +58,13 @@ void ec_axis_get_input(int axis, ec_in_t *i);
 /** @brief 上次 exchange 是否更新了該軸輸入（掉軸=0;真後端以 WKC/AL 判定）。 */
 int  ec_axis_fresh(int axis);
 
+/**
+ * @brief 上次 exchange 相對從站 DC 柵格的相位誤差（µs,正=主站晚到）。
+ *        SOEM 後端由 ec_DCtime 導出;sim 後端由漂移模型產生;
+ *        IgH 後端不需要（主站是發號者）,恆回 0。
+ */
+int32_t ec_master_dc_error_us(void);
+
 /** @brief 週期外 CoE SDO（PREOP 組態/診斷用;RUN 中請走背景通道）。回 0 成功。 */
 int  ec_coe_read(int axis, uint16_t idx, uint8_t sub, uint32_t *val);
 int  ec_coe_write(int axis, uint16_t idx, uint8_t sub, uint32_t val);

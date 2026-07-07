@@ -40,6 +40,7 @@ SRC = \
   ../app/bus_ecat.c \
   ../app/sdo_bg.c \
   ../ecat/ec_master_sim.c \
+  ../ecat/ec_dc_pll.c \
   ../sim/phu_sim.c \
   ../engine/loop_engine.c \
   ../engine/spsc_ring.c \
