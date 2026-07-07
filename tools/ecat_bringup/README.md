@@ -24,6 +24,13 @@ slaveinfo 的常用指令。
 | `phu_jog.c` | SOEM 2.x | CiA402 使能 + CSP ±2° 點動（含防跳/故障監看/歸位）——卡在 SAFEOP,見診斷 |
 | `igh_probe.c` | IgH ecrt | 變因拆解探測：pdos/dc/cycle/AssignActivate/config-SDO 全參數化 |
 | `igh_jog.c` | IgH ecrt | 同 phu_jog 的 IgH 版（domain+週期迴圈+使能 FSM+點動） |
+| `wd_read.c` | SOEM 2.x | **診斷關鍵**：讀 ESC 看門狗暫存器(0x0400/0x0420) + 高速輪詢 AL 狀態抓 SAFEOP 彈跳時刻——即此工具測到「進 SAFEOP 後 0.5ms 自貶 PREOP、AL 0x0022」 |
+| `phu_state.c` | SOEM 2.x | 逐級 PREOP→SAFEOP→OP 診斷（每級讀 AL code）；`lsa` 參數試 logical start addr |
+| `phu_state2.c` | SOEM 2.x | 讀 SM sync 模式(0x1C32:01=1 SM-sync/0x1C33:01=0x22) + PREOP 先啟 SYNC0 再請 SAFEOP |
+
+> `wd_read.c`/`phu_state*.c` 是 SAFEOP 卡點三輪診斷的工具，
+> 結論見診斷文件（真根因 = `0x2100=2` 控制權在 CANopen）。
+> 已捨棄：`phu_safeop.c`（編譯錯，功能被 `wd_read.c` 涵蓋）。
 
 ## 編譯（在有對應堆疊的機器上）
 

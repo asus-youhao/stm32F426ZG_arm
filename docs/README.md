@@ -53,6 +53,7 @@
 | 2026-07-07 | [PHU17 SAFEOP 診斷](./changes/2026-07-07-phu17-safeop-diagnosis.md) | P0：三輪逼近真根因=0x2100=2(控制權在 CANopen);SAFEOP 0.5ms 自貶 AL0x0022;解法=切 0x2100=1 或直接走 CANopen |
 | 2026-07-07 | [EtherCAT 主站機建置腳本](./changes/2026-07-07-ecat-master-host-build.md) | setup_master_host.sh：SOEM 2f73eaa+IgH beb2bf07 版本鎖定/冪等;取代口耳相傳的手動建置 |
 | 2026-07-07 | [vendor SOEM+IgH 原始碼](./changes/2026-07-07-vendor-ecat-master-source.md) | 完整原始碼收進 third_party/(git archive,無.git/build);建置腳本改預設用 vendored 源;GPL 隔離 |
+| 2026-07-07 | [補齊 SAFEOP 診斷工具](./changes/2026-07-07-ecat-diagnostic-tools-backfill.md) | gx701 盤點:補入 wd_read/phu_state×2(彈跳證據工具);記捨棄項與失落的抖動 CSV 教訓 |
 
 ## 設計文件
 
