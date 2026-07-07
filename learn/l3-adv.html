@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L3 高階 — STM32 學習手冊</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><span class="em">🤖</span>STM32 學習手冊</div>
+    <div class="tag">F7 雙臂機器人 · 從點燈到 14 軸</div>
+    <div class="navtitle">學習里程碑</div>
+    <a class="nav" href="index.html"><span class="dot d-basic"></span>學習樹總覽</a>
+    <a class="nav" href="l1-basic.html"><span class="dot d-basic"></span>L1 初階<span class="lv">6 節</span></a>
+    <a class="nav" href="l2-mid.html"><span class="dot d-mid"></span>L2 中階<span class="lv">6 節</span></a>
+    <a class="nav here" href="l3-adv.html"><span class="dot d-adv"></span>L3 高階<span class="lv">6 節</span></a>
+    <div class="navtitle">🎯 最終專案</div>
+    <a class="nav" href="project-dual-arm.html"><span class="dot d-proj"></span>A · 雙臂 CANopen 主站</a>
+    <a class="nav" href="project-ecat-master.html"><span class="dot d-proj"></span>B · EtherCAT 1kHz 主站</a>
+    <div class="navtitle">🧭 職涯</div>
+    <a class="nav" href="career-skills.html"><span class="dot d-career"></span>職涯技能地圖</a>
+    <div class="navtitle">本頁小節</div>
+    <a class="nav" href="#t13"><span class="dot d-adv"></span>13 CiA 402 狀態機</a>
+    <a class="nav" href="#t14"><span class="dot d-adv"></span>14 CSP 模式 · 單位換算</a>
+    <a class="nav" href="#t15"><span class="dot d-adv"></span>15 運動學 · IK · 軌跡</a>
+    <a class="nav" href="#t16"><span class="dot d-adv"></span>16 安全機制</a>
+    <a class="nav" href="#t17"><span class="dot d-adv"></span>17 EtherCAT 入門</a>
+    <a class="nav" href="#t18"><span class="dot d-adv"></span>18 Linux 即時主站</a>
+  </aside>
+
+  <main>
+    <div class="crumb"><a href="index.html">學習樹總覽</a> ／ 🟣 L3 高階</div>
+    <header class="top">
+      <h1>🟣 L3 · 高階</h1>
+      <div class="sub">目標：進入伺服驅動與機器人控制的深水區 — CiA 402 狀態機、循環同步模式、運動學與軌跡、安全設計，最後跨到 EtherCAT 與 Linux 即時主站。做完這層，兩條最終專案任你選。</div>
+    </header>
+
+    <!-- T13 -->
+    <section id="t13"><div class="topicblk">
+      <div class="th"><span class="num n-adv">13</span><h3 class="topic">CiA 402 驅動狀態機</h3></div>
+      <div class="goal">🎯 會用 Controlword/Statusword 把伺服從上電帶到使能，會處理 Fault。</div>
+      <p>CiA 402 是 IEC 61800-7 標準化的驅動 profile — <b>不管底下是 CANopen 還是 EtherCAT CoE，狀態機都一樣</b>（所以專案 A、B 共用這一節）。核心是三個 OD 物件：</p>
+      <table>
+        <tr><th>物件</th><th>方向</th><th>作用</th></tr>
+        <tr><td><code>0x6040</code> Controlword</td><td>主站 → 驅動</td><td>命令：Shutdown(0x06) → Switch On(0x07) → <b>Enable Op(0x0F)</b>；Fault Reset(0x80)</td></tr>
+        <tr><td><code>0x6041</code> Statusword</td><td>驅動 → 主站</td><td>目前狀態（bit 遮罩解碼，見下）</td></tr>
+        <tr><td><code>0x6060</code> Modes of operation</td><td>主站 → 驅動</td><td>運行模式（L3-14）</td></tr>
+      </table>
+      <div class="codecap">使能交握 — 本 repo 把「查表推下一步」封裝成一個純函式（cia402.h）</div>
+      <pre><code>/* 每個控制週期呼叫：依 statusword 回推下一步 controlword，
+ * SWITCH_ON_DISABLED → READY → SWITCHED_ON → OPERATION_ENABLED
+ * 若在 FAULT 則回 CW_FAULT_RESET。純函式、無狀態、可單元測試。 */
+uint16_t cia402_enable_step(uint16_t statusword);
+
+cia402_state_t st = cia402_decode(sw);      /* DS_OPERATION_ENABLED? DS_FAULT? */
+uint16_t cw = cia402_enable_step(sw);
+co_pdo_send_csp(bus, node, cw, target);     /* 交握與控制走同一個 RPDO */</code></pre>
+      <div class="note tip"><b>設計亮點：</b>把狀態機寫成「statusword 進、controlword 出」的純函式，而不是自己記狀態 — 驅動器才是真相來源，主站重開機、驅動器掉電重上都不會錯亂。<code>firmware/tests/test_cia402.c</code> 直接對這個函式打單元測試。</div>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/cia402.h/.c</code>。</div>
+      <div class="kw"><span>0x6040/0x6041</span><span>enable 交握</span><span>Fault Reset</span><span>純函式狀態機</span></div>
+    </div></section>
+
+    <!-- T14 -->
+    <section id="t14"><div class="topicblk">
+      <div class="th"><span class="num n-adv">14</span><h3 class="topic">運行模式（CSP/CSV/CST）與單位換算</h3></div>
+      <div class="goal">🎯 懂為什麼機器人選 CSP，會做 rad ↔ counts 換算。</div>
+      <table>
+        <tr><th>模式（0x6060）</th><th>值</th><th>誰算軌跡</th><th>用途</th></tr>
+        <tr><td>PP 輪廓位置</td><td>1</td><td>驅動器</td><td>點到點、單軸調機</td></tr>
+        <tr><td>HM 回零</td><td>6</td><td>驅動器</td><td>開機找原點（增量編碼器才需要）</td></tr>
+        <tr><td><b>CSP 循環同步位置</b></td><td><b>8</b></td><td><b>主站每週期給位置</b></td><td><b>多軸協同 — 本專案主模式</b></td></tr>
+        <tr><td>CSV / CST 同步速度/轉矩</td><td>9 / 10</td><td>主站</td><td>速度控制 / 力控、阻抗控制</td></tr>
+        <tr><td>CSF 同步力控</td><td>13</td><td>主站</td><td>EYOU 力控關節專屬（PHU 手冊 §4.3）</td></tr>
+      </table>
+      <p><b>為什麼多軸要 CSP：</b>14 個關節要走出一條直線軌跡，插補必須由「看得到全部關節」的主站統一算，驅動器只負責緊跟每 2ms 一個的位置點。</p>
+      <div class="codecap">單位換算 — EYOU PHU 輸出端 19-bit 絕對編碼器（robot_config.c）</div>
+      <pre><code>/* 19-bit = 524288 counts / 輸出圈 → counts per rad */
+#define CPR_19BIT (524288.0f / (2.0f * PI_F))
+
+int32_t target_counts = (int32_t)(q_rad * CPR_19BIT);      /* rad → counts 下發 */
+float   q_fb = js_counts_to_rad(j, pos_actual);            /* counts → rad 回授 */</code></pre>
+      <div class="note warn"><b>實戰教訓：</b>單位換算是伺服整合最容易炸的地方 — 到底是「馬達端 counts × 減速比」還是「輸出端 counts」？EYOU 另有走「馬達端 19-bit × 減速比 101 = 52953088 counts/輸出圈」的介面組態（本 repo EtherCAT 路線實測）。<b>上電第一件事：手轉一圈，讀回授驗證換算</b>，再談使能。</div>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/app/robot_config.c</code>、<code>firmware/control/joint_space.c</code> 的 <code>js_counts_to_rad()</code>；PHU 規格見 <code>doc_EYOU/</code>、<code>docs/design/eyou-phu-motor-analysis.md</code>。</div>
+      <div class="kw"><span>CSP=8</span><span>插補週期</span><span>counts/rad</span><span>減速比 101</span></div>
+    </div></section>
+
+    <!-- T15 -->
+    <section id="t15"><div class="topicblk">
+      <div class="th"><span class="num n-adv">15</span><h3 class="topic">運動學 · IK · 軌跡（joint-space / task-space）</h3></div>
+      <div class="goal">🎯 從「控制一顆馬達」升級到「控制一隻手臂」：FK/IK、平滑軌跡、分層控制。</div>
+      <p>本 repo 的控制棧是乾淨的四層，每層各自可測（<code>firmware/control/</code>）：</p>
+      <table>
+        <tr><th>層</th><th>模組</th><th>做什麼</th></tr>
+        <tr><td>L4 雙臂協同</td><td><code>dual_arm_ctrl.c</code></td><td>左右臂模式（獨立/鏡像/協同）＋ 末端最小距離 5cm 防撞</td></tr>
+        <tr><td>L3 task-space</td><td><code>task_space.c</code>、<code>ik.c</code>、<code>kinematics.c</code></td><td>DH 正運動學 + 數值 IK：末端位姿 → 7 軸關節角</td></tr>
+        <tr><td>L2 joint-space</td><td><code>joint_space.c</code>、<code>trajectory.c</code></td><td>限速限加速度的平滑軌跡 + rad↔counts</td></tr>
+        <tr><td>L1 通訊</td><td><code>firmware/canopen/</code></td><td>把 counts 用 CSP PDO 送出去（L2-10）</td></tr>
+      </table>
+      <div class="codecap">每個 2ms tick 的資料流（app_main.c 實碼節錄）</div>
+      <pre><code>float q_fb[14];                              /* 1) 回授 counts→rad 回灌 */
+for (int j = 0; j < 14; j++)
+    q_fb[j] = js_counts_to_rad(j, g_jstate[j].pos_actual);
+da_ctrl_sync_feedback(&s_dc, q_fb);
+
+int32_t cnt[14];                             /* 2) L4協同→L3 IK→L2軌跡→counts */
+da_ctrl_tick_1khz(&s_dc, cnt);
+
+for (int j = 0; j < 14; j++)                 /* 3) L1 CSP 下發 */
+    dual_arm_set_target(j, cnt[j]);
+dual_arm_tick();</code></pre>
+      <ul class="chk">
+        <li><b>7-DoF 冗餘</b>：手臂比 6 自由度多 1，IK 有無限解 → 數值法（Jacobian）+ 姿態偏好</li>
+        <li><b>軌跡限制</b>：目標一步跳太遠會觸發驅動器 following error → trajectory 層限速/限加速度</li>
+        <li>矩陣運算自寫輕量 <code>linalg.c</code>（嵌入式沒有 Eigen 可用）</li>
+      </ul>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/tests/test_ik.c</code>、<code>test_kinematics.c</code>、<code>test_trajectory.c</code>；設計文件 <code>docs/design/wp3-joint-space.md</code>、<code>wp4-task-space.md</code>、<code>wp5-dual-arm-integration.md</code>。</div>
+      <div class="kw"><span>DH 參數</span><span>Jacobian IK</span><span>7-DoF 冗餘</span><span>分層控制</span></div>
+    </div></section>
+
+    <!-- T16 -->
+    <section id="t16"><div class="topicblk">
+      <div class="th"><span class="num n-adv">16</span><h3 class="topic">安全機制 — 看門狗 · 急停 · 使能門檻</h3></div>
+      <div class="goal">🎯 學會把「會動的東西」做到敢上電：失聯偵測、安全停止、狀態門檻。</div>
+      <table>
+        <tr><th>威脅</th><th>對策</th><th>repo 實作</th></tr>
+        <tr><td>某軸失聯（斷線/當機）</td><td>每軸通訊看門狗 50ms</td><td><code>safety_report_joint()</code> + <code>safety_update()</code></td></tr>
+        <tr><td>驅動器報 Fault</td><td>解析 statusword、全系統反應</td><td><code>safety.c</code> 收 <code>0x6041</code></td></tr>
+        <tr><td>人要它停</td><td>急停 API + 硬體 STO</td><td><code>app_set_estop()</code>；PHU 有 STO 接點</td></tr>
+        <tr><td>未就緒就動</td><td>RUNNING 門檻：沒到門檻目標鎖在實際位置</td><td><code>app_main_tick()</code> 的 <code>run</code> 判斷</td></tr>
+      </table>
+      <div class="codecap">app_main.c — 一個真實 bug 的教訓（修正後的註解原文）</div>
+      <pre><code>/* WP6 安全：只在「真的收到新 TPDO」的軸更新看門狗時間戳,
+ * 否則某軸失聯時 last_ms 會被持續刷新而永遠偵測不到（修正前的 bug）。 */
+for (int j = 0; j < 14; j++)
+    if (g_jstate[j].fb_fresh)
+        safety_report_joint(j, g_jstate[j].statusword, now);
+bool allow = safety_update(now);
+dual_arm_set_safe_stop(!allow, safety_safe_controlword());</code></pre>
+      <div class="note warn"><b>看門狗的第一定律：</b>「餵狗」的條件必須是<b>真的有新資料</b>，不是「這段程式碼有跑到」。上面那個 bug（無條件刷新時間戳 → 失聯永遠測不到）是安全系統最典型的自我安慰式失效。</div>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/safety/safety.h/.c</code>、<code>firmware/tests/test_safety.c</code>、<code>docs/design/wp6-safety-wp7-host.md</code>；安全停止的 controlword 策略見 <code>safety_safe_controlword()</code>。</div>
+      <div class="kw"><span>通訊看門狗</span><span>fb_fresh</span><span>STO</span><span>RUNNING 門檻</span></div>
+    </div></section>
+
+    <!-- T17 -->
+    <section id="t17"><div class="topicblk">
+      <div class="th"><span class="num n-adv">17</span><h3 class="topic">EtherCAT 入門 — 突破 CAN 的頻寬天花板</h3></div>
+      <div class="goal">🎯 懂 EtherCAT 的四大概念（ESM/DC/CoE/ESI），知道它怎麼解掉 L2-11 的 1kHz 問題。</div>
+      <p>EtherCAT 用 100Mbps 乙太網實體層，frame「飛過去的路上」被每個從站即時讀寫（on-the-fly）— 14 軸 @1kHz 的資料量只占頻寬的零頭。四個必懂概念：</p>
+      <table>
+        <tr><th>概念</th><th>一句話</th><th>對照 CANopen</th></tr>
+        <tr><td>ESM 狀態機</td><td>INIT → PREOP → SAFEOP → OP，每階段能做的事不同</td><td>NMT 狀態機（L2-8）</td></tr>
+        <tr><td>CoE</td><td>CANopen over EtherCAT — SDO/PDO/CiA402 <b>原封不動搬過來</b></td><td>L2-9/10、L3-13 全部直接沿用</td></tr>
+        <tr><td>DC 分散時鐘</td><td>硬體級同步，全網從站對時 &lt;1µs（SYNC0 中斷）</td><td>CANopen SYNC 訊息（軟體級、ms 級）</td></tr>
+        <tr><td>ESI 檔</td><td>從站的 XML 身分證：PDO 佈局、同步模式</td><td>EDS 檔</td></tr>
+      </table>
+      <div class="codecap">SOEM（開源主站庫）最小流程 — 掃描到 OP</div>
+      <pre><code>ec_init("enp2s0");                          /* 綁一張實體網卡(raw socket) */
+ec_config_init(FALSE);                      /* 掃描從站,讀 EEPROM/ESI */
+printf("found %d slaves\n", ec_slavecount);
+
+ec_config_map(&IOmap);                      /* PDO 映射進行程記憶體 */
+ec_configdc();                              /* 啟用分散時鐘 */
+ec_statecheck(0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE);
+ec_slave[0].state = EC_STATE_OPERATIONAL;   /* SAFEOP → OP:開始交換過程資料 */
+ec_writestate(0);
+/* 之後每 1ms: ec_send_processdata() + ec_receive_processdata() */</code></pre>
+      <div class="note tip"><b>學習投資報酬率：</b>因為 CoE 的存在，你在 L2/L3 學的 SDO、PDO、CiA402 在 EtherCAT 上<b>原樣有效</b> — 換的只有「載體」（bxCAN → 乙太網）和「同步」（無 → DC）。這就是先學 CANopen 再學 EtherCAT 的理由。</div>
+      <div class="note"><b>💻 對照範例：</b>本 repo EtherCAT 系列分支（<code>feature/linux-rt-ethercat-master</code> 等）將 SOEM/IgH 原始碼收在 <code>third_party/</code>；選型比較見 <code>docs/design/canopen-vs-ethercat.md</code>。</div>
+      <div class="kw"><span>ESM 四態</span><span>CoE</span><span>DC/SYNC0</span><span>SOEM vs IgH</span></div>
+    </div></section>
+
+    <!-- T18 -->
+    <section id="t18"><div class="topicblk">
+      <div class="th"><span class="num n-adv">18</span><h3 class="topic">Linux 即時主站 — PREEMPT_RT 與 1kHz 迴圈</h3></div>
+      <div class="goal">🎯 讓一般 PC 跑出「準時的 1ms」：RT kernel、排程、CPU 隔離、抖動量測。</div>
+      <p>EtherCAT 主站通常跑在 Linux PC 上，但普通 kernel 的排程延遲可到毫秒級 — 1kHz 迴圈直接爆。四件套：</p>
+      <ul class="chk">
+        <li><b>PREEMPT_RT kernel</b>：<code>apt install linux-image-rt-amd64</code> 級別的低延遲搶佔</li>
+        <li><b>SCHED_FIFO</b> 高優先權 + <b>mlockall</b> 鎖記憶體防 page fault</li>
+        <li><b>CPU 隔離</b>：<code>isolcpus=2,3</code> 把控制迴圈釘在獨占核心上</li>
+        <li><b>先量再信</b>：<code>cyclictest</code> 量 max latency，沒過關不用談控制</li>
+      </ul>
+      <div class="codecap">1kHz 即時迴圈骨架（clock_nanosleep 絕對時間法）</div>
+      <pre><code>struct sched_param sp = { .sched_priority = 90 };
+pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp);
+mlockall(MCL_CURRENT | MCL_FUTURE);          /* 不准 swap/page fault */
+
+struct timespec next;
+clock_gettime(CLOCK_MONOTONIC, &next);
+while (running) {
+    next.tv_nsec += 1000000;                 /* +1ms,絕對時間不累積漂移 */
+    if (next.tv_nsec >= 1000000000L) { next.tv_sec++; next.tv_nsec -= 1000000000L; }
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
+
+    ec_send_processdata();                   /* 與 DC SYNC0 對齊的過程資料交換 */
+    ec_receive_processdata(EC_TIMEOUTRET);
+    control_tick();                          /* 同一套 L2~L4 控制棧 */
+}</code></pre>
+      <div class="note"><b>本 repo 現況：</b>主站機建置腳本（SOEM+IgH 可重現安裝）與 RT 設定見 EtherCAT 分支的 <code>setup_master_host.sh</code>、<code>firmware/rt/rt_setup.sh</code>；抖動對比實驗規劃見 memory/分支 <code>feature/linux-rt-ethercat-master</code>。這一節做完，直接進<a href="project-ecat-master.html">專案 B</a>。</div>
+      <div class="kw"><span>PREEMPT_RT</span><span>SCHED_FIFO</span><span>cyclictest</span><span>clock_nanosleep</span></div>
+    </div></section>
+
+    <div class="pager">
+      <a href="l2-mid.html"><small>← 上一頁</small>🔵 L2 中階</a>
+      <a class="next" href="project-dual-arm.html"><small>下一頁 →</small>🦾 專案 A · 雙臂 CANopen</a>
+    </div>
+    <footer>L3 高階 · STM32 學習手冊 · 說明見 <code>learn/docs/04-l3-adv.md</code></footer>
+  </main>
+</div>
+</body>
+</html>

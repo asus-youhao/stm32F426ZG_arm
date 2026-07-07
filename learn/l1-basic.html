@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L1 初階 — STM32 學習手冊</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><span class="em">🤖</span>STM32 學習手冊</div>
+    <div class="tag">F7 雙臂機器人 · 從點燈到 14 軸</div>
+    <div class="navtitle">學習里程碑</div>
+    <a class="nav" href="index.html"><span class="dot d-basic"></span>學習樹總覽</a>
+    <a class="nav here" href="l1-basic.html"><span class="dot d-basic"></span>L1 初階<span class="lv">6 節</span></a>
+    <a class="nav" href="l2-mid.html"><span class="dot d-mid"></span>L2 中階<span class="lv">6 節</span></a>
+    <a class="nav" href="l3-adv.html"><span class="dot d-adv"></span>L3 高階<span class="lv">6 節</span></a>
+    <div class="navtitle">🎯 最終專案</div>
+    <a class="nav" href="project-dual-arm.html"><span class="dot d-proj"></span>A · 雙臂 CANopen 主站</a>
+    <a class="nav" href="project-ecat-master.html"><span class="dot d-proj"></span>B · EtherCAT 1kHz 主站</a>
+    <div class="navtitle">🧭 職涯</div>
+    <a class="nav" href="career-skills.html"><span class="dot d-career"></span>職涯技能地圖</a>
+    <div class="navtitle">本頁小節</div>
+    <a class="nav" href="#t1"><span class="dot d-basic"></span>1 認識 STM32 / Cortex-M</a>
+    <a class="nav" href="#t2"><span class="dot d-basic"></span>2 開發環境</a>
+    <a class="nav" href="#t3"><span class="dot d-basic"></span>3 GPIO · Blink</a>
+    <a class="nav" href="#t4"><span class="dot d-basic"></span>4 UART printf 除錯</a>
+    <a class="nav" href="#t5"><span class="dot d-basic"></span>5 時脈樹 · SysTick · NVIC</a>
+    <a class="nav" href="#t6"><span class="dot d-basic"></span>6 Timer 節拍 · PWM</a>
+  </aside>
+
+  <main>
+    <div class="crumb"><a href="index.html">學習樹總覽</a> ／ 🟢 L1 初階</div>
+    <header class="top">
+      <h1>🟢 L1 · 初階</h1>
+      <div class="sub">目標：能獨立編譯、燒錄、看 log、控制腳位，並做出一個「固定週期的中斷節拍」— 這個節拍就是之後 500 Hz 控制迴圈的心臟。</div>
+    </header>
+
+    <!-- T1 -->
+    <section id="t1"><div class="topicblk">
+      <div class="th"><span class="num n-basic">1</span><h3 class="topic">認識 STM32 / Cortex-M</h3></div>
+      <div class="goal">🎯 看懂型號命名、選對晶片、知道本專案用哪顆與為什麼。</div>
+      <p>STM32 命名規則：<code>STM32 F7 46 Z G</code> = 系列 F7（Cortex-M7）· 產品線 46 · 腳位 Z（144-pin）· Flash G（1 MB）。本 repo 名稱是 F426ZG，但<b>實際目標板是 STM32F746ZG</b>（見 <code>CLAUDE.md</code> 說明）：</p>
+      <table>
+        <tr><th>項目</th><th>STM32F446ZE（M4 常見入門）</th><th>STM32F746ZG（本專案）</th></tr>
+        <tr><td>核心</td><td>Cortex-M4F @180 MHz</td><td>Cortex-M7 @216 MHz（雙發射 + L1 cache）</td></tr>
+        <tr><td>記憶體</td><td>512 KB Flash / 128 KB SRAM</td><td>1 MB Flash / 320 KB SRAM + TCM</td></tr>
+        <tr><td>CAN</td><td>2× bxCAN</td><td><b>2× bxCAN</b>（左右臂各一路的關鍵）</td></tr>
+        <tr><td>FPU</td><td>單精度</td><td>單精度（F76x 才有雙精度）</td></tr>
+        <tr><td>適合</td><td>一般控制、學習</td><td>需要算力的控制（14 軸 IK + 軌跡 @500Hz）</td></tr>
+      </table>
+      <div class="note tip"><b>為什麼選 F746：</b>雙路獨立 bxCAN（左/右臂各一條匯流排、故障隔離）＋ M7 算力扛得住每 2 ms 一輪的 14 軸運動學。若要走 CAN FD 或 EtherCAT 從站則要換 H7 / 外接，見 <code>docs/design/canopen-vs-ethercat.md</code>。</div>
+      <div class="kw"><span>Cortex-M4 vs M7</span><span>命名規則</span><span>bxCAN ×2</span><span>datasheet</span></div>
+    </div></section>
+
+    <!-- T2 -->
+    <section id="t2"><div class="topicblk">
+      <div class="th"><span class="num n-basic">2</span><h3 class="topic">開發環境（arm-none-eabi + CubeMX HAL + Makefile）</h3></div>
+      <div class="goal">🎯 裝好交叉編譯工具鏈，能編譯並燒錄第一支程式。</div>
+      <p>本 repo 走「<b>CubeMX 產 HAL 底層 + 手寫 Makefile/CMake</b>」路線（不綁 IDE，好進 CI）：</p>
+      <div class="codecap">安裝工具鏈與燒錄工具（Ubuntu）</div>
+      <pre><code>sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi gdb-multiarch \
+                 openocd stlink-tools
+
+arm-none-eabi-gcc --version   # 確認交叉編譯器
+st-info --probe               # 確認 ST-Link 有抓到板子</code></pre>
+      <ul class="chk">
+        <li>用 STM32CubeMX 建立 F746ZG 專案：設好時脈、腳位，產出 HAL 驅動與啟動檔</li>
+        <li>編譯：<code>make</code>（交叉編譯出 <code>.elf</code> / <code>.bin</code>）— 對照 <code>firmware/Makefile</code></li>
+        <li>燒錄：<code>st-flash write build/fw.bin 0x8000000</code> 或 OpenOCD + gdb</li>
+        <li>本 repo 還有 <b>HOST 模擬建置</b>（在 PC 上編譯跑控制邏輯，見 L2-12），先知道有這回事</li>
+      </ul>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/Makefile</code>、<code>firmware/README.md</code>「整合到 STM32CubeMX 專案」一節、<code>docs/design/firmware-cubemx-integration.md</code>。</div>
+      <div class="kw"><span>arm-none-eabi-gcc</span><span>CubeMX/HAL</span><span>st-flash</span><span>OpenOCD</span></div>
+    </div></section>
+
+    <!-- T3 -->
+    <section id="t3"><div class="topicblk">
+      <div class="th"><span class="num n-basic">3</span><h3 class="topic">GPIO · Blink（第一支程式）</h3></div>
+      <div class="goal">🎯 用 HAL 點亮 LED，理解「初始化一次 + 主迴圈」的骨架。</div>
+      <div class="codecap">main.c — Nucleo-F746ZG 板載 LED（PB0）每 500ms 閃一次</div>
+      <pre><code>#include "stm32f7xx_hal.h"
+
+int main(void)
+{
+    HAL_Init();                        /* SysTick 1ms、NVIC 分組 */
+    SystemClock_Config();              /* CubeMX 產生：216 MHz 時脈樹 */
+
+    __HAL_RCC_GPIOB_CLK_ENABLE();      /* GPIO 前一定要先開時脈！ */
+    GPIO_InitTypeDef g = {
+        .Pin   = GPIO_PIN_0,
+        .Mode  = GPIO_MODE_OUTPUT_PP,  /* 推挽輸出 */
+        .Pull  = GPIO_NOPULL,
+        .Speed = GPIO_SPEED_FREQ_LOW,
+    };
+    HAL_GPIO_Init(GPIOB, &g);
+
+    while (1) {
+        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+        HAL_Delay(500);                /* 以 SysTick 計時的阻塞延遲 */
+    }
+}</code></pre>
+      <div class="note"><b>最常見的坑：</b>忘記 <code>__HAL_RCC_GPIOx_CLK_ENABLE()</code> — 周邊沒開時脈時寫暫存器完全沒反應，也不會報錯。STM32 每個周邊都要先開時脈。</div>
+      <div class="kw"><span>HAL_Init</span><span>RCC_CLK_ENABLE</span><span>HAL_GPIO_TogglePin</span><span>HAL_Delay</span></div>
+    </div></section>
+
+    <!-- T4 -->
+    <section id="t4"><div class="topicblk">
+      <div class="th"><span class="num n-basic">4</span><h3 class="topic">UART printf 除錯</h3></div>
+      <div class="goal">🎯 把 printf 導到序列埠，之後所有除錯都靠它。</div>
+      <p>Nucleo 板的 ST-Link 內建 <b>Virtual COM Port</b>（F746ZG 上接 USART3 PD8/PD9），把 <code>_write()</code> 轉接到 HAL 即可用 printf：</p>
+      <div class="codecap">retarget.c — printf 轉 USART3</div>
+      <pre><code>#include "stm32f7xx_hal.h"
+extern UART_HandleTypeDef huart3;   /* CubeMX 產生，115200-8N1 */
+
+int _write(int fd, char *buf, int len)
+{
+    (void)fd;
+    HAL_UART_Transmit(&huart3, (uint8_t *)buf, (uint16_t)len, 100);
+    return len;
+}</code></pre>
+      <div class="codecap">使用：開機印 banner、週期印狀態</div>
+      <pre><code>printf("dual-arm fw boot, HAL=%lu\r\n", HAL_GetTickFreq());
+printf("[%lu] sys=%s\r\n", HAL_GetTick(), app_sys_state());</code></pre>
+      <div class="note"><b>常見坑：</b>看到亂碼 → 鮑率沒對上（115200）；printf 沒出來 → 少了 <code>\n</code> 且 newlib 有行緩衝，或 float 格式要在連結器加 <code>-u _printf_float</code>。</div>
+      <div class="note"><b>💻 對照範例：</b>本 repo 上位機介面 <code>firmware/host/host_if.c</code> 就是用同一條 UART 做文字命令協定（L3 之後會回來看）。</div>
+      <div class="kw"><span>_write retarget</span><span>VCP/USART3</span><span>115200</span><span>printf_float</span></div>
+    </div></section>
+
+    <!-- T5 -->
+    <section id="t5"><div class="topicblk">
+      <div class="th"><span class="num n-basic">5</span><h3 class="topic">時脈樹 · SysTick · NVIC 中斷</h3></div>
+      <div class="goal">🎯 理解時脈從哪來、1ms 系統節拍怎麼來、中斷優先權怎麼排。</div>
+      <ul class="chk">
+        <li><b>時脈樹</b>：HSE 8MHz → PLL → SYSCLK 216MHz → AHB/APB 分頻。<b>APB1=54MHz 上限</b>，bxCAN 掛在 APB1 — L2 算 CAN 位元時序時就吃這個數字</li>
+        <li><b>SysTick</b>：Cortex-M 內建 24-bit 計時器，HAL 拿它產生 1ms 節拍（<code>HAL_GetTick()</code>）。本 repo 的安全看門狗就用它記時間戳（<code>app_main.c</code>）</li>
+        <li><b>NVIC</b>：巢狀向量中斷控制器。搶佔優先權數字越小越優先；控制迴圈 ISR 要排在雜務之上、CAN 收包之下或同級</li>
+      </ul>
+      <div class="codecap">中斷優先權配置的思路（本專案實際順序）</div>
+      <pre><code>/* 數字小 = 優先權高
+ * prio 1: CAN RX FIFO pending   -- 回授不能丟
+ * prio 2: TIM6 500Hz 控制節拍    -- 控制迴圈
+ * prio 5: USART3               -- 上位機命令/log
+ * SysTick 保持 HAL 預設(最低搶佔之一)，HAL_Delay 才不會卡死 */
+HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 1, 0);
+HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 2, 0);
+HAL_NVIC_SetPriority(USART3_IRQn,   5, 0);</code></pre>
+      <div class="note warn"><b>經典死當：</b>在高優先權 ISR 裡呼叫 <code>HAL_Delay()</code> — 它靠 SysTick 中斷遞增 tick，但 SysTick 優先權比你低進不來，永遠等不到 → 卡死。ISR 內只做最短的事。</div>
+      <div class="kw"><span>PLL/AHB/APB</span><span>HAL_GetTick</span><span>NVIC 優先權</span><span>ISR 準則</span></div>
+    </div></section>
+
+    <!-- T6 -->
+    <section id="t6"><div class="topicblk">
+      <div class="th"><span class="num n-basic">6</span><h3 class="topic">Timer 週期節拍 · PWM</h3></div>
+      <div class="goal">🎯 做出固定 2ms 的硬體節拍中斷 — 這就是最終專案 500 Hz 控制迴圈的心臟。</div>
+      <div class="codecap">tim6_tick.c — TIM6 每 2000µs 進一次中斷（= CONTROL_DT_US）</div>
+      <pre><code>#include "control_rate.h"   /* CONTROL_DT_US = 2000 (見 firmware/app/) */
+TIM_HandleTypeDef htim6;
+
+void tick_timer_init(void)   /* APB1 timer clock = 108 MHz */
+{
+    __HAL_RCC_TIM6_CLK_ENABLE();
+    htim6.Instance = TIM6;
+    htim6.Init.Prescaler = 108 - 1;              /* 108MHz/108 = 1 MHz → 1 tick = 1µs */
+    htim6.Init.Period    = CONTROL_DT_US - 1;    /* 2000µs = 500 Hz */
+    HAL_TIM_Base_Init(&htim6);
+    HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 2, 0);
+    HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
+    HAL_TIM_Base_Start_IT(&htim6);
+}
+
+void TIM6_DAC_IRQHandler(void) { HAL_TIM_IRQHandler(&htim6); }
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *h)
+{
+    if (h->Instance == TIM6)
+        app_main_tick();     /* 之後整個控制迴圈都掛在這裡(firmware/app/app_main.c) */
+}</code></pre>
+      <div class="note tip"><b>為什麼用硬體 Timer 而不是 <code>HAL_Delay(2)</code>：</b>控制迴圈要的是「準時」不是「大概」。主迴圈 + delay 會被任何雜務拉長；硬體 timer 中斷的抖動是微秒級。這個差異到專案 B（Linux RT）會再放大成整套 PREEMPT_RT 的理由。</div>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/app/control_rate.h</code>（為什麼是 500 Hz 不是 1 kHz — 答案在 L2-11）、<code>firmware/app/app_main.c</code> 的 <code>app_main_tick()</code>。</div>
+      <div class="kw"><span>Prescaler/Period</span><span>PeriodElapsedCallback</span><span>PWM 延伸</span><span>抖動 jitter</span></div>
+    </div></section>
+
+    <div class="pager">
+      <a href="index.html"><small>← 上一頁</small>學習樹總覽</a>
+      <a class="next" href="l2-mid.html"><small>下一頁 →</small>🔵 L2 中階</a>
+    </div>
+    <footer>L1 初階 · STM32 學習手冊 · 說明見 <code>learn/docs/02-l1-basic.md</code></footer>
+  </main>
+</div>
+</body>
+</html>

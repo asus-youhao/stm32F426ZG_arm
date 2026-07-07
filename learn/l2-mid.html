@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L2 中階 — STM32 學習手冊</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><span class="em">🤖</span>STM32 學習手冊</div>
+    <div class="tag">F7 雙臂機器人 · 從點燈到 14 軸</div>
+    <div class="navtitle">學習里程碑</div>
+    <a class="nav" href="index.html"><span class="dot d-basic"></span>學習樹總覽</a>
+    <a class="nav" href="l1-basic.html"><span class="dot d-basic"></span>L1 初階<span class="lv">6 節</span></a>
+    <a class="nav here" href="l2-mid.html"><span class="dot d-mid"></span>L2 中階<span class="lv">6 節</span></a>
+    <a class="nav" href="l3-adv.html"><span class="dot d-adv"></span>L3 高階<span class="lv">6 節</span></a>
+    <div class="navtitle">🎯 最終專案</div>
+    <a class="nav" href="project-dual-arm.html"><span class="dot d-proj"></span>A · 雙臂 CANopen 主站</a>
+    <a class="nav" href="project-ecat-master.html"><span class="dot d-proj"></span>B · EtherCAT 1kHz 主站</a>
+    <div class="navtitle">🧭 職涯</div>
+    <a class="nav" href="career-skills.html"><span class="dot d-career"></span>職涯技能地圖</a>
+    <div class="navtitle">本頁小節</div>
+    <a class="nav" href="#t7"><span class="dot d-mid"></span>7 CAN 匯流排 · bxCAN</a>
+    <a class="nav" href="#t8"><span class="dot d-mid"></span>8 CANopen · NMT/Heartbeat</a>
+    <a class="nav" href="#t9"><span class="dot d-mid"></span>9 SDO 物件字典存取</a>
+    <a class="nav" href="#t10"><span class="dot d-mid"></span>10 PDO 即時資料</a>
+    <a class="nav" href="#t11"><span class="dot d-mid"></span>11 頻寬預算 · 500Hz</a>
+    <a class="nav" href="#t12"><span class="dot d-mid"></span>12 免硬體：模擬與測試</a>
+  </aside>
+
+  <main>
+    <div class="crumb"><a href="index.html">學習樹總覽</a> ／ 🔵 L2 中階</div>
+    <header class="top">
+      <h1>🔵 L2 · 中階</h1>
+      <div class="sub">目標：從「會動 MCU」進到「會講工業匯流排的語言」— CAN 物理層 → CANopen 協定（NMT/SDO/PDO）→ 算得出頻寬 → 沒板子也能驗證。範例全部來自 <code>firmware/canopen/</code>。</div>
+    </header>
+
+    <!-- T7 -->
+    <section id="t7"><div class="topicblk">
+      <div class="th"><span class="num n-mid">7</span><h3 class="topic">CAN 匯流排基礎 · bxCAN 驅動</h3></div>
+      <div class="goal">🎯 懂 CAN 訊框與仲裁，會算位元時序，能寫出中斷收包的驅動層。</div>
+      <ul class="chk">
+        <li><b>差動雙絞線</b> CAN_H/CAN_L，兩端 120Ω 終端電阻；多主廣播，ID 越小優先權越高（逐位仲裁）</li>
+        <li><b>Classic CAN</b> 資料最多 8 bytes、1 Mbps 上限 — 這個「8 bytes」到 L2-11 會變成整個架構的天花板</li>
+        <li><b>位元時序</b>：1 bit = SYNC + BS1 + BS2 個 time quantum（TQ），取樣點通常擺 ~87.5%</li>
+      </ul>
+      <div class="codecap">1 Mbps 位元時序（APB1=45MHz 例，co_bxcan.c 實際設定）</div>
+      <pre><code>/* 45 MHz / Prescaler 5 = 9 MHz → 1 bit = 9 TQ = 1 µs (1 Mbps)
+ * 9 TQ = SYNC(1) + BS1(6) + BS2(2)，取樣點 = 7/9 ≈ 78% */
+hcan.Init.Prescaler     = 5;
+hcan.Init.TimeSeg1      = CAN_BS1_6TQ;
+hcan.Init.TimeSeg2      = CAN_BS2_2TQ;
+hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;   /* 換時脈樹要重算！ */</code></pre>
+      <div class="codecap">RX 走中斷 + 環形佇列（firmware/canopen/co_bxcan.h 的分層）</div>
+      <pre><code>/* ISR 只做「收進佇列」，解析留給主流程 — L1-5 的 ISR 準則 */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *h)
+{
+    co_frame_t f = read_from_fifo(h);
+    co_bxcan_on_rx(bus_of(h), &f);      /* 入環形佇列 */
+}
+/* 主流程/控制迴圈中: */
+co_frame_t f;
+while (co_bxcan_recv(CO_BUS_LEFT, &f)) {
+    co_pdo_process_frame(CO_BUS_LEFT, &f);   /* L2-10 */
+    co_nmt_process_frame(CO_BUS_LEFT, &f);   /* L2-8  */
+}</code></pre>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/co_bxcan.h/.c</code>（CAN1=左臂、CAN2=右臂 @1Mbps）。實體接線與拓樸見 <code>docs/design/can-bus-architecture.md</code>。</div>
+      <div class="kw"><span>CAN_H/CAN_L</span><span>仲裁</span><span>bit timing TQ</span><span>RX FIFO 中斷</span></div>
+    </div></section>
+
+    <!-- T8 -->
+    <section id="t8"><div class="topicblk">
+      <div class="th"><span class="num n-mid">8</span><h3 class="topic">CANopen 入門 · NMT / Heartbeat</h3></div>
+      <div class="goal">🎯 懂 CANopen 的三大件（OD / COB-ID / NMT），能把節點帶進 Operational 並監看心跳。</div>
+      <table>
+        <tr><th>概念</th><th>是什麼</th><th>本專案的例子</th></tr>
+        <tr><td>物件字典 OD</td><td>每個節點一本「參數電話簿」，用 index:sub 定址</td><td><code>0x6060</code> 運行模式、<code>0x607A</code> 目標位置</td></tr>
+        <tr><td>COB-ID</td><td>功能碼 + 節點 ID 組成的 CAN ID</td><td>RPDO1=<code>0x200+node</code>、TPDO1=<code>0x180+node</code>、HB=<code>0x700+node</code></td></tr>
+        <tr><td>NMT 狀態機</td><td>Init → Pre-operational → <b>Operational</b>（PDO 只在 OP 跑）</td><td><code>co_nmt_send(bus, NMT_START, 0)</code> 廣播啟動</td></tr>
+      </table>
+      <div class="codecap">開機流程 + 心跳監看（co_nmt.h API）</div>
+      <pre><code>/* 1) 廣播讓整條 bus 的 7 個關節進 Operational */
+co_nmt_send(CO_BUS_LEFT, CO_NMT_CMD_START, 0 /* =all */);
+
+/* 2) 週期檢查心跳年齡 — 超過 100ms 沒心跳就當失聯 */
+for (uint8_t node = 1; node <= 7; node++) {
+    if (co_nmt_node_age_ms(CO_BUS_LEFT, node) > 100)
+        printf("node %u heartbeat lost!\r\n", node);
+}</code></pre>
+      <div class="note tip"><b>心跳是安全的地基：</b>L3-16 的通訊看門狗、專案 A 的 50ms 逾時安全停止，底層都是這個 <code>node_age_ms</code> 概念。</div>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/co_nmt.h/.c</code>、共用型別 <code>canopen.h</code>。</div>
+      <div class="kw"><span>Object Dictionary</span><span>COB-ID</span><span>NMT Operational</span><span>Heartbeat</span></div>
+    </div></section>
+
+    <!-- T9 -->
+    <section id="t9"><div class="topicblk">
+      <div class="th"><span class="num n-mid">9</span><h3 class="topic">SDO — 讀寫物件字典（組態通道）</h3></div>
+      <div class="goal">🎯 會用 SDO 在初始化階段組態關節：讀型號、設模式、設限位。</div>
+      <p>SDO 是「一問一答」的可靠通道（client→server 0x600+node，回應 0x580+node）。慢但可靠，所以<b>只在初始化用</b>；即時控制走 PDO：</p>
+      <div class="codecap">用 SDO 組態一顆 PHU 關節（co_sdo.h API，expedited ≤4 bytes）</div>
+      <pre><code>uint32_t device_type;
+co_sdo_read (CO_BUS_LEFT, 1, 0x1000, 0, &device_type, 50);   /* 讀 Device Type */
+
+co_sdo_write(CO_BUS_LEFT, 1, 0x6060, 0, 8 /*CSP*/, 1, 50);   /* 運行模式=CSP */
+co_sdo_write(CO_BUS_LEFT, 1, 0x6081, 0, 100000, 4, 50);      /* Profile velocity */
+
+uint32_t sw;
+co_sdo_read (CO_BUS_LEFT, 1, 0x6041, 0, &sw, 50);            /* 讀 Statusword */</code></pre>
+      <div class="note warn"><b>實戰教訓（本 repo 踩過）：</b>對真實伺服關節，<b>不要亂寫不認識的廠商自定義物件</b>。本專案在 EtherCAT 路線上碰 <code>0x2100</code>（廠商物件）導致從站行為異常，最後靠對照原廠參考主站才定位（見專案 B 頁「實戰紀錄」）。先讀手冊、先 read-only 摸清楚，再寫。</div>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/co_sdo.h/.c</code>（阻塞式 + 逾時，適合初始化）。</div>
+      <div class="kw"><span>SDO expedited</span><span>0x600/0x580</span><span>index:sub</span><span>timeout</span></div>
+    </div></section>
+
+    <!-- T10 -->
+    <section id="t10"><div class="topicblk">
+      <div class="th"><span class="num n-mid">10</span><h3 class="topic">PDO — 即時資料交換（控制通道）</h3></div>
+      <div class="goal">🎯 懂 PDO 映射，能每個控制週期下發目標、收回授。</div>
+      <p>PDO 是「事先講好格式、不用回應」的廣播 — 一個 frame 塞多個 OD 物件，這才是即時控制的主角。本專案映射（<code>co_pdo.h</code>）：</p>
+      <table>
+        <tr><th>方向</th><th>COB-ID</th><th>內容（8 bytes 剛好用滿 6）</th></tr>
+        <tr><td>RPDO1 主站→關節</td><td><code>0x200+node</code></td><td>Controlword(0x6040, u16) + Target Position(0x607A, i32)</td></tr>
+        <tr><td>TPDO1 關節→主站</td><td><code>0x180+node</code></td><td>Statusword(0x6041, u16) + Position Actual(0x6064, i32)</td></tr>
+      </table>
+      <div class="codecap">控制週期內的一來一回（co_pdo.h API）</div>
+      <pre><code>/* 下發：控制字 + 目標位置（CSP 模式） */
+co_pdo_send_csp(CO_BUS_LEFT, node, CW_ENABLE_OP, target_counts);
+
+/* 收回授（由 co_pdo_process_frame 更新的快取） */
+uint16_t sw; int32_t pos;
+if (co_pdo_get_feedback(CO_BUS_LEFT, node, &sw, &pos)) {
+    /* feedback_seq 有遞增才是「新」回授 — 安全看門狗靠這個判斷 */
+}</code></pre>
+      <div class="note tip"><b>SDO vs PDO 一句話：</b>SDO 是打電話問一句答一句（組態）；PDO 是講好格式的廣播電台（即時）。面試必考。</div>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/co_pdo.h/.c</code>；<code>co_pdo_feedback_seq()</code> 的「序號判新舊」手法在 <code>app_main.c</code> 的 <code>fb_fresh</code> 安全判斷直接用上。</div>
+      <div class="kw"><span>PDO mapping</span><span>RPDO/TPDO</span><span>0x6040/0x607A</span><span>feedback seq</span></div>
+    </div></section>
+
+    <!-- T11 -->
+    <section id="t11"><div class="topicblk">
+      <div class="th"><span class="num n-mid">11</span><h3 class="topic">匯流排頻寬預算 — 為什麼是 500 Hz 不是 1 kHz</h3></div>
+      <div class="goal">🎯 學會算 fieldbus 頻寬 — 系統架構師和抄範例的人，差別就在這一節。</div>
+      <p>一個 Classic CAN 8-byte frame 含 overhead + stuffing 約 <b>130 bit</b> → @1Mbps 一條 bus 每秒極限約 7000–8000 frame。套到單臂 7 軸：</p>
+      <table>
+        <tr><th>控制頻率</th><th>frame 數（7 軸 × RPDO+TPDO）</th><th>結果</th></tr>
+        <tr><td>500 Hz</td><td>7 × 2 × 500 = <b>7000 frame/s</b></td><td>~90% 載荷，可行邊界 ✅</td></tr>
+        <tr><td>1 kHz</td><td>7 × 2 × 1000 = <b>14000 frame/s</b></td><td>超載 ~2 倍，必丟幀 ❌</td></tr>
+      </table>
+      <div class="codecap">firmware/app/control_rate.h — 把結論固化成程式碼</div>
+      <pre><code>#define CONTROL_HZ    500.0f
+#define CONTROL_DT    (1.0f / CONTROL_HZ)   /* 0.002 s */
+#define CONTROL_DT_US 2000u                 /* TIM 週期(µs)，接回 L1-6 的 TIM6 */</code></pre>
+      <ul class="chk">
+        <li>這就是本專案「雙臂拆兩條 bus（CAN1/CAN2）」的第一個理由：一條 bus 塞不下 14 軸</li>
+        <li>第二個理由：故障隔離 — 一臂的線斷了不拖垮另一臂</li>
+        <li>就算 500 Hz 也貼著上限跑，所以 <code>dual_arm_tx_drops()</code> 做了丟幀偵測</li>
+        <li>要 1 kHz？換更快的匯流排 → 這就是 L3-17 EtherCAT 與專案 B 的入口</li>
+      </ul>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/app/control_rate.h</code>、<code>firmware/README.md</code> 頻寬警告、<code>docs/design/can-bus-architecture.md</code>、<code>canopen-vs-ethercat.md</code>。</div>
+      <div class="kw"><span>130 bit/frame</span><span>bus load</span><span>丟幀偵測</span><span>雙 bus 架構</span></div>
+    </div></section>
+
+    <!-- T12 -->
+    <section id="t12"><div class="topicblk">
+      <div class="th"><span class="num n-mid">12</span><h3 class="topic">免硬體驗證 — 模擬器 · 單元測試 · SocketCAN</h3></div>
+      <div class="goal">🎯 學會「沒板子也能開發」：同一份控制程式碼在 PC 上編譯、測試、跨行程對打。</div>
+      <p>本 repo 的控制邏輯全部寫成<b>平台無關</b>，HAL 依賴縮到最小，於是有三層驗證：</p>
+      <table>
+        <tr><th>層</th><th>怎麼跑</th><th>repo 位置</th></tr>
+        <tr><td>單元測試</td><td><code>cd firmware/tests && make</code> — CiA402/PDO/IK/軌跡/安全逐一驗</td><td><code>firmware/tests/test_*.c</code></td></tr>
+        <tr><td>HOST 模擬</td><td><code>cmake -S firmware -B build && ./build/phu_sim_demo</code> — 假 HAL + 假 PHU 關節跑整個控制棧</td><td><code>firmware/sim/</code>（<code>hal_shim.c</code>、<code>phu_sim.c</code>）</td></tr>
+        <tr><td>SocketCAN 對打</td><td>PC 主站 vs Python 假從站，走 Linux 虛擬 CAN</td><td><code>firmware/pc/pc_master</code> + <code>sim_py/can_slave.py</code></td></tr>
+      </table>
+      <div class="codecap">Linux 虛擬 CAN — 免任何硬體練 CANopen</div>
+      <pre><code>sudo ip link add dev vcan0 type vcan && sudo ip link set up vcan0
+sudo ip link add dev vcan1 type vcan && sudo ip link set up vcan1  # vcan0=左臂 vcan1=右臂
+
+candump vcan0           # 看 bus 上所有 frame（除錯神器）
+cansend vcan0 000#0100  # 手動送 NMT start-all</code></pre>
+      <div class="note tip"><b>心法：</b>「控制邏輯」與「硬體層」之間切一刀乾淨的介面（本 repo 是 <code>co_bxcan.h</code> 那 4 個函式），上面全部可以在 PC 上測。這一刀切得好不好，決定你除錯是用 printf 燒板子兩小時、還是 gdb 五分鐘。</div>
+      <div class="note"><b>💻 對照範例：</b><code>firmware/sim/co_bxcan_sim.c</code>（同介面換底層的示範）、<code>docs/design/sim-fake-hardware.md</code>、<code>unit-tests.md</code>。</div>
+      <div class="kw"><span>hal_shim</span><span>vcan/SocketCAN</span><span>candump</span><span>可測試架構</span></div>
+    </div></section>
+
+    <div class="pager">
+      <a href="l1-basic.html"><small>← 上一頁</small>🟢 L1 初階</a>
+      <a class="next" href="l3-adv.html"><small>下一頁 →</small>🟣 L3 高階</a>
+    </div>
+    <footer>L2 中階 · STM32 學習手冊 · 說明見 <code>learn/docs/03-l2-mid.md</code></footer>
+  </main>
+</div>
+</body>
+</html>
