@@ -62,8 +62,43 @@ SAFEOP/OP；但 IgH CLI 裸請求（`ethercat states SAFEOP`）**能成功且穩
 - SOEM 2.x 建置與 mailbox 通訊正常
 - 四支 bring-up 工具入庫 `tools/ecat_bringup/`（含 README）
 
+## 第二輪（同日）：isolcpus 全套上機後的修正結論
+
+使用者要求試「隔離核能否救 USB NIC」。已對 gx701 施作並**永久生效**：
+`rt_setup.sh --grub` + HT siblings（isolcpus/nohz_full/rcu_nocbs=
+6,7,14,15、irqaffinity=0-5,8-13、intel_pstate=disable 等）+ 重開機 +
+xhci IRQ→核6/irq thread FIFO 85 + r8152 offloads off，測試程序
+taskset 核7 FIFO 80。
+
+結果與新證據：
+1. RT 調校**有效改善主站側**：`datagrams UNMATCHED` 完全消失；
+   SOEM 從「永遠 PREOP」進步到「map 後短暫 state=0x04(SAFEOP)」。
+2. **但彈跳仍在**：高速輪詢 AL 暫存器精確計時——進 SAFEOP 後
+   **0.5 ms** 自貶 PREOP，AL code **0x0022（Slave requires PREOP）**
+   ＝從站應用層主動要求回 PREOP。0.5 ms 遠小於任何資料週期 →
+   **靜態組態檢查不過，非時序問題**。
+3. ESC 看門狗讀回標準值（0x0400=2498、0x0420=1000 → 100 ms）→
+   排除看門狗機制。
+4. 修正結論：**根因不是（或不只是）USB NIC 時序**，而是從站韌體在
+   SAFEOP 入口的應用層前置檢查。目前最強嫌疑：master 寫入的
+   **FMMU（特別是 logical address 從 0x00000000 起始——TwinCAT
+   慣例從不用 0，SOEM/IgH 預設都用 0）**；CLI 裸請求（不寫 FMMU）
+   可站穩 SAFEOP 支持此說,但 CLI 非同步 FSM 使受控對照實驗採樣
+   不穩定,未能終判。
+5. NIC 時序問題（UNMATCHED/DC 不收斂）真實存在但已被 RT 調校壓制;
+   Intel NIC 仍是 ML1 量測基準的必要條件。
+
+**下一步實驗（NIC 無關,可先做）**：
+- SOEM `grouplist[0].logstartaddr=0x10000` 重測（初版 SOEM 2.x 下
+  segfault,需查正確設定點）;或 IgH 對照 TwinCAT 抓包。
+- **EYOU 詢問單三題升級為關鍵路徑**：ESI、AL 0x0022 觸發條件、
+  TwinCAT 參考組態（FMMU/DC/SM 逐字節）。
+
 ## 關聯
 
 - 前置：`2026-07-07-phu17-real-enumeration.md`、
   `linux-rt-ethercat-master-plan.md` §2.2（NIC 選型）WP-L1
-- 阻塞：WP-L1.4/1.5（使能/點動）、WP-L2、WP-I1 全數等 NIC
+- 阻塞：WP-L1.4/1.5（使能/點動）、WP-L2、WP-I1——等 EYOU 回覆
+  （ESI/0x0022）或 FMMU LogAddr 實驗終判;ML1 量測另需 Intel NIC
+- 附帶收穫：gx701 已完成 WP-L0.4 RT 調校（isolcpus 永久生效）,
+  cyclictest 基線可重測預期更佳
