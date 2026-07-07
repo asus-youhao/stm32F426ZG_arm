@@ -69,6 +69,7 @@
 | 2026-07-06 | [24.04 RT 真機驗證](./changes/2026-07-06-u24-rt-verification.md) | H3 抖動 PASS(1kHz p99=27µs)、IgH 1.6.9 對 6.8-rt 建置+掛載(I0.4 退役)、SOEM OK、vcan SIL 全流程 |
 | 2026-07-07 | [STM32 板端 EtherCAT 主站規劃](./changes/2026-07-07-stm32-ethercat-master-plan.md) | 開 feature/stm32-ethercat-master(h-sdo ⊕ dc-pll,5102 測試 PASS)；WP-SE 分解 + SIL×3/HIL×4 分層 + harness 復用評估 |
 | 2026-07-07 | [EtherCAT 假從站 + SIL-C](./changes/2026-07-07-ecat-slave-sim-sil-c.md) | ecat_slave.py(ESC/SII/ESM/CoE/FMMU,phu_motor 復用)；selftest 26 全過；真 SOEM veth 對打 2 軸 19/19、14 軸 67/67 PASS |
+| 2026-07-07 | [SE1 SIL-B 基線](./changes/2026-07-07-se1-silb-baseline.md) | 1kHz×60s：四相位 p99≈14µs(負載極輕)；late 是 WSL 非 RT 所致(RT 真機 27µs PASS)；miss 壓力演練 escalation |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件
