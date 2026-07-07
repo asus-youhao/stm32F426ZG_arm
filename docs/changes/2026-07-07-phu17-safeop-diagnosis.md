@@ -128,3 +128,20 @@ USB 時序皆為配角（後者仍影響 ML1 量測品質）。
   （ESI/0x0022）或 FMMU LogAddr 實驗終判;ML1 量測另需 Intel NIC
 - 附帶收穫：gx701 已完成 WP-L0.4 RT 調校（isolcpus 永久生效）,
   cyclictest 基線可重測預期更佳
+
+## 第四輪（同日）：EtherCAT 寫入被控制權鎖死 → 確定改走 CANopen
+
+重上電後嘗試經 EtherCAT CoE 寫 `0x2100=1`（切 EtherCAT 模式）失敗：
+`SDO abort 0x06010000 Unsupported access`。進一步試寫良性可寫物件
+（0x6081 profile velocity、0x6060 mode）**同樣被拒**——**EtherCAT 下
+所有 SDO 寫入都被擋，讀取正常**。
+
+**結論（閉環）**：馬達控制權在 CANopen（`0x2100=2`）時，EtherCAT 介面
+是**唯讀被動端**，無法寫任何設定物件（含 0x2100 自己）。這同時解釋
+SAFEOP 彈跳（EtherCAT 拿不到控制權）與寫入被拒。**切 0x2100 只能用
+當前有控制權的介面 = CANopen（接 CANable）或 UART（EYouServoStudio）**,
+不能用 EtherCAT 自己切 → Route A 在切模式前是死路。
+
+**定案：改走 Route B（CANopen）**——馬達現態即 CANopen（node1@1Mbps）,
+接 CANable 用既有 `pc_master`（方案 C 全棧,已驗證）直接驅動;若日後要
+EtherCAT,屆時在 CANopen 下寫 0x2100=1+存檔+重上電即可。
