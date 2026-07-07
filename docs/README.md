@@ -54,6 +54,7 @@
 | 2026-07-07 | [EtherCAT 主站機建置腳本](./changes/2026-07-07-ecat-master-host-build.md) | setup_master_host.sh：SOEM 2f73eaa+IgH beb2bf07 版本鎖定/冪等;取代口耳相傳的手動建置 |
 | 2026-07-07 | [vendor SOEM+IgH 原始碼](./changes/2026-07-07-vendor-ecat-master-source.md) | 完整原始碼收進 third_party/(git archive,無.git/build);建置腳本改預設用 vendored 源;GPL 隔離 |
 | 2026-07-07 | [補齊 SAFEOP 診斷工具](./changes/2026-07-07-ecat-diagnostic-tools-backfill.md) | gx701 盤點:補入 wd_read/phu_state×2(彈跳證據工具);記捨棄項與失落的抖動 CSV 教訓 |
+| 2026-07-07 | [發現既有 EYOU 參考主站+ESI](./changes/2026-07-07-eyou-reference-master-found.md) | gallop_ws 內可用 pysoem 主站+ESI(收進 third_party/eyou_esi);坐實 0x2100 根因;真實單位 52953088=524288×101 |
 
 ## 設計文件
 
