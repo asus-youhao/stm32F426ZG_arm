@@ -50,7 +50,8 @@
 | 2026-07-04 | [Linux RT EtherCAT 主站規劃](./changes/2026-07-04-linux-rt-ethercat-master-plan.md) | 主站改 Ubuntu 22.04 Pro PREEMPT_RT；STM32 暫緩；WP-L0~L7 工作分解 |
 | 2026-07-05 | [WP-L0.4 rt_setup.sh](./changes/2026-07-05-wp-l0-4-rt-setup.md) | RT 調校一鍵腳本：grub 隔離核/IRQ 綁核/governor/dma_latency/--check 驗收,A/B/C 共用 |
 | 2026-07-07 | [PHU17 真機枚舉+SDO 特性化](./changes/2026-07-07-phu17-real-enumeration.md) | WP-L0.6/L1.2：真馬達 EtherCAT 枚舉、Has DC、19-bit/101:1 確認、出廠 PDO 圖、CSP 就緒 |
-| 2026-07-07 | [PHU17 SAFEOP 診斷](./changes/2026-07-07-phu17-safeop-diagnosis.md) | P0：協定面全通;SAFEOP 5ms 彈跳=USB NIC 過不了同步驗證;bring-up 工具入庫;待 Intel NIC |
+| 2026-07-07 | [PHU17 SAFEOP 診斷](./changes/2026-07-07-phu17-safeop-diagnosis.md) | P0：三輪逼近真根因=0x2100=2(控制權在 CANopen);SAFEOP 0.5ms 自貶 AL0x0022;解法=切 0x2100=1 或直接走 CANopen |
+| 2026-07-07 | [EtherCAT 主站機建置腳本](./changes/2026-07-07-ecat-master-host-build.md) | setup_master_host.sh：SOEM 2f73eaa+IgH beb2bf07 版本鎖定/冪等;取代口耳相傳的手動建置 |
 
 ## 設計文件
 

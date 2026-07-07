@@ -1,7 +1,22 @@
 # EtherCAT 單軸 bring-up / 診斷工具（WP-L1 / WP-I1 / P0）
 
-2026-07-07 對 PHU17 真機 bring-up 過程產出的四支工具。
+2026-07-07 對 PHU17 真機 bring-up 過程產出的工具。
 背景與診斷結論見 `docs/changes/2026-07-07-phu17-safeop-diagnosis.md`。
+
+## 主站機建置（先跑這個）
+
+`setup_master_host.sh` — 在一台 PREEMPT_RT 機器上一鍵取得並建置
+SOEM + IgH（版本鎖定、冪等、可重跑）。取代「手動 git clone + cmake +
+configure」的口耳相傳流程。
+
+```bash
+./setup_master_host.sh [--dir ~/robot_test] [--nic-mac <EtherCAT NIC MAC>]
+```
+
+鎖定版本（2026-07-06/07 實測於 6.8.1-1052-realtime）：
+SOEM `2f73eaa`（2.x context API）、IgH `beb2bf07`（1.6.9-8，含 igc_6.8；
+6.8 內核用 generic driver）。腳本結尾印出 IgH 載入 / CoE 讀寫 / SOEM
+slaveinfo 的常用指令。
 
 | 檔案 | 堆疊 | 用途 |
 | --- | --- | --- |
