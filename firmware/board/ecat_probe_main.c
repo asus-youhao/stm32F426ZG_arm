@@ -88,11 +88,24 @@ int main(void)
 
     logf("\r\n=== ecat_probe（WP-SE3 HIL-0/HIL-1）===\r\n");
 
+    /* 先直接叫 oshw_mac_init 取錯誤碼：-1=HAL_ETH_Init(查 REF_CLK/DMA reset)
+       -2=PHY 無 link(查網線,≒E403) -3=ETH start */
+    int mrc = oshw_mac_init((const uint8_t *)priMAC);
+    while (mrc != 0) {
+        logf("[FAIL] oshw_mac_init=%d（-1=HAL/REF_CLK -2=無 link -3=start）\r\n", mrc);
+        HAL_Delay(2000);
+        mrc = oshw_mac_init((const uint8_t *)priMAC);   /* 插上網線即自動恢復 */
+    }
     if (!ecx_init(&ctx, "eth0")) {               /* → oshw_mac_init（含 PHY link 等待） */
-        logf("[FAIL] ETH 初始化/PHY link（查網線,≒E403）\r\n");
+        logf("[FAIL] ecx_init\r\n");
         while (1) { HAL_Delay(1000); logf("."); }
     }
     logf("[ ok ] ETH MAC + PHY link up\r\n");
+    /* GPIO 診斷：PG11/PG13 與 PB13 應為 AF11(MODER=10,AFR=0xB) */
+    logf("G.MODER=0x%08lX G.AFRH=0x%08lX B.MODER=0x%08lX B.AFRH=0x%08lX MACDBGR=0x%08lX\r\n",
+         (unsigned long)GPIOG->MODER, (unsigned long)GPIOG->AFR[1],
+         (unsigned long)GPIOB->MODER, (unsigned long)GPIOB->AFR[1],
+         (unsigned long)ETH->MACDBGR);
 
     int n = ecx_config_init(&ctx);
     logf("掃鏈：%d 從站\r\n", n);
@@ -100,9 +113,32 @@ int main(void)
         logf("[HIL-0] 無從站——用 Wireshark 應看得到本板送出的 0x88A4 幀\r\n");
         while (1) {                              /* 每秒重掃,接上假從站即自動續跑 */
             HAL_Delay(1000);
+            /* TX 診斷：直接送 60B 廣播測試幀,印 oshw_mac_send 回傳與 DMA 狀態 */
+            static uint8_t tf[60];
+            memset(tf, 0, sizeof(tf));
+            memset(tf, 0xFF, 6);
+            tf[6] = 0x02; tf[11] = 0x01;
+            tf[12] = 0x88; tf[13] = 0xA4;
+            int src = oshw_mac_send(tf, sizeof(tf));
+            /* RX 輪詢 800ms：任何幀（Windows 週期性 ARP/LLDP 廣播）都算 */
+            static uint8_t rxb[1536];
+            int rx_n = 0, rx_last = 0;
+            uint32_t t1 = HAL_GetTick();
+            while (HAL_GetTick() - t1 < 800) {
+                int r = oshw_mac_recv(rxb, sizeof(rxb));
+                if (r > 0) { rx_n++; rx_last = r; }
+            }
+            uint32_t bsr = 0, ssr = 0;
+            oshw_phy_read(1, &bsr); oshw_phy_read(31, &ssr);
+            logf("重掃… tx=%d TX好=%lu RX幀=%d(最後%dB) RXCRC=%lu 漏=%lu BSR=%04lX SSR=%04lX\r\n",
+                 src,
+                 (unsigned long)ETH->MMCTGFCR,
+                 rx_n, rx_last,
+                 (unsigned long)ETH->MMCRFCECR,
+                 (unsigned long)ETH->DMAMFBOCR & 0xFFFF,   /* DMA 丟幀計數 */
+                 (unsigned long)bsr, (unsigned long)ssr);
             n = ecx_config_init(&ctx);
             if (n > 0) break;
-            logf("重掃…\r\n");
         }
         logf("掃到 %d 從站\r\n", n);
     }

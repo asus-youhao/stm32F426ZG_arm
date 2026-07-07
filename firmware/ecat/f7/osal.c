@@ -26,6 +26,9 @@ static uint64_t cycles64(void)
 void osal_dwt_init(void)                  /* oshw_mac_init 會呼叫 */
 {
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    /* Cortex-M7 地雷：DWT 上鎖時 CYCCNT 不計數 → SOEM 逾時永不到期(掃鏈卡死)。
+       LAR 在 CMSIS 頭檔未列欄位,直接寫 DWT_BASE+0xFB0 解鎖。 */
+    *(volatile uint32_t *)(DWT_BASE + 0xFB0U) = 0xC5ACCE55U;
     DWT->CYCCNT = 0;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
     s_cyc_hi = 0;

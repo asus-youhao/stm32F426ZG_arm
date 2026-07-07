@@ -709,6 +709,48 @@ def run_raw(iface, axes, model, cycle_s, wd_ms, verbose):
         print("\n[ecat_slave] 結束，共處理 %d frame" % n)
 
 
+def run_npcap(iface_match, axes, model, cycle_s, wd_ms, verbose):
+    """Windows：scapy + npcap 傳輸（HIL-1 用,延遲 ms 級只驗協定不驗時序）。
+    npcap 會把自己送出的幀再抓回來 → 用「最近送出集合」防回音重處理。"""
+    from collections import deque
+    from scapy.all import conf
+    import scapy.arch.windows as w
+    ifs = w.get_windows_if_list()
+    hit = [i for i in ifs if iface_match.lower() in (i.get('description') or '').lower()
+           or iface_match == i.get('name')]
+    if not hit:
+        raise SystemExit("找不到介面（--iface 給描述關鍵字,如 Realtek）")
+    name = hit[0]['name']
+    s = conf.L2socket(iface=name, filter="ether proto 0x88a4")
+    try:                                    # npcap 立即交付（去掉核心緩衝延遲）
+        from scapy.libs.winpcapy import pcap_setmintocopy
+        pcap_setmintocopy(s.ins.pcap, 0)
+    except Exception:
+        pass
+    chain = EcatChain(axes, model, cycle_s=cycle_s, wd_ms=wd_ms, verbose=verbose)
+    sent = deque(maxlen=16)
+    print("[ecat_slave] %d 軸 (%s) 掛在 npcap:%s（Ctrl-C 結束）" % (axes, model, name))
+    n = 0
+    try:
+        while True:
+            chain.poll()
+            p = s.recv(1600)
+            if p is None:
+                continue
+            f = bytes(p)
+            if f in sent:                   # 自己的回音,跳過
+                continue
+            r = chain.process_frame(f)
+            if r:
+                sent.append(r)
+                s.send(r)
+                n += 1
+                if verbose and n % 200 == 0:
+                    print("[ecat_slave] 已處理 %d frame" % n)
+    except KeyboardInterrupt:
+        print("\n[ecat_slave] 結束，共處理 %d frame" % n)
+
+
 def main():
     ap = argparse.ArgumentParser(description="EtherCAT(CoE) PHU 假從站（SIL-C/HIL-1）")
     ap.add_argument("--selftest", action="store_true", help="離線協定自我測試")
@@ -723,7 +765,10 @@ def main():
         sys.exit(selftest())
     if not a.iface:
         ap.error("需 --selftest 或 --iface")
-    run_raw(a.iface, a.axes, a.model, a.cycle_ms / 1000.0, a.wd_ms, a.verbose)
+    if sys.platform == "win32":
+        run_npcap(a.iface, a.axes, a.model, a.cycle_ms / 1000.0, a.wd_ms, a.verbose)
+    else:
+        run_raw(a.iface, a.axes, a.model, a.cycle_ms / 1000.0, a.wd_ms, a.verbose)
 
 
 if __name__ == "__main__":

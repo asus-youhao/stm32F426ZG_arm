@@ -71,6 +71,7 @@
 | 2026-07-07 | [EtherCAT 假從站 + SIL-C](./changes/2026-07-07-ecat-slave-sim-sil-c.md) | ecat_slave.py(ESC/SII/ESM/CoE/FMMU,phu_motor 復用)；selftest 26 全過；真 SOEM veth 對打 2 軸 19/19、14 軸 67/67 PASS |
 | 2026-07-07 | [SE1 SIL-B 基線](./changes/2026-07-07-se1-silb-baseline.md) | 1kHz×60s：四相位 p99≈14µs(負載極輕)；late 是 WSL 非 RT 所致(RT 真機 27µs PASS)；miss 壓力演練 escalation |
 | 2026-07-07 | [SE3 F746 SOEM port](./changes/2026-07-07-se3-f746-soem-port.md) | ecat/f7 bare-metal port(osal DWT/nicdrv/ETH RMII+MPU non-cacheable)+ecat_probe 探測韌體;arm 38KB/62KB 可編可燒 |
+| 2026-07-08 | [HIL-0/HIL-1 板端真機通過](./changes/2026-07-08-hil0-hil1-board-ecat.md) | 板端 SOEM↔npcap 假從站全流程:掃鏈→OP→CSP WKC 零漏;修 DWT LAR 卡死/ReleaseTx;100M 不穩以 10M 繞道(HIL-2 前須解) |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件

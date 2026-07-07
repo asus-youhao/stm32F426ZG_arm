@@ -92,11 +92,12 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOG_CLK_ENABLE();
-    __HAL_RCC_ETH_CLK_ENABLE();
 
-    /* SYSCFG：RMII 模式（F7 直接寫 PMC;動時脈/周邊設定,文件須標註） */
+    /* RM0385：MII/RMII 選擇（SYSCFG_PMC bit23）必須在 ETH 時脈啟用「之前」
+       設定,否則 TX 路徑時脈錯誤 → 線上全是壞幀（MAC 計數器仍報好幀）。 */
     __HAL_RCC_SYSCFG_CLK_ENABLE();
     SYSCFG->PMC |= SYSCFG_PMC_MII_RMII_SEL;
+    __HAL_RCC_ETH_CLK_ENABLE();
 
     g.Mode = GPIO_MODE_AF_PP;
     g.Pull = GPIO_NOPULL;
@@ -140,6 +141,9 @@ static void mpu_eth_region(void)
 int oshw_mac_init(const uint8_t *mac_address)
 {
     static uint8_t mac[6];
+    static int s_up;                             /* 冪等：已啟動就不重跑 PHY reset(省 ~5s) */
+    if (s_up)
+        return oshw_mac_link_up() ? 0 : -2;
     memcpy(mac, mac_address, 6);
 
     osal_dwt_init();
@@ -163,7 +167,14 @@ int oshw_mac_init(const uint8_t *mac_address)
     uint32_t v = 0;
     HAL_ETH_WritePHYRegister(&s_heth, LAN_ADDR, LAN_BCR, LAN_BCR_RESET);
     HAL_Delay(50);
+#ifdef ECAT_PHY_FORCE_10M
+    /* 診斷模式：ANAR 只廣告 10M(省電+耐線材) → 驗證 100M link 抖動是否
+       出在供電/線材。0x0061 = 10FD|10HD|IEEE802.3 selector */
+    HAL_ETH_WritePHYRegister(&s_heth, LAN_ADDR, 0x04, 0x0061);
+    HAL_ETH_WritePHYRegister(&s_heth, LAN_ADDR, LAN_BCR, LAN_BCR_ANEG_EN | 0x0200);
+#else
     HAL_ETH_WritePHYRegister(&s_heth, LAN_ADDR, LAN_BCR, LAN_BCR_ANEG_EN);
+#endif
 
     uint32_t t0 = HAL_GetTick();
     do {
@@ -193,6 +204,7 @@ int oshw_mac_init(const uint8_t *mac_address)
 
     if (HAL_ETH_Start(&s_heth) != HAL_OK)        /* 輪詢模式,不用中斷 */
         return -3;
+    s_up = 1;
     return 0;
 }
 
@@ -211,6 +223,7 @@ int oshw_mac_send(const void *payload, size_t tot_len)
 
     if (HAL_ETH_Transmit(&s_heth, &s_txcfg, 20) != HAL_OK)   /* ms,阻塞至 DMA 取走 */
         return -1;
+    HAL_ETH_ReleaseTxPacket(&s_heth);            /* 回收描述符,避免 4 次後耗盡 */
     return (int)tot_len;
 }
 
@@ -235,6 +248,11 @@ int oshw_mac_link_up(void)
     uint32_t v = 0;
     HAL_ETH_ReadPHYRegister(&s_heth, LAN_ADDR, LAN_BSR, &v);
     return (v & LAN_BSR_LINK_UP) ? 1 : 0;
+}
+
+int oshw_phy_read(uint16_t reg, uint32_t *val)
+{
+    return HAL_ETH_ReadPHYRegister(&s_heth, LAN_ADDR, reg, val) == HAL_OK ? 0 : -1;
 }
 
 /* ================= byte order / adapters ================= */

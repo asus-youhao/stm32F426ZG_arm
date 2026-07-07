@@ -35,10 +35,15 @@ extern "C" {
 #define EC_SOE_MAXNAME   (60)
 #define EC_SOE_MAXMAPPING (16)
 
-/* Timeouts (us) — 同 cmake 預設 */
+/* Timeouts (us) — 同 cmake 預設;#ifndef 讓 HIL-1(npcap 假從站,延遲 ms 級)
+   可用 -DEC_TIMEOUTRET=50000 等覆寫 */
+#ifndef EC_TIMEOUTRET
 #define EC_TIMEOUTRET    (2000)
+#endif
 #define EC_TIMEOUTRET3   (EC_TIMEOUTRET * 3)
+#ifndef EC_TIMEOUTSAFE
 #define EC_TIMEOUTSAFE   (20000)
+#endif
 #define EC_TIMEOUTEEP    (20000)
 #define EC_TIMEOUTTXM    (20000)
 #define EC_TIMEOUTRXM    (700000)

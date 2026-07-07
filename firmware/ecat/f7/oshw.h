@@ -22,6 +22,9 @@ int oshw_mac_recv(void *buffer, size_t buffer_length);
 /** PHY link 狀態（HIL-0 診斷用）：1=up */
 int oshw_mac_link_up(void);
 
+/** PHY 暫存器讀取（診斷用）。回 0 成功。 */
+int oshw_phy_read(uint16_t reg, uint32_t *val);
+
 uint16 oshw_htons(uint16 host);
 uint16 oshw_ntohs(uint16 network);
 
