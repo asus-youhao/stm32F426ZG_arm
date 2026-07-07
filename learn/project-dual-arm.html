@@ -120,7 +120,7 @@
           <li>手轉一圈驗證 counts↔rad 換算（L3-14 的教訓）</li>
           <li>CSP 下發 ±1000 counts 小步階，軸有跟</li>
         </ul>
-        <div class="note"><b>📄 文件：</b><code>docs/design/wp2-single-axis-bringup.md</code></div>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp2-single-axis-bringup.md</code> ｜ <b>💻 範例：</b><code>learn/examples/project-a/wp2-single-axis/</code>（vcan + 假從站完整走一遍此 checklist）</div>
       </div>
 
       <div class="topicblk">
@@ -131,7 +131,7 @@
           <li>trajectory 層限速限加速度生效（L3-15）</li>
           <li>bus 載荷實測，<code>dual_arm_tx_drops()</code> = 0</li>
         </ul>
-        <div class="note"><b>📄 文件：</b><code>docs/design/wp3-joint-space.md</code>；測試 <code>test_trajectory.c</code></div>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp3-joint-space.md</code>；測試 <code>test_trajectory.c</code> ｜ <b>💻 範例：</b><code>learn/examples/project-a/wp3-joint-space/</code>（7 軸梯形軌跡 @500Hz）</div>
       </div>
 
       <div class="topicblk">
@@ -142,7 +142,7 @@
           <li>IK 誤差/迭代數在預算內（<code>test_ik.c</code>）</li>
           <li>末端畫直線/圓弧，實測軌跡貼合</li>
         </ul>
-        <div class="note"><b>📄 文件：</b><code>docs/design/wp4-task-space.md</code></div>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp4-task-space.md</code> ｜ <b>💻 範例：</b><code>learn/examples/project-a/wp4-task-space/</code>（直線→IK→counts，含軌跡誤差驗證）</div>
       </div>
 
       <div class="topicblk">
@@ -153,7 +153,7 @@
           <li><code>da_ctrl</code> 三模式切換正常</li>
           <li>兩臂末端逼近到 5cm，防撞 hold 觸發（<code>app_safety_hold()</code>）</li>
         </ul>
-        <div class="note"><b>📄 文件：</b><code>docs/design/wp5-dual-arm-integration.md</code></div>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp5-dual-arm-integration.md</code> ｜ <b>💻 範例：</b><code>learn/examples/project-a/wp5-dual-bus/run.sh</code>（vcan0+vcan1 × 14 假從站 @500Hz + 統計）</div>
       </div>
 
       <div class="topicblk">
@@ -164,7 +164,7 @@
           <li>estop API + STO 實測</li>
           <li><code>test_safety.c</code> 全綠</li>
         </ul>
-        <div class="note"><b>📄 文件：</b><code>docs/design/wp6-safety-wp7-host.md</code></div>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp6-safety-wp7-host.md</code> ｜ <b>💻 範例：</b><code>learn/examples/project-a/wp6-safety/run.sh</code>（自動「拔線」驗證看門狗真的咬）</div>
       </div>
 
       <div class="topicblk">
@@ -175,7 +175,7 @@
           <li>狀態回報含 <code>app_sys_state()</code>、雙臂實際位姿</li>
           <li>PC 端腳本連續下目標，跑 10 分鐘無失步</li>
         </ul>
-        <div class="note"><b>📄 文件：</b><code>docs/design/wp6-safety-wp7-host.md</code>；測試 <code>test_hostif.c</code></div>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp6-safety-wp7-host.md</code>；測試 <code>test_hostif.c</code> ｜ <b>💻 範例：</b><code>learn/examples/project-a/wp7-host-if/</code>（stdin 命令協定互動 demo）</div>
       </div>
     </section>
 

@@ -66,7 +66,7 @@ while (co_bxcan_recv(CO_BUS_LEFT, &f)) {
     co_pdo_process_frame(CO_BUS_LEFT, &f);   /* L2-10 */
     co_nmt_process_frame(CO_BUS_LEFT, &f);   /* L2-8  */
 }</code></pre>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/co_bxcan.h/.c</code>（CAN1=左臂、CAN2=右臂 @1Mbps）。實體接線與拓樸見 <code>docs/design/can-bus-architecture.md</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l2/01-can-raw/</code>（vcan 上收發第一個 frame）；repo 實例 <code>firmware/canopen/co_bxcan.h/.c</code>（CAN1=左臂、CAN2=右臂 @1Mbps）。實體接線與拓樸見 <code>docs/design/can-bus-architecture.md</code>。</div>
       <div class="kw"><span>CAN_H/CAN_L</span><span>仲裁</span><span>bit timing TQ</span><span>RX FIFO 中斷</span></div>
     </div></section>
 
@@ -90,7 +90,7 @@ for (uint8_t node = 1; node <= 7; node++) {
         printf("node %u heartbeat lost!\r\n", node);
 }</code></pre>
       <div class="note tip"><b>心跳是安全的地基：</b>L3-16 的通訊看門狗、專案 A 的 50ms 逾時安全停止，底層都是這個 <code>node_age_ms</code> 概念。</div>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/co_nmt.h/.c</code>、共用型別 <code>canopen.h</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l2/02-nmt-heartbeat/</code>（對打 <code>common/fake_slave.py</code> 假關節）；repo 實例 <code>firmware/canopen/co_nmt.h/.c</code>、共用型別 <code>canopen.h</code>。</div>
       <div class="kw"><span>Object Dictionary</span><span>COB-ID</span><span>NMT Operational</span><span>Heartbeat</span></div>
     </div></section>
 
@@ -109,7 +109,7 @@ co_sdo_write(CO_BUS_LEFT, 1, 0x6081, 0, 100000, 4, 50);      /* Profile velocity
 uint32_t sw;
 co_sdo_read (CO_BUS_LEFT, 1, 0x6041, 0, &sw, 50);            /* 讀 Statusword */</code></pre>
       <div class="note warn"><b>實戰教訓（本 repo 踩過）：</b>對真實伺服關節，<b>不要亂寫不認識的廠商自定義物件</b>。本專案在 EtherCAT 路線上碰 <code>0x2100</code>（廠商物件）導致從站行為異常，最後靠對照原廠參考主站才定位（見專案 B 頁「實戰紀錄」）。先讀手冊、先 read-only 摸清楚，再寫。</div>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/co_sdo.h/.c</code>（阻塞式 + 逾時，適合初始化）。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l2/03-sdo-client/</code>（讀/寫/abort 三情境都演）；repo 實例 <code>firmware/canopen/co_sdo.h/.c</code>（阻塞式 + 逾時，適合初始化）。</div>
       <div class="kw"><span>SDO expedited</span><span>0x600/0x580</span><span>index:sub</span><span>timeout</span></div>
     </div></section>
 
@@ -133,7 +133,7 @@ if (co_pdo_get_feedback(CO_BUS_LEFT, node, &sw, &pos)) {
     /* feedback_seq 有遞增才是「新」回授 — 安全看門狗靠這個判斷 */
 }</code></pre>
       <div class="note tip"><b>SDO vs PDO 一句話：</b>SDO 是打電話問一句答一句（組態）；PDO 是講好格式的廣播電台（即時）。面試必考。</div>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/co_pdo.h/.c</code>；<code>co_pdo_feedback_seq()</code> 的「序號判新舊」手法在 <code>app_main.c</code> 的 <code>fb_fresh</code> 安全判斷直接用上。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l2/04-pdo-csp/</code>（使能交握 + 斜坡跟隨全流程）；repo 實例 <code>firmware/canopen/co_pdo.h/.c</code>；<code>co_pdo_feedback_seq()</code> 的「序號判新舊」手法在 <code>app_main.c</code> 的 <code>fb_fresh</code> 安全判斷直接用上。</div>
       <div class="kw"><span>PDO mapping</span><span>RPDO/TPDO</span><span>0x6040/0x607A</span><span>feedback seq</span></div>
     </div></section>
 
@@ -157,7 +157,7 @@ if (co_pdo_get_feedback(CO_BUS_LEFT, node, &sw, &pos)) {
         <li>就算 500 Hz 也貼著上限跑，所以 <code>dual_arm_tx_drops()</code> 做了丟幀偵測</li>
         <li>要 1 kHz？換更快的匯流排 → 這就是 L3-17 EtherCAT 與專案 B 的入口</li>
       </ul>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/app/control_rate.h</code>、<code>firmware/README.md</code> 頻寬警告、<code>docs/design/can-bus-architecture.md</code>、<code>canopen-vs-ethercat.md</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l2/05-bus-budget/</code>（把這筆帳寫成計算器）；repo 實例 <code>firmware/app/control_rate.h</code>、<code>firmware/README.md</code> 頻寬警告、<code>docs/design/can-bus-architecture.md</code>、<code>canopen-vs-ethercat.md</code>。</div>
       <div class="kw"><span>130 bit/frame</span><span>bus load</span><span>丟幀偵測</span><span>雙 bus 架構</span></div>
     </div></section>
 
@@ -179,7 +179,7 @@ sudo ip link add dev vcan1 type vcan && sudo ip link set up vcan1  # vcan0=左�
 candump vcan0           # 看 bus 上所有 frame（除錯神器）
 cansend vcan0 000#0100  # 手動送 NMT start-all</code></pre>
       <div class="note tip"><b>心法：</b>「控制邏輯」與「硬體層」之間切一刀乾淨的介面（本 repo 是 <code>co_bxcan.h</code> 那 4 個函式），上面全部可以在 PC 上測。這一刀切得好不好，決定你除錯是用 printf 燒板子兩小時、還是 gdb 五分鐘。</div>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/sim/co_bxcan_sim.c</code>（同介面換底層的示範）、<code>docs/design/sim-fake-hardware.md</code>、<code>unit-tests.md</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l2/06-run-all/run.sh</code>（一鍵串起假從站 + 全部 L2 範例）；repo 實例 <code>firmware/sim/co_bxcan_sim.c</code>（同介面換底層的示範）、<code>docs/design/sim-fake-hardware.md</code>、<code>unit-tests.md</code>。</div>
       <div class="kw"><span>hal_shim</span><span>vcan/SocketCAN</span><span>candump</span><span>可測試架構</span></div>
     </div></section>
 

@@ -97,6 +97,7 @@
           <li><code>cyclictest -m -p90 -i1000</code> 跑 10 分鐘，max latency &lt; 100µs 級</li>
           <li>專用網卡一張（主站要 raw socket 獨占）</li>
         </ul>
+        <div class="note"><b>💻 範例：</b><code>learn/examples/project-b/m1-master-setup/check_rt.sh</code>（RT kernel / cyclictest / 網卡三項體檢）</div>
       </div>
 
       <div class="topicblk">
@@ -107,6 +108,7 @@
           <li>對照 EYOU 提供的 ESI XML，確認 RxPDO/TxPDO 內容與 SM 配置</li>
           <li>把每站的 Vendor ID / Product Code 記進組態檔</li>
         </ul>
+        <div class="note"><b>💻 範例：</b><code>learn/examples/project-b/m2-slave-scan/scan.py</code>（pysoem 掃描 — EYOU 參考主站同款函式庫）</div>
       </div>
 
       <div class="topicblk">
@@ -117,6 +119,7 @@
           <li>設插補週期物件（0x60C2）= 1ms，與 DC 週期一致</li>
           <li><b>只碰手冊寫明的物件</b>（見實戰紀錄的 0x2100 教訓）</li>
         </ul>
+        <div class="note"><b>💻 範例：</b><code>learn/examples/project-b/m3-preop-sdo/config_sdo.py</code>（0x6060=CSP、0x60C2=1ms、讀回驗證）</div>
       </div>
 
       <div class="topicblk">
@@ -127,6 +130,7 @@
           <li><code>ec_configdc()</code> 啟用 DC，量測從站間對時誤差</li>
           <li>進 OP 後 working counter 穩定 — 卡 SAFEOP 就去讀 AL status code（實戰紀錄有除錯工具）</li>
         </ul>
+        <div class="note"><b>💻 範例：</b><code>learn/examples/project-b/m4-safeop-op-dc/to_op.py</code>（SAFEOP→OP + DC，卡住自動列 AL status）</div>
       </div>
 
       <div class="topicblk">
@@ -137,6 +141,7 @@
           <li>counts 換算：EYOU 介面組態實測為馬達端 19-bit × 減速比 101 = <b>52953088 counts/輸出圈</b>（與專案 A 的輸出端 524288 不同 — 先驗證再動）</li>
           <li>記錄 following error，確認無週期性尖峰（尖峰 = RT 或 DC 沒調好）</li>
         </ul>
+        <div class="note"><b>💻 範例：</b><code>learn/examples/project-b/m5-csp-1khz/</code>（SOEM 1kHz 正弦 CSP 骨架；無 SOEM 編 dry-run 自檢單位）</div>
       </div>
 
       <div class="topicblk">
@@ -147,6 +152,7 @@
           <li>移植專案 A 的 L2~L4 控制棧（joint/task-space 程式碼直接重用）</li>
           <li>量測並比較：cycle 抖動、DC 對時誤差、end-to-end 延遲 vs 專案 A</li>
         </ul>
+        <div class="note"><b>💻 範例：</b><code>learn/examples/project-b/m6-jitter-report/</code>（10 秒 1kHz 量測 → jitter.csv + 直方圖摘要）</div>
       </div>
     </section>
 

@@ -58,7 +58,7 @@ cia402_state_t st = cia402_decode(sw);      /* DS_OPERATION_ENABLED? DS_FAULT? *
 uint16_t cw = cia402_enable_step(sw);
 co_pdo_send_csp(bus, node, cw, target);     /* 交握與控制走同一個 RPDO */</code></pre>
       <div class="note tip"><b>設計亮點：</b>把狀態機寫成「statusword 進、controlword 出」的純函式，而不是自己記狀態 — 驅動器才是真相來源，主站重開機、驅動器掉電重上都不會錯亂。<code>firmware/tests/test_cia402.c</code> 直接對這個函式打單元測試。</div>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/canopen/cia402.h/.c</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l3/01-cia402-sm/</code>（含自我斷言的可跑版）；repo 實例 <code>firmware/canopen/cia402.h/.c</code>。</div>
       <div class="kw"><span>0x6040/0x6041</span><span>enable 交握</span><span>Fault Reset</span><span>純函式狀態機</span></div>
     </div></section>
 
@@ -82,7 +82,7 @@ co_pdo_send_csp(bus, node, cw, target);     /* 交握與控制走同一個 RPDO 
 int32_t target_counts = (int32_t)(q_rad * CPR_19BIT);      /* rad → counts 下發 */
 float   q_fb = js_counts_to_rad(j, pos_actual);            /* counts → rad 回授 */</code></pre>
       <div class="note warn"><b>實戰教訓：</b>單位換算是伺服整合最容易炸的地方 — 到底是「馬達端 counts × 減速比」還是「輸出端 counts」？EYOU 另有走「馬達端 19-bit × 減速比 101 = 52953088 counts/輸出圈」的介面組態（本 repo EtherCAT 路線實測）。<b>上電第一件事：手轉一圈，讀回授驗證換算</b>，再談使能。</div>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/app/robot_config.c</code>、<code>firmware/control/joint_space.c</code> 的 <code>js_counts_to_rad()</code>；PHU 規格見 <code>doc_EYOU/</code>、<code>docs/design/eyou-phu-motor-analysis.md</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l3/02-units/</code>（兩種組態對照 + 往返驗證）；repo 實例 <code>firmware/app/robot_config.c</code>、<code>firmware/control/joint_space.c</code> 的 <code>js_counts_to_rad()</code>；PHU 規格見 <code>doc_EYOU/</code>、<code>docs/design/eyou-phu-motor-analysis.md</code>。</div>
       <div class="kw"><span>CSP=8</span><span>插補週期</span><span>counts/rad</span><span>減速比 101</span></div>
     </div></section>
 
@@ -115,7 +115,7 @@ dual_arm_tick();</code></pre>
         <li><b>軌跡限制</b>：目標一步跳太遠會觸發驅動器 following error → trajectory 層限速/限加速度</li>
         <li>矩陣運算自寫輕量 <code>linalg.c</code>（嵌入式沒有 Eigen 可用）</li>
       </ul>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/tests/test_ik.c</code>、<code>test_kinematics.c</code>、<code>test_trajectory.c</code>；設計文件 <code>docs/design/wp3-joint-space.md</code>、<code>wp4-task-space.md</code>、<code>wp5-dual-arm-integration.md</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l3/03-ik-2link/</code>（2 連桿把 FK→IK→直線走一遍）；repo 實例 <code>firmware/tests/test_ik.c</code>、<code>test_kinematics.c</code>、<code>test_trajectory.c</code>；設計文件 <code>docs/design/wp3-joint-space.md</code>、<code>wp4-task-space.md</code>、<code>wp5-dual-arm-integration.md</code>。</div>
       <div class="kw"><span>DH 參數</span><span>Jacobian IK</span><span>7-DoF 冗餘</span><span>分層控制</span></div>
     </div></section>
 
@@ -139,7 +139,7 @@ for (int j = 0; j < 14; j++)
 bool allow = safety_update(now);
 dual_arm_set_safe_stop(!allow, safety_safe_controlword());</code></pre>
       <div class="note warn"><b>看門狗的第一定律：</b>「餵狗」的條件必須是<b>真的有新資料</b>，不是「這段程式碼有跑到」。上面那個 bug（無條件刷新時間戳 → 失聯永遠測不到）是安全系統最典型的自我安慰式失效。</div>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/safety/safety.h/.c</code>、<code>firmware/tests/test_safety.c</code>、<code>docs/design/wp6-safety-wp7-host.md</code>；安全停止的 controlword 策略見 <code>safety_safe_controlword()</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l3/04-watchdog-fbfresh/</code>（buggy vs fixed 一跑就懂）；repo 實例 <code>firmware/safety/safety.h/.c</code>、<code>firmware/tests/test_safety.c</code>、<code>docs/design/wp6-safety-wp7-host.md</code>；安全停止的 controlword 策略見 <code>safety_safe_controlword()</code>。</div>
       <div class="kw"><span>通訊看門狗</span><span>fb_fresh</span><span>STO</span><span>RUNNING 門檻</span></div>
     </div></section>
 
@@ -167,7 +167,7 @@ ec_slave[0].state = EC_STATE_OPERATIONAL;   /* SAFEOP → OP:開始交換過程�
 ec_writestate(0);
 /* 之後每 1ms: ec_send_processdata() + ec_receive_processdata() */</code></pre>
       <div class="note tip"><b>學習投資報酬率：</b>因為 CoE 的存在，你在 L2/L3 學的 SDO、PDO、CiA402 在 EtherCAT 上<b>原樣有效</b> — 換的只有「載體」（bxCAN → 乙太網）和「同步」（無 → DC）。這就是先學 CANopen 再學 EtherCAT 的理由。</div>
-      <div class="note"><b>💻 對照範例：</b>本 repo EtherCAT 系列分支（<code>feature/linux-rt-ethercat-master</code> 等）將 SOEM/IgH 原始碼收在 <code>third_party/</code>；選型比較見 <code>docs/design/canopen-vs-ethercat.md</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l3/05-ecat-skeleton/</code>（無 SOEM 也能編的 dry-run + 真機建置法）；本 repo EtherCAT 系列分支（<code>feature/linux-rt-ethercat-master</code> 等）將 SOEM/IgH 原始碼收在 <code>third_party/</code>；選型比較見 <code>docs/design/canopen-vs-ethercat.md</code>。</div>
       <div class="kw"><span>ESM 四態</span><span>CoE</span><span>DC/SYNC0</span><span>SOEM vs IgH</span></div>
     </div></section>
 
@@ -198,6 +198,7 @@ while (running) {
     ec_receive_processdata(EC_TIMEOUTRET);
     control_tick();                          /* 同一套 L2~L4 控制棧 */
 }</code></pre>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l3/06-rt-1khz/</code>（1kHz 迴圈 + 抖動統計，普通權限就能跑）。</div>
       <div class="note"><b>本 repo 現況：</b>主站機建置腳本（SOEM+IgH 可重現安裝）與 RT 設定見 EtherCAT 分支的 <code>setup_master_host.sh</code>、<code>firmware/rt/rt_setup.sh</code>；抖動對比實驗規劃見 memory/分支 <code>feature/linux-rt-ethercat-master</code>。這一節做完，直接進<a href="project-ecat-master.html">專案 B</a>。</div>
       <div class="kw"><span>PREEMPT_RT</span><span>SCHED_FIFO</span><span>cyclictest</span><span>clock_nanosleep</span></div>
     </div></section>

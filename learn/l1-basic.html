@@ -71,7 +71,7 @@ st-info --probe               # 確認 ST-Link 有抓到板子</code></pre>
         <li>燒錄：<code>st-flash write build/fw.bin 0x8000000</code> 或 OpenOCD + gdb</li>
         <li>本 repo 還有 <b>HOST 模擬建置</b>（在 PC 上編譯跑控制邏輯，見 L2-12），先知道有這回事</li>
       </ul>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/Makefile</code>、<code>firmware/README.md</code>「整合到 STM32CubeMX 專案」一節、<code>docs/design/firmware-cubemx-integration.md</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l1/00-toolchain/</code>（指令逐條練）；repo 實例 <code>firmware/Makefile</code>、<code>firmware/README.md</code>「整合到 STM32CubeMX 專案」一節、<code>docs/design/firmware-cubemx-integration.md</code>。</div>
       <div class="kw"><span>arm-none-eabi-gcc</span><span>CubeMX/HAL</span><span>st-flash</span><span>OpenOCD</span></div>
     </div></section>
 
@@ -102,6 +102,7 @@ int main(void)
     }
 }</code></pre>
       <div class="note"><b>最常見的坑：</b>忘記 <code>__HAL_RCC_GPIOx_CLK_ENABLE()</code> — 周邊沒開時脈時寫暫存器完全沒反應，也不會報錯。STM32 每個周邊都要先開時脈。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l1/01-blink/</code> — <code>make run</code> 免板子在 PC 模擬（同一份 main.c 拿掉 HOST_SIM 即可燒真板）。</div>
       <div class="kw"><span>HAL_Init</span><span>RCC_CLK_ENABLE</span><span>HAL_GPIO_TogglePin</span><span>HAL_Delay</span></div>
     </div></section>
 
@@ -124,7 +125,7 @@ int _write(int fd, char *buf, int len)
       <pre><code>printf("dual-arm fw boot, HAL=%lu\r\n", HAL_GetTickFreq());
 printf("[%lu] sys=%s\r\n", HAL_GetTick(), app_sys_state());</code></pre>
       <div class="note"><b>常見坑：</b>看到亂碼 → 鮑率沒對上（115200）；printf 沒出來 → 少了 <code>\n</code> 且 newlib 有行緩衝，或 float 格式要在連結器加 <code>-u _printf_float</code>。</div>
-      <div class="note"><b>💻 對照範例：</b>本 repo 上位機介面 <code>firmware/host/host_if.c</code> 就是用同一條 UART 做文字命令協定（L3 之後會回來看）。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l1/02-uart-printf/</code>（含 <code>_write</code> retarget，host/target 同一份碼）；本 repo 上位機介面 <code>firmware/host/host_if.c</code> 就是用同一條 UART 做文字命令協定（L3 之後會回來看）。</div>
       <div class="kw"><span>_write retarget</span><span>VCP/USART3</span><span>115200</span><span>printf_float</span></div>
     </div></section>
 
@@ -147,6 +148,7 @@ HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 1, 0);
 HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 2, 0);
 HAL_NVIC_SetPriority(USART3_IRQn,   5, 0);</code></pre>
       <div class="note warn"><b>經典死當：</b>在高優先權 ISR 裡呼叫 <code>HAL_Delay()</code> — 它靠 SysTick 中斷遞增 tick，但 SysTick 優先權比你低進不來，永遠等不到 → 卡死。ISR 內只做最短的事。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l1/03-systick-timeout/</code> — 用 <code>HAL_GetTick()</code> 做逾時偵測，這個 pattern 就是 L3-16 通訊看門狗的雛形。</div>
       <div class="kw"><span>PLL/AHB/APB</span><span>HAL_GetTick</span><span>NVIC 優先權</span><span>ISR 準則</span></div>
     </div></section>
 
@@ -178,7 +180,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *h)
         app_main_tick();     /* 之後整個控制迴圈都掛在這裡(firmware/app/app_main.c) */
 }</code></pre>
       <div class="note tip"><b>為什麼用硬體 Timer 而不是 <code>HAL_Delay(2)</code>：</b>控制迴圈要的是「準時」不是「大概」。主迴圈 + delay 會被任何雜務拉長；硬體 timer 中斷的抖動是微秒級。這個差異到專案 B（Linux RT）會再放大成整套 PREEMPT_RT 的理由。</div>
-      <div class="note"><b>💻 對照範例：</b><code>firmware/app/control_rate.h</code>（為什麼是 500 Hz 不是 1 kHz — 答案在 L2-11）、<code>firmware/app/app_main.c</code> 的 <code>app_main_tick()</code>。</div>
+      <div class="note"><b>💻 對照範例：</b><code>learn/examples/l1/04-tim-tick-500hz/</code>（host 模擬 2ms 節拍 + 抖動量測）；repo 實例 <code>firmware/app/control_rate.h</code>（為什麼是 500 Hz 不是 1 kHz — 答案在 L2-11）、<code>firmware/app/app_main.c</code> 的 <code>app_main_tick()</code>。</div>
       <div class="kw"><span>Prescaler/Period</span><span>PeriodElapsedCallback</span><span>PWM 延伸</span><span>抖動 jitter</span></div>
     </div></section>
 
