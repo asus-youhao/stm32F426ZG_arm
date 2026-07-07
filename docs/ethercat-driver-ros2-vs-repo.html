@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ethercat_driver_ros2 vs 本 repo — EtherCAT 對比</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#1c2530; --mut:#5b6773; --line:#dfe4ea;
+    --accent:#2563eb; --accent2:#0891b2; --repo:#7c3aed; --ros:#0891b2;
+    --ok:#15803d; --warn:#b45309; --code:#f0f2f5;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0f141a; --card:#161d26; --ink:#e6ebf0; --mut:#9aa7b4; --line:#2a343f;
+      --accent:#60a5fa; --accent2:#38bdf8; --repo:#a78bfa; --ros:#38bdf8;
+      --ok:#4ade80; --warn:#fbbf24; --code:#0b1016;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 72px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:.3px}
+  .sub{color:var(--mut);margin:0 0 28px;font-size:14px}
+  h2{font-size:19px;margin:38px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  @media(max-width:640px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px}
+  .card h3{margin:0 0 6px;font-size:16px;display:flex;align-items:center;gap:8px}
+  .card p{margin:6px 0 0;font-size:14.5px;color:var(--mut)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;color:#fff}
+  .t-ros{background:var(--ros)} .t-repo{background:var(--repo)}
+  .diag{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;overflow-x:auto;margin:18px 0}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:color-mix(in srgb,var(--card) 82%,var(--accent));font-size:13px}
+  tr:last-child td{border-bottom:none}
+  td:first-child{font-weight:600;white-space:nowrap;color:var(--mut)}
+  .col-ros{color:var(--ros)} .col-repo{color:var(--repo)}
+  ol{padding-left:22px} ol li{margin:12px 0}
+  code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:13px;
+    font-family:ui-monospace,"SFMono-Regular",Menlo,monospace}
+  .key{border-left:4px solid var(--accent);padding:2px 0 2px 14px;margin:4px 0}
+  .foot{margin-top:40px;font-size:13px;color:var(--mut);border-top:1px solid var(--line);padding-top:14px}
+  .foot a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ethercat_driver_ros2 <span style="color:var(--mut)">vs</span> 本 repo</h1>
+  <p class="sub">只談 EtherCAT 部分 · ICube-Robotics ROS2 驅動 對照 本專案 <code>firmware/ecat/</code> 堆疊</p>
+
+  <h2>定位：兩種相反的設計哲學</h2>
+  <div class="cards">
+    <div class="card">
+      <h3><span class="tag t-ros">ROS2</span> ethercat_driver_ros2</h3>
+      <p>成熟、通用、<b>只跑 Linux + ROS2</b> 的 EtherCAT 硬體驅動。底層<b>只綁 IgH</b>（kernel module），用 <b>YAML 宣告式</b>設定任意廠牌從站。把 EtherCAT 塞進 ROS2 生態，設定檔通吃。</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag t-repo">本 repo</span> firmware/ecat</h3>
+      <p>為 EYOU 雙臂量身打造、<b>可攜到 F746 微控制器</b>、<b>CANopen 與 EtherCAT 共用同一套控制/資料面</b>。底層是 <code>ec_master.h</code> 門面（sim / SOEM / IgH 三後端）。一套可攜核心，通吃兩種匯流排。</p>
+    </div>
+  </div>
+
+  <h2>堆疊層次對照</h2>
+  <div class="diag">
+    <svg viewBox="0 0 900 320" width="100%" role="img" aria-label="兩套 EtherCAT 堆疊層次對照">
+      <style>
+        .lbl{font:13px "Noto Sans TC",sans-serif;fill:var(--ink)}
+        .lblm{font:11px "Noto Sans TC",sans-serif;fill:var(--mut)}
+        .ttl{font:bold 14px "Noto Sans TC",sans-serif}
+        .box{rx:8;stroke:var(--line)}
+      </style>
+      <!-- ROS2 side -->
+      <text x="20" y="24" class="ttl" fill="var(--ros)">ethercat_driver_ros2</text>
+      <rect x="20" y="36" width="400" height="40" rx="8" fill="color-mix(in srgb,var(--card) 70%,var(--ros))" stroke="var(--line)"/>
+      <text x="34" y="61" class="lbl">ROS2 controller (JTC / FPC) · controller_manager</text>
+      <rect x="20" y="84" width="400" height="40" rx="8" fill="var(--card)" stroke="var(--line)"/>
+      <text x="34" y="109" class="lbl">ethercat_driver (ros2_control SystemInterface)</text>
+      <rect x="20" y="132" width="400" height="40" rx="8" fill="var(--card)" stroke="var(--line)"/>
+      <text x="34" y="157" class="lbl">ethercat_interface（C++ 包 ecrt）</text>
+      <rect x="20" y="180" width="400" height="40" rx="8" fill="color-mix(in srgb,var(--card) 60%,var(--ros))" stroke="var(--line)"/>
+      <text x="34" y="205" class="lbl"><tspan font-weight="bold">IgH</tspan> ec_master.ko（kernel module）</text>
+      <rect x="20" y="228" width="400" height="36" rx="8" fill="var(--card)" stroke="var(--line)"/>
+      <text x="34" y="251" class="lblm">Linux PC + PREEMPT_RT（唯一平台）</text>
+
+      <!-- repo side -->
+      <text x="480" y="24" class="ttl" fill="var(--repo)">本 repo</text>
+      <rect x="480" y="36" width="400" height="40" rx="8" fill="color-mix(in srgb,var(--card) 70%,var(--repo))" stroke="var(--line)"/>
+      <text x="494" y="61" class="lbl">harness / loop-engine + app agents（無 OS/ROS）</text>
+      <rect x="480" y="84" width="400" height="40" rx="8" fill="var(--card)" stroke="var(--line)"/>
+      <text x="494" y="109" class="lbl">bus_if_t vtable · 共用 cia402.c</text>
+      <rect x="480" y="132" width="400" height="40" rx="8" fill="color-mix(in srgb,var(--card) 60%,var(--repo))" stroke="var(--line)"/>
+      <text x="494" y="157" class="lbl"><tspan font-weight="bold">ec_master.h</tspan> 門面</text>
+      <rect x="480" y="180" width="126" height="40" rx="8" fill="var(--card)" stroke="var(--line)"/>
+      <text x="494" y="205" class="lblm">sim</text>
+      <rect x="617" y="180" width="126" height="40" rx="8" fill="var(--card)" stroke="var(--line)"/>
+      <text x="631" y="205" class="lblm">SOEM (主)</text>
+      <rect x="754" y="180" width="126" height="40" rx="8" fill="var(--card)" stroke="var(--line)"/>
+      <text x="768" y="205" class="lblm">IgH</text>
+      <rect x="480" y="228" width="400" height="36" rx="8" fill="var(--card)" stroke="var(--line)"/>
+      <text x="494" y="251" class="lblm">Linux PC　＋　STM32F746 板端（同一套碼）</text>
+    </svg>
+  </div>
+
+  <h2>逐軸差異（EtherCAT 面）</h2>
+  <table>
+    <tr><th>面向</th><th class="col-ros">ethercat_driver_ros2</th><th class="col-repo">本 repo</th></tr>
+    <tr><td>主站後端</td><td><b>IgH only</b>（<code>ecrt_*</code> 直呼、kernel module）</td><td><code>ec_master.h</code> 門面 → <b>SOEM(主) / IgH / sim</b> 可換</td></tr>
+    <tr><td>可攜性</td><td>綁死 Linux kernel + ROS2，<b>上不了 F746</b></td><td>純 C，PC + F746 同一套碼（nicdrv/osal 移植層）</td></tr>
+    <tr><td>整合模型</td><td>ros2_control <code>SystemInterface</code> 外掛，controller_manager 迴圈驅動</td><td>自有 harness/loop-engine（相位 tick / overrun SKIP / WCET / DC PI 鎖相），<b>無 OS/ROS</b></td></tr>
+    <tr><td>設定方式</td><td><b>宣告式 YAML/URDF</b>：vendor/product、<code>assign_activate</code>(DC)、啟動 SDO、PDO 綁介面 + <code>factor</code>——改映射免重編</td><td>C structs + key=value 設定檔；改映射要動碼</td></tr>
+    <tr><td>CiA402</td><td>外掛 <code>cia402_drive</code>（<code>auto_state_transitions</code>），<b>只服務 EtherCAT</b></td><td>共用 <code>cia402.c</code>，<b>CANopen 與 EtherCAT 同一份狀態機</b></td></tr>
+    <tr><td>多從站/廠牌</td><td>pluginlib 通用（Maxon/Beckhoff…），社群驗證</td><td>專為 EYOU PHU，泛用性低</td></tr>
+    <tr><td>免硬體測試</td><td>無（要真 IgH + 硬體）</td><td><b>sim 後端 + 單元測試</b>，逐幀 byte diff，免硬體 CI</td></tr>
+    <tr><td>協定範圍</td><td><b>EtherCAT 唯一</b></td><td>CANopen + EtherCAT 雙協定共堆疊</td></tr>
+  </table>
+
+  <h2>三個重點結論</h2>
+  <ol>
+    <li><div class="key"><b>設計哲學相反</b>：ROS2 驅動贏在<b>廣度</b>（設定檔通吃各種從站）；本 repo 贏在<b>可攜性 + 雙協定</b>（一套核心下得到 MCU、通吃 CANopen/EtherCAT）。</div></li>
+    <li><div class="key"><b>值得借鏡：宣告式 PDO/SDO 設定</b>。它的 yaml 把 <code>assign_activate=0x0300</code>、啟動 <code>0x60C2</code> SDO、每個 PDO entry 綁介面 + <code>factor</code> 換算寫得很乾淨。日後接 IgH 真後端進 <code>ec_master.h</code> 時，其 CiA402 外掛狀態機與 DC 序列是現成參考（與 <code>eyou-motor-master</code> 的 pysoem 主站互相印證）。</div></li>
+    <li><div class="key"><b>對「現在這顆 PHU17」它幫不上忙</b>：它也是 IgH，一樣要主張 EtherCAT 控制權，會撞上同一道 <code>0x2100=2</code> 牆（控制權在 CANopen 時 EtherCAT 唯讀）。切 <code>0x2100</code> 只能靠 CANopen/UART。</div></li>
+  </ol>
+
+  <div class="foot">
+    關聯：<a href="./ros2-control-comm-path.html">控制指令通訊路徑（DDS/SHM）</a> ·
+    診斷 <code>changes/2026-07-07-phu17-safeop-diagnosis.md</code> ·
+    規劃 <code>design/ethercat-coe-master-plan.md</code>
+  </div>
+</div>
+</body>
+</html>

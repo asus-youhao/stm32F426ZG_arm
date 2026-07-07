@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ros2_control 控制指令通訊路徑 — DDS / topic / SHM？</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#1c2530; --mut:#5b6773; --line:#dfe4ea;
+    --accent:#2563eb; --rt:#15803d; --dds:#b45309; --shm:#7c3aed; --code:#f0f2f5;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0f141a; --card:#161d26; --ink:#e6ebf0; --mut:#9aa7b4; --line:#2a343f;
+      --accent:#60a5fa; --rt:#4ade80; --dds:#fbbf24; --shm:#a78bfa; --code:#0b1016;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;-webkit-text-size-adjust:100%}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 72px}
+  h1{font-size:25px;margin:0 0 6px}
+  .sub{color:var(--mut);margin:0 0 26px;font-size:14px}
+  h2{font-size:19px;margin:38px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+  .diag{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;margin:18px 0}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--mut);margin:6px 0 0}
+  .dot{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin-right:6px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  @media(max-width:640px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 8px;font-size:15px}
+  .card p{margin:0;font-size:14px;color:var(--mut)}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;color:#fff}
+  .p-dds{background:var(--dds)} .p-shm{background:var(--shm)}
+  .verdict{background:color-mix(in srgb,var(--card) 84%,var(--rt));border:1px solid var(--line);
+    border-left:4px solid var(--rt);border-radius:10px;padding:14px 16px;margin:18px 0}
+  .verdict.warn{background:color-mix(in srgb,var(--card) 84%,var(--dds));border-left-color:var(--dds)}
+  code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+  ul{padding-left:20px} li{margin:8px 0}
+  .foot{margin-top:40px;font-size:13px;color:var(--mut);border-top:1px solid var(--line);padding-top:14px}
+  .foot a{color:var(--accent)}
+  .big{font-size:15.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>控制指令怎麼到馬達？ <span style="color:var(--mut)">DDS / topic / SHM</span></h1>
+  <p class="sub">ros2_control + ethercat_driver_ros2 · 實測背景：gx701 <code>phu_controller_ros2</code> = JTC @ 500 Hz、<code>ec_master.cpp</code> 設 SCHED_FIFO</p>
+
+  <div class="verdict big">
+    <b>一句話：</b>JTC 架構下，控制指令<b>根本不經 DDS</b> — controller 與 EtherCAT 硬體在<b>同一 process、同一 RT 執行緒</b>，靠<b>共享記憶體（<code>double</code> 參考）</b>交換。DDS 只在「外部送整條軌跡進來」那一刻用一次。<b>500 Hz 沒問題。</b>
+  </div>
+
+  <h2>兩段通訊，RT 那段不走 DDS</h2>
+  <div class="diag">
+    <svg viewBox="0 0 900 340" width="100%" role="img" aria-label="controller_manager RT 迴圈與 DDS 邊界">
+      <style>
+        .t{font:13px "Noto Sans TC",sans-serif;fill:var(--ink)}
+        .tm{font:11px "Noto Sans TC",sans-serif;fill:var(--mut)}
+        .tb{font:bold 13px "Noto Sans TC",sans-serif;fill:var(--ink)}
+        .flow{stroke:var(--shm);stroke-width:2;fill:none;marker-end:url(#ah)}
+        .ddsflow{stroke:var(--dds);stroke-width:2;stroke-dasharray:6 4;fill:none;marker-end:url(#ahd)}
+      </style>
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="var(--shm)"/></marker>
+        <marker id="ahd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="var(--dds)"/></marker>
+      </defs>
+
+      <!-- external node -->
+      <rect x="20" y="130" width="150" height="70" rx="10" fill="var(--card)" stroke="var(--line)"/>
+      <text x="95" y="158" text-anchor="middle" class="tb">外部節點</text>
+      <text x="95" y="178" text-anchor="middle" class="tm">MoveIt / 軌跡產生</text>
+
+      <!-- DDS edge -->
+      <path class="ddsflow" d="M172,165 L232,165"/>
+      <text x="202" y="150" text-anchor="middle" class="tm" fill="var(--dds)">DDS</text>
+      <text x="202" y="196" text-anchor="middle" class="tm" fill="var(--dds)">一次性軌跡</text>
+
+      <!-- RT process box -->
+      <rect x="238" y="40" width="642" height="270" rx="14" fill="color-mix(in srgb,var(--card) 88%,var(--rt))" stroke="var(--rt)" stroke-width="1.5"/>
+      <text x="258" y="66" class="tb" fill="var(--rt)">ros2_control_node（單一 process · RT 執行緒 SCHED_FIFO）</text>
+      <text x="258" y="84" class="tm">每 2 ms 一圈（update_rate 500 Hz）</text>
+
+      <!-- controllers -->
+      <rect x="262" y="100" width="240" height="86" rx="10" fill="var(--card)" stroke="var(--line)"/>
+      <text x="382" y="126" text-anchor="middle" class="tb">JTC（controller）</text>
+      <text x="382" y="146" text-anchor="middle" class="tm">迴圈內自己內插軌跡</text>
+      <text x="382" y="164" text-anchor="middle" class="tm">→ 寫 command_interface</text>
+
+      <!-- SHM interfaces -->
+      <rect x="540" y="118" width="86" height="50" rx="8" fill="color-mix(in srgb,var(--card) 60%,var(--shm))" stroke="var(--line)"/>
+      <text x="583" y="139" text-anchor="middle" class="tm">command</text>
+      <text x="583" y="156" text-anchor="middle" class="tm">state (double)</text>
+
+      <!-- hardware -->
+      <rect x="640" y="100" width="216" height="86" rx="10" fill="var(--card)" stroke="var(--line)"/>
+      <text x="748" y="126" text-anchor="middle" class="tb">ethercat_driver</text>
+      <text x="748" y="146" text-anchor="middle" class="tm">read()/write() 打包 PDO</text>
+      <text x="748" y="164" text-anchor="middle" class="tm">→ ecrt 送出</text>
+
+      <!-- SHM flows -->
+      <path class="flow" d="M502,150 L538,145"/>
+      <path class="flow" d="M628,145 L638,140"/>
+      <text x="583" y="196" text-anchor="middle" class="tm" fill="var(--shm)">同址空間 · 零序列化</text>
+
+      <!-- loop cycle text -->
+      <text x="262" y="230" class="t"><tspan font-weight="bold">每週期同步三步：</tspan> read() 收回授 → JTC.update() 算設定點 → write() 送 PDO</text>
+      <text x="262" y="252" class="tm">controller ↔ hardware 之間：command_interface / state_interface = ResourceManager 借出的 double* 參考</text>
+
+      <!-- ethercat down to motor -->
+      <rect x="640" y="256" width="216" height="40" rx="8" fill="var(--card)" stroke="var(--line)"/>
+      <text x="748" y="281" text-anchor="middle" class="tm">EtherCAT PDO → PHU 馬達</text>
+      <path class="flow" d="M748,188 L748,254"/>
+    </svg>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--shm)"></span>共享記憶體（同 process，無 middleware）</span>
+      <span><span class="dot" style="background:var(--dds)"></span>DDS（跨 process，僅軌跡一次性）</span>
+    </div>
+  </div>
+
+  <h2>DDS 出現在哪 → JTC 與 FPC 天差地別</h2>
+  <div class="cards">
+    <div class="card">
+      <h3><span class="pill p-shm">安全</span> JTC（你在用的）</h3>
+      <p>軌跡目標用 <code>FollowJointTrajectory</code> action / <code>~/joint_trajectory</code> topic <b>一次性</b>送進來（走 DDS），之後 JTC <b>在 500 Hz 迴圈內自己內插</b>。→ 每週期設定點<b>不走 DDS</b>。</p>
+    </div>
+    <div class="card">
+      <h3><span class="pill p-dds">當心</span> FPC（forward_position_controller）</h3>
+      <p>訂閱 <code>~/commands</code>（Float64MultiArray）topic，<b>你發的每個設定點都過 DDS</b>。若從外部逐拍串流 500 Hz~1 kHz → 每拍吃 DDS 延遲/抖動/掉包（掉包時沿用舊值）。</p>
+    </div>
+  </div>
+
+  <h2>500 Hz 會有問題嗎</h2>
+  <div class="verdict"><b>JTC @ 500 Hz（現況）：不會。</b> RT 迴圈是 in-process 共享記憶體 + SCHED_FIFO，DDS 只送一次軌跡。500 Hz 甚至 1 kHz 在 PREEMPT_RT 上都很輕鬆（EYOU EtherCAT 最小週期到 500 µs = 2 kHz 都在規格內）。</div>
+  <div class="verdict warn"><b>唯一要小心：FPC + 外部逐拍串流。</b> 那段走 DDS，500 Hz~1 kHz 會踩抖動/掉包。對策：RT 友善 QoS（best-effort、keep-last-1）並接受抖動；或把設定點產生器做成 <b>chained controller</b> 塞進 RT 迴圈（就不過 DDS）。</div>
+
+  <h2>補充</h2>
+  <ul>
+    <li><b>瓶頸不在 middleware，在 update_rate 迴圈本身</b>：只要有 RT 優先權、mlockall、隔離核（gx701 已套 isolcpus），500 Hz/1 kHz 的 read→update→write 綽綽有餘。天花板是 EtherCAT 週期與 CPU 算力，不是 DDS。</li>
+    <li><b>與本 repo 同源思想</b>：本 repo loop-engine 的 <b>cmd ring（lock-free SPSC）</b> 等同 ros2_control 的 in-process command interface——RT 端讀、非 RT 端寫，兩者都讓 RT 迴圈不碰 middleware；差別只在本 repo 沒有 DDS 外圍層。</li>
+  </ul>
+
+  <div class="foot">
+    關聯：<a href="./ethercat-driver-ros2-vs-repo.html">ethercat_driver_ros2 vs 本 repo</a> ·
+    <code>design/ros2-control-comm-path.md</code> ·
+    <code>design/harness-agent-loop-engine-plan.md</code>
+  </div>
+</div>
+</body>
+</html>

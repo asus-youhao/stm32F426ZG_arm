@@ -55,6 +55,7 @@
 | 2026-07-07 | [vendor SOEM+IgH 原始碼](./changes/2026-07-07-vendor-ecat-master-source.md) | 完整原始碼收進 third_party/(git archive,無.git/build);建置腳本改預設用 vendored 源;GPL 隔離 |
 | 2026-07-07 | [補齊 SAFEOP 診斷工具](./changes/2026-07-07-ecat-diagnostic-tools-backfill.md) | gx701 盤點:補入 wd_read/phu_state×2(彈跳證據工具);記捨棄項與失落的抖動 CSV 教訓 |
 | 2026-07-07 | [發現既有 EYOU 參考主站+ESI](./changes/2026-07-07-eyou-reference-master-found.md) | gallop_ws 內可用 pysoem 主站+ESI(收進 third_party/eyou_esi);坐實 0x2100 根因;真實單位 52953088=524288×101 |
+| 2026-07-07 | [ROS2/EtherCAT 分析(md+html)](./changes/2026-07-07-ros2-ethercat-analysis-docs.md) | 兩題獨立文件:ethercat_driver_ros2 vs 本 repo、JTC/FPC 指令走 DDS/SHM 與 500Hz;含 SVG 圖 |
 
 ## 設計文件
 
@@ -74,4 +75,6 @@
 | [WP4 Task-space](./design/wp4-task-space.md) | 運動學/Jacobian/IK 與笛卡爾控制 |
 | [WP5 雙臂整合](./design/wp5-dual-arm-integration.md) | L4 協同與全棧串接 |
 | [假硬體模擬器](./design/sim-fake-hardware.md) | PC 模擬 PHU 從站 + 全棧資料流 |
+| [ethercat_driver_ros2 vs 本 repo](./design/ethercat-driver-ros2-vs-repo.md) · [HTML](./ethercat-driver-ros2-vs-repo.html) | EtherCAT 面對比:IgH-only ROS2 驅動 vs ec_master.h 三後端可攜堆疊 |
+| [ros2_control 通訊路徑](./design/ros2-control-comm-path.md) · [HTML](./ros2-control-comm-path.html) | JTC/FPC 指令走 DDS/topic/SHM?500Hz 會有問題嗎(附 RT 迴圈 SVG) |
 | [協定與模式速覽 (HTML)](./eyou-phu-protocols.html) | 可瀏覽的 EYOU PHU 協定/控制模式速覽 |
