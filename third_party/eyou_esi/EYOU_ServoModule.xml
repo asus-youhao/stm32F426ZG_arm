@@ -1,0 +1,6545 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<EtherCATInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="EtherCATInfo.xsd" Version="1.6">
+	<Vendor>
+		<Id>#x1097</Id>
+		<Name>Jiangsu Yiyou Robot Technology Co., Ltd.</Name>
+		<ImageData16x14>424D760500000000000036000000280000001F0000000E000000010018000000000040050000C40E0000C40E00000000000000000000ABC1F68AA9F48AA9F39EB8F5ECF1FDFFFFFFFFFFFF6F95F1B5C8F8A4BCF67499F1FFFFFFFFFFFFF8F9FD608AEFEDF1FD94B0F4A5BDF6FFFFFFFFFFFF6991F097B2F56C93F092AFF4FFFFFFFFFFFF88A7F3D8E2FBFFFFFFA1B9F6C4D4F9000000D3DEFA93AFF490ADF492AFF4FFFFFFFFFFFFFFFFFF99B4F590ADF490ACF4FEFEFFFFFFFFFFFFFF6F94F1BECFF890ADF492AEF5F6F8FEFFFFFFE9EEFC2F66EBDAE4FB678FF0678FF0FFFFFFFFFFFFFFFFFF5A85EFDFE7FC97B2F5FFFFFF000000D1DDFA7096F181A2F2799CF2FFFFFFFFFFFFB5C8F78DABF4C8D6F990ADF4FFFFFFFFFFFFFFFFFFADC3F75481EEA2BAF591AEF5FFFFFFFFFFFFE2E9FC9DB7F5527FEE5D87EF93AFF4FFFFFFFFFFFFFFFFFFE6ECFC225CE9FFFFFFFFFFFF000000A0B9F64B7AED799CF25783EFEDF2FDFFFFFFFFFFFF5A86EF7D9FF27B9EF25381EEFFFFFFFFFFFF82A2F26D93F085A4F27397F2FFFFFFFFFFFFFFFFFF507EEE9CB6F5608AEF789BF1FFFFFFFFFFFFFFFFFFFFFFFF5C87EFFFFFFFFFFFFF000000E7EDFCD4DFFAA6BDF6D4DFFAFFFFFFFFFFFFFFFFFFCBD8F9F8F9FED3DFFAF6F9FEFFFFFFFFFFFFFAFBFEDCE5FBD3DFFACAD8F9FFFFFFFFFFFFFFFFFFAAC0F6E2EAFCB2C6F7D0DCFAFFFFFFFFFFFFFFFFFFFFFFFFB6C9F7FFFFFFFFFFFF000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000003A6EEB366BEB366BEB366BEB366BEB366BEB3167EB5C87EFFFFFFFFFFFFFFFFFFFC3D2F96B92F0CCD9F9FFFFFFFFFFFFFFFFFFAAC0F6FFFFFFBCCDF8FAFBFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA3BBF67EA0F2A4BCF6FFFFFFFFFFFF000000094AE70346E70446E70446E70446E70446E70041E63369EBFFFFFFFFFFFFFFFFFF94B0F4003DE6A3BBF5FFFFFFFEFEFE205BE90035E4FFFFFF5380EE003EE6B7CAF8FFFFFFFFFFFFF2F5FD114FE80748E70446E70748E71250E8F9FBFE000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF99B4F50446E7A9BFF6FFFFFF3066EB1250E82760EAFFFFFF8EABF40849E70043E6EDF1FDFFFFFF396DEC0F4EE8628BF0CCD9FA5F89EF0F4EE85280EE0000007096F16D93F16D93F16D93F16D93F16D93F16990F088A7F3FFFFFFFFFFFFFFFFFF9BB5F50446E7AFC4F6EFF3FD0446E7245EEAFFFFFFFFFFFFFFFFFF80A1F20A4BE77D9FF2FFFFFF0346E61755E9FFFFFFFFFFFFFFFFFF1552E8225CE90000000648E60144E60144E60144E60144E60144E6003FE63168EBFFFFFFFFFFFFFFFFFF91ADF40446E7AAC0F6D9E3FB0748E74E7DEEFFFFFFFFFFFFFFFFFFB8CBF80849E76A91F0FFFFFF0648E71E5AE9FFFFFFFFFFFFFFFFFF1B57E8255EE9000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8FAFE094AE70748E7F1F4FDFFFFFF0547E70D4CE7B8CAF8FFFFFFF4F7FE2961EA0849E7AAC1F6FFFFFF0648E71E5AE9FFFFFFFFFFFFFFFFFF1B57E8255EE90000004475EC4072EC4072EC4072EC4072EC4072EC3B6EEC648DF0FFFFFFFFFFFF2D64EA0345E7AFC4F7FFFFFFFFFFFF9BB5F50245E60039E5FFFFFF5480EE0446E73167EBFFFFFFFFFFFF0547E71E59E9FFFFFFFFFFFFFFFFFF1A57E8255EE9000000265FE9215BE9215CE9215CE9215CE9215CE91B57E94A7AEDFFFFFF779BF20D4DE76890F0FFFFFFFFFFFFFFFFFFFFFFFFC0D1F92962EAFFFFFF6F94F17EA0F2FFFFFFFFFFFFFFFFFF0A4BE7235DEAFFFFFFFFFFFFFFFFFF1F5AE92961EA000000</ImageData16x14>
+	</Vendor>
+	<Descriptions>
+		<Groups>
+			<Group>
+				<Type>ServoDrive</Type>
+				<Name>ServoDrive</Name>
+				<ImageData16x14>424D760500000000000036000000280000001F0000000E000000010018000000000040050000C40E0000C40E00000000000000000000ABC1F68AA9F48AA9F39EB8F5ECF1FDFFFFFFFFFFFF6F95F1B5C8F8A4BCF67499F1FFFFFFFFFFFFF8F9FD608AEFEDF1FD94B0F4A5BDF6FFFFFFFFFFFF6991F097B2F56C93F092AFF4FFFFFFFFFFFF88A7F3D8E2FBFFFFFFA1B9F6C4D4F9000000D3DEFA93AFF490ADF492AFF4FFFFFFFFFFFFFFFFFF99B4F590ADF490ACF4FEFEFFFFFFFFFFFFFF6F94F1BECFF890ADF492AEF5F6F8FEFFFFFFE9EEFC2F66EBDAE4FB678FF0678FF0FFFFFFFFFFFFFFFFFF5A85EFDFE7FC97B2F5FFFFFF000000D1DDFA7096F181A2F2799CF2FFFFFFFFFFFFB5C8F78DABF4C8D6F990ADF4FFFFFFFFFFFFFFFFFFADC3F75481EEA2BAF591AEF5FFFFFFFFFFFFE2E9FC9DB7F5527FEE5D87EF93AFF4FFFFFFFFFFFFFFFFFFE6ECFC225CE9FFFFFFFFFFFF000000A0B9F64B7AED799CF25783EFEDF2FDFFFFFFFFFFFF5A86EF7D9FF27B9EF25381EEFFFFFFFFFFFF82A2F26D93F085A4F27397F2FFFFFFFFFFFFFFFFFF507EEE9CB6F5608AEF789BF1FFFFFFFFFFFFFFFFFFFFFFFF5C87EFFFFFFFFFFFFF000000E7EDFCD4DFFAA6BDF6D4DFFAFFFFFFFFFFFFFFFFFFCBD8F9F8F9FED3DFFAF6F9FEFFFFFFFFFFFFFAFBFEDCE5FBD3DFFACAD8F9FFFFFFFFFFFFFFFFFFAAC0F6E2EAFCB2C6F7D0DCFAFFFFFFFFFFFFFFFFFFFFFFFFB6C9F7FFFFFFFFFFFF000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000003A6EEB366BEB366BEB366BEB366BEB366BEB3167EB5C87EFFFFFFFFFFFFFFFFFFFC3D2F96B92F0CCD9F9FFFFFFFFFFFFFFFFFFAAC0F6FFFFFFBCCDF8FAFBFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA3BBF67EA0F2A4BCF6FFFFFFFFFFFF000000094AE70346E70446E70446E70446E70446E70041E63369EBFFFFFFFFFFFFFFFFFF94B0F4003DE6A3BBF5FFFFFFFEFEFE205BE90035E4FFFFFF5380EE003EE6B7CAF8FFFFFFFFFFFFF2F5FD114FE80748E70446E70748E71250E8F9FBFE000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF99B4F50446E7A9BFF6FFFFFF3066EB1250E82760EAFFFFFF8EABF40849E70043E6EDF1FDFFFFFF396DEC0F4EE8628BF0CCD9FA5F89EF0F4EE85280EE0000007096F16D93F16D93F16D93F16D93F16D93F16990F088A7F3FFFFFFFFFFFFFFFFFF9BB5F50446E7AFC4F6EFF3FD0446E7245EEAFFFFFFFFFFFFFFFFFF80A1F20A4BE77D9FF2FFFFFF0346E61755E9FFFFFFFFFFFFFFFFFF1552E8225CE90000000648E60144E60144E60144E60144E60144E6003FE63168EBFFFFFFFFFFFFFFFFFF91ADF40446E7AAC0F6D9E3FB0748E74E7DEEFFFFFFFFFFFFFFFFFFB8CBF80849E76A91F0FFFFFF0648E71E5AE9FFFFFFFFFFFFFFFFFF1B57E8255EE9000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8FAFE094AE70748E7F1F4FDFFFFFF0547E70D4CE7B8CAF8FFFFFFF4F7FE2961EA0849E7AAC1F6FFFFFF0648E71E5AE9FFFFFFFFFFFFFFFFFF1B57E8255EE90000004475EC4072EC4072EC4072EC4072EC4072EC3B6EEC648DF0FFFFFFFFFFFF2D64EA0345E7AFC4F7FFFFFFFFFFFF9BB5F50245E60039E5FFFFFF5480EE0446E73167EBFFFFFFFFFFFF0547E71E59E9FFFFFFFFFFFFFFFFFF1A57E8255EE9000000265FE9215BE9215CE9215CE9215CE9215CE91B57E94A7AEDFFFFFF779BF20D4DE76890F0FFFFFFFFFFFFFFFFFFFFFFFFC0D1F92962EAFFFFFF6F94F17EA0F2FFFFFFFFFFFFFFFFFF0A4BE7235DEAFFFFFFFFFFFFFFFFFF1F5AE92961EA000000</ImageData16x14>
+			</Group>
+		</Groups>
+		<Devices>
+			<Device Physics="YY">
+				<Type ProductCode="#x00010002" RevisionNo="#x00000001">EYOU_ServoModule</Type>
+				<Name>EYOU_ServoModule</Name>
+				<Info>
+					<StateMachine>
+						<Timeout>
+							<PreopTimeout>2000</PreopTimeout>
+							<SafeopOpTimeout>9000</SafeopOpTimeout>
+							<BackToInitTimeout>5000</BackToInitTimeout>
+							<BackToSafeopTimeout>200</BackToSafeopTimeout>
+						</Timeout>
+					</StateMachine>
+					<Mailbox>
+						<Timeout>
+							<RequestTimeout>100</RequestTimeout>
+							<ResponseTimeout>2000</ResponseTimeout>
+						</Timeout>
+					</Mailbox>
+				</Info>
+				<GroupType>ServoDrive</GroupType>
+				<Profile>
+					<ProfileNo>402</ProfileNo>
+					<AddInfo>0</AddInfo>
+					<Dictionary>
+						<DataTypes>
+							<DataType>
+								<Name>STRING(4)</Name>
+								<BitSize>32</BitSize>
+							</DataType>
+							<DataType>
+								<Name>STRING(16)</Name>
+								<BitSize>128</BitSize>
+							</DataType>
+							<DataType>
+								<Name>USINT</Name>
+								<BitSize>8</BitSize>
+							</DataType>
+							<DataType>
+								<Name>UDINT</Name>
+								<BitSize>32</BitSize>
+							</DataType>
+							<DataType>
+								<Name>REAL</Name>
+								<BitSize>32</BitSize>
+							</DataType>
+							<DataType>
+								<Name>UINT</Name>
+								<BitSize>16</BitSize>
+							</DataType>
+							<DataType>
+								<Name>ULINT</Name>
+								<BitSize>64</BitSize>
+							</DataType>
+							<DataType>
+								<Name>BOOL</Name>
+								<BitSize>1</BitSize>
+							</DataType>
+							<DataType>
+								<Name>INT</Name>
+								<BitSize>16</BitSize>
+							</DataType>
+							<DataType>
+								<Name>STRING(8)</Name>
+								<BitSize>64</BitSize>
+							</DataType>
+							<DataType>
+								<Name>DINT</Name>
+								<BitSize>32</BitSize>
+							</DataType>
+							<DataType>
+								<Name>STRING(12)</Name>
+								<BitSize>96</BitSize>
+							</DataType>
+							<DataType>
+								<Name>STRING(2)</Name>
+								<BitSize>16</BitSize>
+							</DataType>
+							<DataType>
+								<Name>STRING(20)</Name>
+								<BitSize>160</BitSize>
+							</DataType>
+							<DataType>
+								<Name>SINT</Name>
+								<BitSize>8</BitSize>
+							</DataType>
+							<DataType>
+								<Name>STRING(128)</Name>
+								<BitSize>1024</BitSize>
+							</DataType>
+							<DataType>
+								<Name>DT1018</Name>
+								<BitSize>144</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Vendor ID</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Product Code</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>3</SubIdx>
+									<Name>Revision Number</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>80</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>4</SubIdx>
+									<Name>Serial number</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>112</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT10F1</Name>
+								<BitSize>64</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Local Error Reaction</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Sync Error Counter Limit</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1600</Name>
+								<BitSize>336</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>SubIndex 001</Name>
+									<Type>UDINT</Type>
+									<Comment>map controlword</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>SubIndex 002</Name>
+									<Type>UDINT</Type>
+									<Comment>map modes of operation</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>3</SubIdx>
+									<Name>SubIndex 003</Name>
+									<Type>UDINT</Type>
+									<Comment>map taget position</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>80</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>4</SubIdx>
+									<Name>SubIndex 004</Name>
+									<Type>UDINT</Type>
+									<Comment>map profile velocity</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>112</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>5</SubIdx>
+									<Name>SubIndex 005</Name>
+									<Type>UDINT</Type>
+									<Comment>map target velocity</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>144</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>6</SubIdx>
+									<Name>SubIndex 006</Name>
+									<Type>UDINT</Type>
+									<Comment>map vlimt</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>176</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>7</SubIdx>
+									<Name>SubIndex 007</Name>
+									<Type>UDINT</Type>
+									<Comment>map target torque</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>208</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>8</SubIdx>
+									<Name>SubIndex 008</Name>
+									<Type>UDINT</Type>
+									<Comment>map profile acceleration</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>240</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>9</SubIdx>
+									<Name>SubIndex 009</Name>
+									<Type>UDINT</Type>
+									<Comment>map profile deceleration</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>272</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>10</SubIdx>
+									<Name>SubIndex 010</Name>
+									<Type>UDINT</Type>
+									<Comment>map torque slope</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>304</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1601</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>SubIndex 001</Name>
+									<Type>UDINT</Type>
+									<Comment>map controlword</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>SubIndex 002</Name>
+									<Type>UDINT</Type>
+									<Comment>map taget position</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1602</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>SubIndex 001</Name>
+									<Type>UDINT</Type>
+									<Comment>map controlword</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>SubIndex 002</Name>
+									<Type>UDINT</Type>
+									<Comment>map target velocity</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1603</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>SubIndex 001</Name>
+									<Type>UDINT</Type>
+									<Comment>map controlword</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>SubIndex 002</Name>
+									<Type>UDINT</Type>
+									<Comment>map target torque</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1A00</Name>
+								<BitSize>336</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>SubIndex 001</Name>
+									<Type>UDINT</Type>
+									<Comment>map status word</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>SubIndex 002</Name>
+									<Type>UDINT</Type>
+									<Comment>map modes of operation display</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>3</SubIdx>
+									<Name>SubIndex 003</Name>
+									<Type>UDINT</Type>
+									<Comment>map error code</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>80</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>4</SubIdx>
+									<Name>SubIndex 004</Name>
+									<Type>UDINT</Type>
+									<Comment>map actual position</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>112</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>5</SubIdx>
+									<Name>SubIndex 005</Name>
+									<Type>UDINT</Type>
+									<Comment>map actual velocity</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>144</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>6</SubIdx>
+									<Name>SubIndex 006</Name>
+									<Type>UDINT</Type>
+									<Comment>map actual torque</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>176</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>7</SubIdx>
+									<Name>SubIndex 007</Name>
+									<Type>UDINT</Type>
+									<Comment>map torque demand value</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>208</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>8</SubIdx>
+									<Name>SubIndex 008</Name>
+									<Type>UDINT</Type>
+									<Comment>map following error</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>240</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>9</SubIdx>
+									<Name>SubIndex 009</Name>
+									<Type>UDINT</Type>
+									<Comment>map DC link circuit voltage</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>272</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>10</SubIdx>
+									<Name>SubIndex 010</Name>
+									<Type>UDINT</Type>
+									<Comment>map digital inputs</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>304</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1A01</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>SubIndex 001</Name>
+									<Type>UDINT</Type>
+									<Comment>map status word</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>SubIndex 002</Name>
+									<Type>UDINT</Type>
+									<Comment>map actual position</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1A02</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>SubIndex 001</Name>
+									<Type>UDINT</Type>
+									<Comment>map status word</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>SubIndex 002</Name>
+									<Type>UDINT</Type>
+									<Comment>map actual velocity</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1A03</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>SubIndex 001</Name>
+									<Type>UDINT</Type>
+									<Comment>map status word</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>SubIndex 002</Name>
+									<Type>UDINT</Type>
+									<Comment>map actual torque</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1C00ARR</Name>
+								<BaseType>USINT</BaseType>
+								<BitSize>32</BitSize>
+								<ArrayInfo>
+									<LBound>1</LBound>
+									<Elements>4</Elements>
+								</ArrayInfo>
+							</DataType>
+							<DataType>
+								<Name>DT1C00</Name>
+								<BitSize>48</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<Name>Elements</Name>
+									<Type>DT1C00ARR</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1C12ARR</Name>
+								<BaseType>UINT</BaseType>
+								<BitSize>16</BitSize>
+								<ArrayInfo>
+									<LBound>1</LBound>
+									<Elements>1</Elements>
+								</ArrayInfo>
+							</DataType>
+							<DataType>
+								<Name>DT1C12</Name>
+								<BitSize>32</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<Name>Elements</Name>
+									<Type>DT1C12ARR</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1C13ARR</Name>
+								<BaseType>UINT</BaseType>
+								<BitSize>16</BitSize>
+								<ArrayInfo>
+									<LBound>1</LBound>
+									<Elements>1</Elements>
+								</ArrayInfo>
+							</DataType>
+							<DataType>
+								<Name>DT1C13</Name>
+								<BitSize>32</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<Name>Elements</Name>
+									<Type>DT1C13ARR</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1C32</Name>
+								<BitSize>488</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Synchronization Type</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Cycle Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>32</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>4</SubIdx>
+									<Name>Synchronization Types supported</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>96</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>5</SubIdx>
+									<Name>Minimum Cycle Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>112</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>6</SubIdx>
+									<Name>Calc and Copy Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>144</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>8</SubIdx>
+									<Name>Get Cycle Time</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>208</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>9</SubIdx>
+									<Name>Delay Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>224</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>10</SubIdx>
+									<Name>Sync0 Cycle Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>256</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>11</SubIdx>
+									<Name>SM-Event Missed</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>288</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>12</SubIdx>
+									<Name>Cycle Time Too Small</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>304</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>13</SubIdx>
+									<Name>Shift Time Too Short Counter</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>320</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>32</SubIdx>
+									<Name>Sync Error</Name>
+									<Type>BOOL</Type>
+									<BitSize>1</BitSize>
+									<BitOffs>480</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT1C33</Name>
+								<BitSize>488</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Synchronization Type</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access WriteRestrictions="PreOP">rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Cycle Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>32</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>4</SubIdx>
+									<Name>Synchronization Types supported</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>96</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>5</SubIdx>
+									<Name>Minimum Cycle Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>112</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>6</SubIdx>
+									<Name>Calc and Copy Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>144</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>8</SubIdx>
+									<Name>Get Cycle Time</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>208</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>9</SubIdx>
+									<Name>Delay Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>224</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>10</SubIdx>
+									<Name>Sync0 Cycle Time</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>256</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>11</SubIdx>
+									<Name>SM-Event Missed</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>288</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>12</SubIdx>
+									<Name>Cycle Time Too Small</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>304</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>13</SubIdx>
+									<Name>Shift Time Too Short Counter</Name>
+									<Type>UINT</Type>
+									<BitSize>16</BitSize>
+									<BitOffs>320</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>32</SubIdx>
+									<Name>Sync Error</Name>
+									<Type>BOOL</Type>
+									<BitSize>1</BitSize>
+									<BitOffs>480</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT2540</Name>
+								<BitSize>112</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>P0540 Drive Latched Warning 1</Name>
+									<Type>UDINT</Type>
+									<Comment>Drive Latched Warning 1</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>P0540 Drive Latched Warning 2</Name>
+									<Type>UDINT</Type>
+									<Comment>Drive Latched Warning 2</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>3</SubIdx>
+									<Name>P0540 Drive Latched Warning 3</Name>
+									<Type>UDINT</Type>
+									<Comment>Drive Latched Warning 3</Comment>
+									<BitSize>32</BitSize>
+									<BitOffs>80</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT2541</Name>
+								<BitSize>96</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>P0541 Drive Latched Fault 1</Name>
+									<Type>UINT</Type>
+									<Comment>Drive Latched Fault 1</Comment>
+									<BitSize>16</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>P0541 Drive Latched Fault 2</Name>
+									<Type>UINT</Type>
+									<Comment>Drive Latched Fault 2</Comment>
+									<BitSize>16</BitSize>
+									<BitOffs>32</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>3</SubIdx>
+									<Name>P0541 Drive Latched Fault 3</Name>
+									<Type>UINT</Type>
+									<Comment>Drive Latched Fault 3</Comment>
+									<BitSize>16</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>4</SubIdx>
+									<Name>P0541 Drive Latched Fault 4</Name>
+									<Type>UINT</Type>
+									<Comment>Drive Latched Fault 4</Comment>
+									<BitSize>16</BitSize>
+									<BitOffs>64</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>5</SubIdx>
+									<Name>P0541 Drive Latched Fault 5</Name>
+									<Type>UINT</Type>
+									<Comment>Drive Latched Fault 5</Comment>
+									<BitSize>16</BitSize>
+									<BitOffs>80</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT5000</Name>
+								<BitSize>2064</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Para Wr Cmd</Name>
+									<Type>STRING(128)</Type>
+									<Comment>Parameter read write command</Comment>
+									<BitSize>1024</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Para Wr Result</Name>
+									<Type>STRING(128)</Type>
+									<Comment>Parameter read write result</Comment>
+									<BitSize>1024</BitSize>
+									<BitOffs>1040</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT5001</Name>
+								<BitSize>1056</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Packageindex</Name>
+									<Type>UINT</Type>
+									<Comment>Package Index</Comment>
+									<BitSize>16</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Result</Name>
+									<Type>STRING(128)</Type>
+									<Comment>Result String</Comment>
+									<BitSize>1024</BitSize>
+									<BitOffs>32</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT607D</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Min Software Position Limit</Name>
+									<Type>DINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Max Software Position Limit</Name>
+									<Type>DINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT608F</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Position Encoder Resolution Encoder Increments</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Position Encoder Resolution Motor Revolutions</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT6091</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Gear Ratio Motor Revolutions</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Gear Ratio Shaft Revolutions</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT6092</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Feed</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Shaft Revolutions</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT6099</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Homing Speeds Speed For Switch Search</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Homing Speeds Speed For Zero Search</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT60C2</Name>
+								<BitSize>32</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Interpolation Time Period Value</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Interpolation Time Index</Name>
+									<Type>SINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>24</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+							<DataType>
+								<Name>DT60FE</Name>
+								<BitSize>80</BitSize>
+								<SubItem>
+									<SubIdx>0</SubIdx>
+									<Name>SubIndex 000</Name>
+									<Type>USINT</Type>
+									<BitSize>8</BitSize>
+									<BitOffs>0</BitOffs>
+									<Flags>
+										<Access>ro</Access>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>1</SubIdx>
+									<Name>Digital Outputs Physical Outputs</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>16</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+										<PdoMapping>r</PdoMapping>
+									</Flags>
+								</SubItem>
+								<SubItem>
+									<SubIdx>2</SubIdx>
+									<Name>Digital Outputs Output Mask</Name>
+									<Type>UDINT</Type>
+									<BitSize>32</BitSize>
+									<BitOffs>48</BitOffs>
+									<Flags>
+										<Access>rw</Access>
+									</Flags>
+								</SubItem>
+							</DataType>
+						</DataTypes>
+						<Objects>
+							<Object>
+								<Index>#x1000</Index>
+								<Name>Device type</Name>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<DefaultData>92010000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x1001</Index>
+								<Name>Error register</Name>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Info>
+									<DefaultData>00</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x1008</Index>
+								<Name>Device name</Name>
+								<Type>STRING(16)</Type>
+								<BitSize>128</BitSize>
+								<Info>
+									<DefaultData>45594F555F536572766F4D6F64756C65</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x1009</Index>
+								<Name>Manufacturer Hardware version</Name>
+								<Type>STRING(4)</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<DefaultData>6E2E612E</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x100A</Index>
+								<Name>Manufacturer Software version</Name>
+								<Type>STRING(4)</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<DefaultData>352E3133</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x1018</Index>
+								<Name>Identity Object</Name>
+								<Type>DT1018</Type>
+								<BitSize>144</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>04</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Vendor ID</Name>
+										<Info>
+											<DefaultData>97100000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Product Code</Name>
+										<Info>
+											<DefaultData>02000100</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Revision Number</Name>
+										<Info>
+											<DefaultData>01000000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Serial number</Name>
+										<Info>
+											<DefaultData>00000000</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x10F1</Index>
+								<Name>Error Settings</Name>
+								<Type>DT10F1</Type>
+								<BitSize>64</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Local Error Reaction</Name>
+										<Info>
+											<DefaultData>01000000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Sync Error Counter Limit</Name>
+										<Info>
+											<DefaultData>0400</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x10F8</Index>
+								<Name>Timestamp Object</Name>
+								<Type>ULINT</Type>
+								<BitSize>64</BitSize>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x1600</Index>
+								<Name>RxPDO1</Name>
+								<Type>DT1600</Type>
+								<BitSize>336</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>0A</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>10004060</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 002</Name>
+										<Info>
+											<DefaultData>08006060</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 003</Name>
+										<Info>
+											<DefaultData>20007A60</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 004</Name>
+										<Info>
+											<DefaultData>20008160</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 005</Name>
+										<Info>
+											<DefaultData>2000FF60</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 006</Name>
+										<Info>
+											<DefaultData>20000D24</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 007</Name>
+										<Info>
+											<DefaultData>10007160</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 008</Name>
+										<Info>
+											<DefaultData>20008360</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 009</Name>
+										<Info>
+											<DefaultData>20008460</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 010</Name>
+										<Info>
+											<DefaultData>20008760</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1601</Index>
+								<Name>RxPDO2</Name>
+								<Type>DT1601</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>10004060</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 002</Name>
+										<Info>
+											<DefaultData>20007A60</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1602</Index>
+								<Name>RxPDO3</Name>
+								<Type>DT1602</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>10004060</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 002</Name>
+										<Info>
+											<DefaultData>2000FF60</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1603</Index>
+								<Name>RxPDO4</Name>
+								<Type>DT1603</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>10004060</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 002</Name>
+										<Info>
+											<DefaultData>10007160</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1A00</Index>
+								<Name>TxPDO1</Name>
+								<Type>DT1A00</Type>
+								<BitSize>336</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>0A</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>10004160</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 002</Name>
+										<Info>
+											<DefaultData>08006160</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 003</Name>
+										<Info>
+											<DefaultData>10003F60</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 004</Name>
+										<Info>
+											<DefaultData>20006460</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 005</Name>
+										<Info>
+											<DefaultData>20006C60</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 006</Name>
+										<Info>
+											<DefaultData>10007760</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 007</Name>
+										<Info>
+											<DefaultData>10007460</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 008</Name>
+										<Info>
+											<DefaultData>2000F460</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 009</Name>
+										<Info>
+											<DefaultData>20007960</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 010</Name>
+										<Info>
+											<DefaultData>2000FD60</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1A01</Index>
+								<Name>TxPDO2</Name>
+								<Type>DT1A01</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>10004160</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 002</Name>
+										<Info>
+											<DefaultData>20006460</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1A02</Index>
+								<Name>TxPDO3</Name>
+								<Type>DT1A02</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>10004160</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 002</Name>
+										<Info>
+											<DefaultData>20006C60</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1A03</Index>
+								<Name>TxPDO4</Name>
+								<Type>DT1A03</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>10004160</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 002</Name>
+										<Info>
+											<DefaultData>10007760</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1C00</Index>
+								<Name>Sync manager type</Name>
+								<Type>DT1C00</Type>
+								<BitSize>48</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>04</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>01</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 002</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 003</Name>
+										<Info>
+											<DefaultData>03</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 004</Name>
+										<Info>
+											<DefaultData>04</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1C12</Index>
+								<Name>SM2 assignment</Name>
+								<Type>DT1C12</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>01</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>0016</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1C13</Index>
+								<Name>SM3 assignment</Name>
+								<Type>DT1C13</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>01</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>SubIndex 001</Name>
+										<Info>
+											<DefaultData>001A</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1C32</Index>
+								<Name>SM output parameter</Name>
+								<Type>DT1C32</Type>
+								<BitSize>488</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>20</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Synchronization Type</Name>
+										<Info>
+											<DefaultData>0100</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Synchronization Types supported</Name>
+										<Info>
+											<DefaultData>0780</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Minimum Cycle Time</Name>
+										<Info>
+											<DefaultData>20A10700</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x1C33</Index>
+								<Name>SM input parameter</Name>
+								<Type>DT1C33</Type>
+								<BitSize>488</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>20</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Synchronization Type</Name>
+										<Info>
+											<DefaultData>2200</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Synchronization Types supported</Name>
+										<Info>
+											<DefaultData>0780</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Minimum Cycle Time</Name>
+										<Info>
+											<DefaultData>20A10700</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x2000</Index>
+								<Name>P0000 Motor Type</Name>
+								<Comment>Motor Type</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2002</Index>
+								<Name>P0002 Motor Name</Name>
+								<Comment>Motor Name</Comment>
+								<Type>STRING(8)</Type>
+								<BitSize>64</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2005</Index>
+								<Name>P0005 Motor Power</Name>
+								<Comment>Motor Power</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2006</Index>
+								<Name>P0006 Motor Rate Speed</Name>
+								<Comment>Motor Rate Speed</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2007</Index>
+								<Name>P0007 Motor Rated Torque</Name>
+								<Comment>Motor Rated Torque</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2008</Index>
+								<Name>P0008 Motor Rated Current</Name>
+								<Comment>Motor Rated Current</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2009</Index>
+								<Name>P0009 Motor Max Speed</Name>
+								<Comment>Motor Max Speed</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x200A</Index>
+								<Name>P000A Motor Max Torque</Name>
+								<Comment>Motor Max Torque</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x200B</Index>
+								<Name>P000B Motor Peak Current</Name>
+								<Comment>Motor Peak Current</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x200C</Index>
+								<Name>P000C Motor Inertia</Name>
+								<Comment>Motor Inertia</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x200F</Index>
+								<Name>P000F Load To Motor Inertia Ratio</Name>
+								<Comment>Load To Motor Inertia Ratio</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2011</Index>
+								<Name>P0011 Motor Poles</Name>
+								<Comment>Motor Poles</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2012</Index>
+								<Name>P0012 Motor Inductance</Name>
+								<Comment>Motor Inductance</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2013</Index>
+								<Name>P0013 Motor Resistance</Name>
+								<Comment>Motor Resistance</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2014</Index>
+								<Name>P0014 Motor Back EMF Coefficient</Name>
+								<Comment>Motor Back EMF Coefficient</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2015</Index>
+								<Name>P0015 Motor Torque Coefficient</Name>
+								<Comment>Motor Torque Coefficient</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2018</Index>
+								<Name>P0018 Motor Rated Voltage</Name>
+								<Comment>Motor Rated Voltage</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2022</Index>
+								<Name>P0022 Encoder Type Backup</Name>
+								<Comment>Encoder Type Backup</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2023</Index>
+								<Name>P0023 Motor Encoder Resolution</Name>
+								<Comment>Motor Encoder Resolution</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2025</Index>
+								<Name>P0025 Encoder Single Turn Resolution</Name>
+								<Comment>Encoder Single Turn Resolution</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2026</Index>
+								<Name>P0026 Motor Initial Angle</Name>
+								<Comment>Motor Initial Angle</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2028</Index>
+								<Name>P0028 Motor Acceleration</Name>
+								<Comment>Motor Acceleration</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2029</Index>
+								<Name>P0029 Motor Deceleration</Name>
+								<Comment>Motor Deceleration</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x202A</Index>
+								<Name>P002A Acceleration</Name>
+								<Comment>Acceleration</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x202B</Index>
+								<Name>P002B Deceleration</Name>
+								<Comment>Deceleration</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x202C</Index>
+								<Name>P002C Maximum Acceleration</Name>
+								<Comment>Maximum Acceleration</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x202D</Index>
+								<Name>P002D Maximun Deceleration</Name>
+								<Comment>Maximun Deceleration</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2040</Index>
+								<Name>P0040 Motor Foldback Disable</Name>
+								<Comment>Motor Foldback Disable</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2042</Index>
+								<Name>P0042 Motor Foldback Fault Threshold</Name>
+								<Comment>Motor Foldback Fault Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2043</Index>
+								<Name>P0043 Motor Foldback Warning Threshold</Name>
+								<Comment>Motor Foldback Warning Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2044</Index>
+								<Name>P0044 Motor Foldback Delay Time</Name>
+								<Comment>Motor Foldback Delay Time</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2045</Index>
+								<Name>P0045 Motor Foldback Time Constant</Name>
+								<Comment>Motor Foldback Time Constant</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2046</Index>
+								<Name>P0046 Motor Foldback Recovery Time</Name>
+								<Comment>Motor Foldback Recovery Time</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2047</Index>
+								<Name>P0047 Motor Foldback Factor</Name>
+								<Comment>Motor Foldback Factor</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x204A</Index>
+								<Name>P004A Drive Type</Name>
+								<Comment>Drive Type</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x204B</Index>
+								<Name>P004B Drive Name</Name>
+								<Comment>Drive Name</Comment>
+								<Type>STRING(8)</Type>
+								<BitSize>64</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x204C</Index>
+								<Name>P004C Addr</Name>
+								<Comment>Addr</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2055</Index>
+								<Name>P0055 PWM Frequency</Name>
+								<Comment>PWM Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x205A</Index>
+								<Name>P005A Bus Control Lpf Frequency</Name>
+								<Comment>Bus Control Lpf Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x205B</Index>
+								<Name>P005B Bus Feedback Lpf Frequency</Name>
+								<Comment>Bus Feedback Lpf Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x205C</Index>
+								<Name>P005C Over Valtage Threshold</Name>
+								<Comment>Over Valtage Threshold</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x205D</Index>
+								<Name>P005D Under Voltage Threshold</Name>
+								<Comment>Under Voltage Threshold</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x205E</Index>
+								<Name>P005E Under Voltage Mode</Name>
+								<Comment>Under Voltage Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x205F</Index>
+								<Name>P005F Under Voltage Recovery Mode</Name>
+								<Comment>Under Voltage Recovery Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2060</Index>
+								<Name>P0060 Under Voltage Time</Name>
+								<Comment>Under Voltage Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2061</Index>
+								<Name>P0061 Over Current Threshold</Name>
+								<Comment>Over Current Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2062</Index>
+								<Name>P0062 Over Current Time</Name>
+								<Comment>Over Current Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2063</Index>
+								<Name>P0063 Current Sensor Correction Coefficient</Name>
+								<Comment>Current Sensor Correction Coefficient</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2064</Index>
+								<Name>P0064 Current Sensor Zero Offset Threshold</Name>
+								<Comment>Current Sensor Zero Offset Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2065</Index>
+								<Name>P0065 Current Sensor Velocity Threshold</Name>
+								<Comment>Current Sensor Velocity Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2066</Index>
+								<Name>P0066 Temperature Correction Coefficient</Name>
+								<Comment>Temperature Correction Coefficient</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2067</Index>
+								<Name>P0067 Drive Over Temperature Threshold</Name>
+								<Comment>Drive Over Temperature Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2068</Index>
+								<Name>P0068 Drive IPM Temperature Filter Length</Name>
+								<Comment>Drive IPM Temperature Filter Length</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2069</Index>
+								<Name>P0069 Drive Temperature Filter Length</Name>
+								<Comment>Drive Temperature Filter Length</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x206A</Index>
+								<Name>P006A Drive Foldback Fault Threshold</Name>
+								<Comment>Drive Foldback Fault Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x206B</Index>
+								<Name>P006B Drive Foldback Warning Threshold</Name>
+								<Comment>Drive Foldback Warning Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x206D</Index>
+								<Name>P006D Drive Foldback Current Lpf</Name>
+								<Comment>Drive Foldback Current Lpf</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x206E</Index>
+								<Name>P006E Drive Foldback Delay Time</Name>
+								<Comment>Drive Foldback Delay Time</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x206F</Index>
+								<Name>P006F Drive Foldback Stall Slope</Name>
+								<Comment>Drive Foldback Stall Slope</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2070</Index>
+								<Name>P0070 Drive Foldback Delay Stall Start Temperature</Name>
+								<Comment>Drive Foldback Delay Stall Start Temperature</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2071</Index>
+								<Name>P0071 Drive Foldback Delay Stall End Temperature</Name>
+								<Comment>Drive Foldback Delay Stall End Temperature</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2072</Index>
+								<Name>P0072 Drive Foldback Stall Current Threshold</Name>
+								<Comment>Drive Foldback Stall Current Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2073</Index>
+								<Name>P0073 Drive Foldback Stall Start Temperature</Name>
+								<Comment>Drive Foldback Stall Start Temperature</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2074</Index>
+								<Name>P0074 Drive Foldback Stall End Temperature</Name>
+								<Comment>Drive Foldback Stall End Temperature</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2075</Index>
+								<Name>P0075 Drive Foldback Constant Time</Name>
+								<Comment>Drive Foldback Constant Time</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2076</Index>
+								<Name>P0076 Drive Foldback Coefficient</Name>
+								<Comment>Drive Foldback Coefficient</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2082</Index>
+								<Name>P0082 Serial Number</Name>
+								<Comment>Serial Number</Comment>
+								<Type>STRING(12)</Type>
+								<BitSize>96</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2083</Index>
+								<Name>P0083 Hardware Version</Name>
+								<Comment>Hardware Version</Comment>
+								<Type>STRING(2)</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2084</Index>
+								<Name>P0084 MCU Version</Name>
+								<Comment>MCU Version</Comment>
+								<Type>STRING(20)</Type>
+								<BitSize>160</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2087</Index>
+								<Name>P0087 Module Rated Torque Nm</Name>
+								<Comment>Module Rated Torque Nm</Comment>
+								<Type>REAL</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2100</Index>
+								<Name>P0100 Drive Communication Mode</Name>
+								<Comment>Drive Communication Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2101</Index>
+								<Name>P0101 Drive Operation Mode</Name>
+								<Comment>Drive Operation Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2102</Index>
+								<Name>P0102 Rotary Direction</Name>
+								<Comment>Rotary Direction</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2103</Index>
+								<Name>P0103 Disable Mode</Name>
+								<Comment>Disable Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2104</Index>
+								<Name>P0104 Active Disable Speed Threshold</Name>
+								<Comment>Active Disable Speed Threshold</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2105</Index>
+								<Name>P0105 Active Disable Delay</Name>
+								<Comment>Active Disable Delay</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2106</Index>
+								<Name>P0106 Active Disable Time</Name>
+								<Comment>Active Disable Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2107</Index>
+								<Name>P0107 Active Disable Deceleration</Name>
+								<Comment>Active Disable Deceleration</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2108</Index>
+								<Name>P0108 Active Disable Deceleration Time</Name>
+								<Comment>Active Disable Deceleration Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2110</Index>
+								<Name>P0110 Manual Brake By Output Mode</Name>
+								<Comment>Manual Brake By Output Mode</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2111</Index>
+								<Name>P0111 Manual Brake Output</Name>
+								<Comment>Manual Brake Output</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2112</Index>
+								<Name>P0112 Brake Test Mode</Name>
+								<Comment>Brake Test Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2113</Index>
+								<Name>P0113 Out Brake Release Time</Name>
+								<Comment>Out Brake Release Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2114</Index>
+								<Name>P0114 Out Brake Engage Time</Name>
+								<Comment>Out Brake Engage Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2115</Index>
+								<Name>P0115 Out Brake Safe Speed</Name>
+								<Comment>Out Brake Safe Speed</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x212D</Index>
+								<Name>P012D Password</Name>
+								<Comment>Password</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x212E</Index>
+								<Name>P012E Restore Drive Parameter</Name>
+								<Comment>Restore Drive Parameter</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x212F</Index>
+								<Name>P012F Config Drive</Name>
+								<Comment>Config Drive</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2130</Index>
+								<Name>P0130 Save Drive Parameter To Eeprom</Name>
+								<Comment>Save Drive Parameter To Eeprom</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2201</Index>
+								<Name>P0201 Position Command Moving Average Filter</Name>
+								<Comment>Position Command Moving Average Filter</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2215</Index>
+								<Name>P0215 Feed</Name>
+								<Comment>Feed</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2216</Index>
+								<Name>P0216 Shaft Revolution</Name>
+								<Comment>Shaft Revolution</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2217</Index>
+								<Name>P0217 Electric Gear Denominator</Name>
+								<Comment>Electric Gear Denominator</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2218</Index>
+								<Name>P0218 Electric Gear Numerator</Name>
+								<Comment>Electric Gear Numerator</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x221B</Index>
+								<Name>P021B Position Interpolation Type</Name>
+								<Comment>Position Interpolation Type</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x221C</Index>
+								<Name>P021C Position Interpolation Delay</Name>
+								<Comment>Position Interpolation Delay</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x221E</Index>
+								<Name>P021E Position Command Compensation Gain</Name>
+								<Comment>Position Command Compensation Gain</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x221F</Index>
+								<Name>P021F Position Command Compensation Lpf</Name>
+								<Comment>Position Command Compensation Lpf</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2220</Index>
+								<Name>P0220 Position Loop Control Mode</Name>
+								<Comment>Position Loop Control Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2221</Index>
+								<Name>P0221 Internal Velocity Feedforward Smooth Type</Name>
+								<Comment>Internal Velocity Feedforward Smooth Type</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2222</Index>
+								<Name>P0222 Velocity Feedforward Source</Name>
+								<Comment>Velocity Feedforward Source</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2223</Index>
+								<Name>P0223 External Input Velocity Feedforward</Name>
+								<Comment>External Input Velocity Feedforward</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2228</Index>
+								<Name>P0228 Rigid</Name>
+								<Comment>Rigid</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2229</Index>
+								<Name>P0229 First Group Position Loop Bandwidth</Name>
+								<Comment>First Group Position Loop Bandwidth</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x222A</Index>
+								<Name>P022A First Group Position Loop Gain</Name>
+								<Comment>First Group Position Loop Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x222B</Index>
+								<Name>P022B First Group Position Loop Velocity Feedforward Gain</Name>
+								<Comment>First Group Position Loop Velocity Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x222C</Index>
+								<Name>P022C First Group Position Loop Velocity Feedforward Filter Frequency</Name>
+								<Comment>First Group Position Loop Velocity Feedforward Filter Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x222D</Index>
+								<Name>P022D First Group Torque Feedforward Gain</Name>
+								<Comment>First Group Torque Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x222E</Index>
+								<Name>P022E First Group Torque Feedforward Filter Frequency</Name>
+								<Comment>First Group Torque Feedforward Filter Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x222F</Index>
+								<Name>P022F Acceleration Feedforward Gain</Name>
+								<Comment>Acceleration Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2230</Index>
+								<Name>P0230 Acceleration Feedforward Mode</Name>
+								<Comment>Acceleration Feedforward Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2231</Index>
+								<Name>P0231 Acceleration Feedforward Velocity Threshold</Name>
+								<Comment>Acceleration Feedforward Velocity Threshold</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2232</Index>
+								<Name>P0232 Acceleration Feedforward Filter Frequency</Name>
+								<Comment>Acceleration Feedforward Filter Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2233</Index>
+								<Name>P0233 Position Error To Current Feedforward Gain</Name>
+								<Comment>Position Error To Current Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2234</Index>
+								<Name>P0234 Position Error To Current Feedforward Lpf</Name>
+								<Comment>Position Error To Current Feedforward Lpf</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2238</Index>
+								<Name>P0238 Gain Switch Rigid</Name>
+								<Comment>Gain Switch Rigid</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x223A</Index>
+								<Name>P023A Second Group Position Loop Bandwidth</Name>
+								<Comment>Second Group Position Loop Bandwidth</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x223B</Index>
+								<Name>P023B Gain Switch Second Group Velocity Feedforward Gain</Name>
+								<Comment>Gain Switch Second Group Velocity Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x223C</Index>
+								<Name>P023C Gain Switch Second Group Velocity Feedforward Filter Frequency</Name>
+								<Comment>Gain Switch Second Group Velocity Feedforward Filter Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x223D</Index>
+								<Name>P023D Gain Switch Second Group Torque Feedforward Gain</Name>
+								<Comment>Gain Switch Second Group Torque Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x223E</Index>
+								<Name>P023E Gain Switch Second Group Torque Feedforward Filter Frequency</Name>
+								<Comment>Gain Switch Second Group Torque Feedforward Filter Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2248</Index>
+								<Name>P0248 Position Offset</Name>
+								<Comment>Position Offset</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2249</Index>
+								<Name>P0249 Position Feedback Source</Name>
+								<Comment>Position Feedback Source</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x224A</Index>
+								<Name>P024A Position Error Threshold</Name>
+								<Comment>Position Error Threshold</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x224B</Index>
+								<Name>P024B Position Error Time</Name>
+								<Comment>Position Error Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x224D</Index>
+								<Name>P024D In Position Mode</Name>
+								<Comment>In Position Mode</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x224E</Index>
+								<Name>P024E In Position Hysteresis</Name>
+								<Comment>In Position Hysteresis</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2250</Index>
+								<Name>P0250 In Position Threshold</Name>
+								<Comment>In Position Threshold</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2251</Index>
+								<Name>P0251 In Position Time</Name>
+								<Comment>In Position Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2260</Index>
+								<Name>P0260 Homing Error Check Mode</Name>
+								<Comment>Homing Error Check Mode</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2262</Index>
+								<Name>P0262 Homing Type</Name>
+								<Comment>Homing Type</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2264</Index>
+								<Name>P0264 Homeing Acceleration</Name>
+								<Comment>Homeing Acceleration</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2265</Index>
+								<Name>P0265 Homing Velocity 1</Name>
+								<Comment>Homing Velocity 1</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2266</Index>
+								<Name>P0266 Homing Velocity 2</Name>
+								<Comment>Homing Velocity 2</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2267</Index>
+								<Name>P0267 Homing Offset</Name>
+								<Comment>Homing Offset</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2268</Index>
+								<Name>P0268 Home Offset Move</Name>
+								<Comment>Home Offset Move</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2269</Index>
+								<Name>P0269 Homing Max Run Time</Name>
+								<Comment>Homing Max Run Time</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x226A</Index>
+								<Name>P026A Homing Penetrate Detect Enable</Name>
+								<Comment>Homing Penetrate Detect Enable</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x226B</Index>
+								<Name>P026B Homing Complete Wait Time</Name>
+								<Comment>Homing Complete Wait Time</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2301</Index>
+								<Name>P0301 Maximum Velocity</Name>
+								<Comment>Maximum Velocity</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2303</Index>
+								<Name>P0303 First Group Velocity Loop Bandwidth</Name>
+								<Comment>First Group Velocity Loop Bandwidth</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2304</Index>
+								<Name>P0304 First Group Velocity Proportional Gain</Name>
+								<Comment>First Group Velocity Proportional Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2305</Index>
+								<Name>P0305 First Velocity Loop Intergral Time Constant</Name>
+								<Comment>First Velocity Loop Intergral Time Constant</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2306</Index>
+								<Name>P0306 First Group Velocity Integral Gain</Name>
+								<Comment>First Group Velocity Integral Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2307</Index>
+								<Name>P0307 First Group Velocity Feedforward Gain</Name>
+								<Comment>First Group Velocity Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2308</Index>
+								<Name>P0308 First Group Velocity To Current Feedforward Gain</Name>
+								<Comment>First Group Velocity To Current Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2309</Index>
+								<Name>P0309 First Group Velocity To Current Feedforward Lpf</Name>
+								<Comment>First Group Velocity To Current Feedforward Lpf</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x230A</Index>
+								<Name>P030A Torque Feedforward Source</Name>
+								<Comment>Torque Feedforward Source</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x230B</Index>
+								<Name>P030B External Input Torque Feedforward</Name>
+								<Comment>External Input Torque Feedforward</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x230C</Index>
+								<Name>P030C Velocity Loop Control Mode</Name>
+								<Comment>Velocity Loop Control Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x230D</Index>
+								<Name>P030D Velocity Filter Mode</Name>
+								<Comment>Velocity Filter Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x230E</Index>
+								<Name>P030E First Group Velocity Filter Frequency</Name>
+								<Comment>First Group Velocity Filter Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2310</Index>
+								<Name>P0310 Velocity Feedback Filter Mode</Name>
+								<Comment>Velocity Feedback Filter Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2313</Index>
+								<Name>P0313 Gain Switch Second Group Velocity Loop Bandwidth</Name>
+								<Comment>Gain Switch Second Group Velocity Loop Bandwidth</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2314</Index>
+								<Name>P0314 Second Group Velocity Loop Bandwidth</Name>
+								<Comment>Second Group Velocity Loop Bandwidth</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2315</Index>
+								<Name>P0315 Second Group Velocity Loop Intergral Time Constant</Name>
+								<Comment>Second Group Velocity Loop Intergral Time Constant</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2316</Index>
+								<Name>P0316 Gain Switch Second Group Velocity Integral Gain</Name>
+								<Comment>Gain Switch Second Group Velocity Integral Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2317</Index>
+								<Name>P0317 Gain Switch Second Group Velocity Feedforward Gain</Name>
+								<Comment>Gain Switch Second Group Velocity Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2318</Index>
+								<Name>P0318 Gain Switch Second Group Velocity To Current Feedforward Gain</Name>
+								<Comment>Gain Switch Second Group Velocity To Current Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2319</Index>
+								<Name>P0319 Gain Switch Second Group Velocity To Current Feedforward Lpf</Name>
+								<Comment>Gain Switch Second Group Velocity To Current Feedforward Lpf</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x231E</Index>
+								<Name>P031E Second Group Velocity Filter Frequency</Name>
+								<Comment>Second Group Velocity Filter Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2327</Index>
+								<Name>P0327 Jog Enable</Name>
+								<Comment>Jog Enable</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2328</Index>
+								<Name>P0328 Jog Velocity</Name>
+								<Comment>Jog Velocity</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2329</Index>
+								<Name>P0329 Jog Direction</Name>
+								<Comment>Jog Direction</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x232C</Index>
+								<Name>P032C Velocity Reached Threshold</Name>
+								<Comment>Velocity Reached Threshold</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x232F</Index>
+								<Name>P032F Zero Velocity Threshold</Name>
+								<Comment>Zero Velocity Threshold</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2330</Index>
+								<Name>P0330 Zero Velocity Time</Name>
+								<Comment>Zero Velocity Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2331</Index>
+								<Name>P0331 Velocity Reach Threshold</Name>
+								<Comment>Velocity Reach Threshold</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2332</Index>
+								<Name>P0332 Velocity Reach Time</Name>
+								<Comment>Velocity Reach Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2333</Index>
+								<Name>P0333 Velocity Error Threshold</Name>
+								<Comment>Velocity Error Threshold</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2334</Index>
+								<Name>P0334 Velocity Error Time</Name>
+								<Comment>Velocity Error Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2335</Index>
+								<Name>P0335 Dither Frequency</Name>
+								<Comment>Dither Frequency</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2404</Index>
+								<Name>P0404 Torque Slope</Name>
+								<Comment>Torque Slope</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2408</Index>
+								<Name>P0408 Maximum Current</Name>
+								<Comment>Maximum Current</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2409</Index>
+								<Name>P0409 Maximun Positive Current</Name>
+								<Comment>Maximun Positive Current</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x240A</Index>
+								<Name>P040A Maixmum Negative Current</Name>
+								<Comment>Maixmum Negative Current</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x240D</Index>
+								<Name>P040D Torque Mode Velocity Limit</Name>
+								<Comment>Torque Mode Velocity Limit</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x240E</Index>
+								<Name>P040E Velocity Limit Unit Selection</Name>
+								<Comment>Velocity Limit Unit Selection</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x240F</Index>
+								<Name>P040F Velocity Limit Coefficient In Current Mode</Name>
+								<Comment>Velocity Limit Coefficient In Current Mode</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2410</Index>
+								<Name>P0410 Current Loop Bandwidth</Name>
+								<Comment>Current Loop Bandwidth</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2412</Index>
+								<Name>P0412 Current Loop Proportional Gain</Name>
+								<Comment>Current Loop Proportional Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2413</Index>
+								<Name>P0413 Current Loop Integral Gain</Name>
+								<Comment>Current Loop Integral Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2415</Index>
+								<Name>P0415 Current Loop Anti Saturation Gain</Name>
+								<Comment>Current Loop Anti Saturation Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x241B</Index>
+								<Name>P041B Current Loop Voltage Feedforward Coefficient</Name>
+								<Comment>Current Loop Voltage Feedforward Coefficient</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x241D</Index>
+								<Name>P041D Torque Command First Filter</Name>
+								<Comment>Torque Command First Filter</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x241E</Index>
+								<Name>P041E Torque Command Second Filter</Name>
+								<Comment>Torque Command Second Filter</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2420</Index>
+								<Name>P0420 Aaptive Filter Enable</Name>
+								<Comment>Aaptive Filter Enable</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2421</Index>
+								<Name>P0421 Aaptive Filter Minmum Frequency</Name>
+								<Comment>Aaptive Filter Minmum Frequency</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2422</Index>
+								<Name>P0422 Adaptive Filter Magnitude Threshold</Name>
+								<Comment>Adaptive Filter Magnitude Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2423</Index>
+								<Name>P0423 Adaptive Filter Save Mode</Name>
+								<Comment>Adaptive Filter Save Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2426</Index>
+								<Name>P0426 Low Notch Center Frequency Flag</Name>
+								<Comment>Low Notch Center Frequency Flag</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2428</Index>
+								<Name>P0428 First Notch Filter Center Frequency</Name>
+								<Comment>First Notch Filter Center Frequency</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2429</Index>
+								<Name>P0429 First Notch Filter Bandwidth</Name>
+								<Comment>First Notch Filter Bandwidth</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x242A</Index>
+								<Name>P042A First Notch Filter Deepth</Name>
+								<Comment>First Notch Filter Deepth</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x242B</Index>
+								<Name>P042B First Notch Filter Enable</Name>
+								<Comment>First Notch Filter Enable</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x242C</Index>
+								<Name>P042C Second Notch Filter Center Frequency</Name>
+								<Comment>Second Notch Filter Center Frequency</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x242D</Index>
+								<Name>P042D Second Notch Filter Bandwidth</Name>
+								<Comment>Second Notch Filter Bandwidth</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x242E</Index>
+								<Name>P042E Second Notch Filter Deepth</Name>
+								<Comment>Second Notch Filter Deepth</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x242F</Index>
+								<Name>P042F Second Notch Filter Enable</Name>
+								<Comment>Second Notch Filter Enable</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2440</Index>
+								<Name>P0440 Flux Weakening Enable</Name>
+								<Comment>Flux Weakening Enable</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2444</Index>
+								<Name>P0444 Vbus  Utilization Rate</Name>
+								<Comment>Vbus  Utilization Rate</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2450</Index>
+								<Name>P0450 Torque Loop Kp</Name>
+								<Comment>Torque Loop Kp</Comment>
+								<Type>REAL</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2451</Index>
+								<Name>P0451 Torque Loop Ki</Name>
+								<Comment>Torque Loop Ki</Comment>
+								<Type>REAL</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2452</Index>
+								<Name>P0452 Torque Offset</Name>
+								<Comment>Torque Offset</Comment>
+								<Type>REAL</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2453</Index>
+								<Name>P0453 Torque Feedback Low-Pass Filter Frequency Hz</Name>
+								<Comment>Torque Feedback Low-Pass Filter Frequency Hz</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x250B</Index>
+								<Name>P050B Over Velocity Threshold</Name>
+								<Comment>Over Velocity Threshold</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x250C</Index>
+								<Name>P050C Over Velocity Time</Name>
+								<Comment>Over Velocity Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2516</Index>
+								<Name>P0516 Stall Time</Name>
+								<Comment>Stall Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2517</Index>
+								<Name>P0517 Stall Velocity</Name>
+								<Comment>Stall Velocity</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2518</Index>
+								<Name>P0518 Stall Current</Name>
+								<Comment>Stall Current</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x251B</Index>
+								<Name>P051B Encoder Communication Crc Fault Value</Name>
+								<Comment>Encoder Communication Crc Fault Value</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x251C</Index>
+								<Name>P051C Encoder Communication Timeout Fault Value</Name>
+								<Comment>Encoder Communication Timeout Fault Value</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x251D</Index>
+								<Name>P051D Encoder Communication Fault Threshold</Name>
+								<Comment>Encoder Communication Fault Threshold</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x252A</Index>
+								<Name>P052A Gravity Compensation Enable</Name>
+								<Comment>Gravity Compensation Enable</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x252B</Index>
+								<Name>P052B Gravity Compensation Value</Name>
+								<Comment>Gravity Compensation Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x252C</Index>
+								<Name>P052C Gravity Compensation Coeffcient</Name>
+								<Comment>Gravity Compensation Coeffcient</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x252D</Index>
+								<Name>P052D Gravity Compensation Off Time</Name>
+								<Comment>Gravity Compensation Off Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x252E</Index>
+								<Name>P052E Gravity Compensation Mode</Name>
+								<Comment>Gravity Compensation Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x252F</Index>
+								<Name>P052F Gravity Compensation Actual Value</Name>
+								<Comment>Gravity Compensation Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2532</Index>
+								<Name>P0532 Position Limiting Mode</Name>
+								<Comment>Position Limiting Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2533</Index>
+								<Name>P0533 Software Position Limit Hysteresis</Name>
+								<Comment>Software Position Limit Hysteresis</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2534</Index>
+								<Name>P0534 Software Position Limit Maximum</Name>
+								<Comment>Software Position Limit Maximum</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2535</Index>
+								<Name>P0535 Software Position Limit Minimum</Name>
+								<Comment>Software Position Limit Minimum</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2536</Index>
+								<Name>P0536 Hardware Position Limit Hysteresis</Name>
+								<Comment>Hardware Position Limit Hysteresis</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2537</Index>
+								<Name>P0537 Hardware Position Limit Mode</Name>
+								<Comment>Hardware Position Limit Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x253B</Index>
+								<Name>P053B STO Mode</Name>
+								<Comment>STO Mode</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x253C</Index>
+								<Name>P053C STO Recover Mode</Name>
+								<Comment>STO Recover Mode</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2540</Index>
+								<Name>Drive Latched Warning</Name>
+								<Type>DT2540</Type>
+								<BitSize>112</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>03</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>P0540 Drive Latched Warning 1</Name>
+										<Info>
+											<DefaultData>00000000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>P0540 Drive Latched Warning 2</Name>
+										<Info>
+											<DefaultData>00000000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>P0540 Drive Latched Warning 3</Name>
+										<Info>
+											<DefaultData>00000000</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x2541</Index>
+								<Name>Drive Latched Fault</Name>
+								<Type>DT2541</Type>
+								<BitSize>96</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>05</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>P0541 Drive Latched Fault 1</Name>
+										<Info>
+											<DefaultData>0000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>P0541 Drive Latched Fault 2</Name>
+										<Info>
+											<DefaultData>0000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>P0541 Drive Latched Fault 3</Name>
+										<Info>
+											<DefaultData>0000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>P0541 Drive Latched Fault 4</Name>
+										<Info>
+											<DefaultData>0000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>P0541 Drive Latched Fault 5</Name>
+										<Info>
+											<DefaultData>0000</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x2543</Index>
+								<Name>P0543 Fault History Save Delay Time</Name>
+								<Comment>Fault History Save Delay Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2601</Index>
+								<Name>P0601 MCU Realtime Overload Check Enable</Name>
+								<Comment>MCU Realtime Overload Check Enable</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2602</Index>
+								<Name>P0602 Drive Realtime Load</Name>
+								<Comment>Drive Realtime Load</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2603</Index>
+								<Name>P0603 Drive Maximum Realtime Load</Name>
+								<Comment>Drive Maximum Realtime Load</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2604</Index>
+								<Name>P0604 Drive Motion Realtime Load</Name>
+								<Comment>Drive Motion Realtime Load</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2605</Index>
+								<Name>P0605 Drive Realtime Overload Type</Name>
+								<Comment>Drive Realtime Overload Type</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2620</Index>
+								<Name>P0620 Gain Switch Enable</Name>
+								<Comment>Gain Switch Enable</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2621</Index>
+								<Name>P0621 Gain Switch Mode</Name>
+								<Comment>Gain Switch Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2622</Index>
+								<Name>P0622 Gain Switch Delay</Name>
+								<Comment>Gain Switch Delay</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2623</Index>
+								<Name>P0623 Gain Switch Level</Name>
+								<Comment>Gain Switch Level</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2624</Index>
+								<Name>P0624 Gain Switch Hysteresis</Name>
+								<Comment>Gain Switch Hysteresis</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2625</Index>
+								<Name>P0625 Gain Switch Time</Name>
+								<Comment>Gain Switch Time</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2626</Index>
+								<Name>P0626 Gain Switch Filter Enable</Name>
+								<Comment>Gain Switch Filter Enable</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2627</Index>
+								<Name>P0627 Gain Switch Parameter Dump</Name>
+								<Comment>Gain Switch Parameter Dump</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2628</Index>
+								<Name>P0628 Gain Switch Position Command Threshold</Name>
+								<Comment>Gain Switch Position Command Threshold</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2629</Index>
+								<Name>P0629 Gain Switch Acceleration</Name>
+								<Comment>Gain Switch Acceleration</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x263A</Index>
+								<Name>P063A Positive Friction Compensation</Name>
+								<Comment>Positive Friction Compensation</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x263B</Index>
+								<Name>P063B Negative Friction Compensation</Name>
+								<Comment>Negative Friction Compensation</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x263C</Index>
+								<Name>P063C Positive Friction Compensation Hysteresis</Name>
+								<Comment>Positive Friction Compensation Hysteresis</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x263D</Index>
+								<Name>P063D Negative Friction Compensation Hysteresis</Name>
+								<Comment>Negative Friction Compensation Hysteresis</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2642</Index>
+								<Name>P0642 Uint Of Rotary Acceleration</Name>
+								<Comment>Uint Of Rotary Acceleration</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2643</Index>
+								<Name>P0643 Unit Of Rotary Position</Name>
+								<Comment>Unit Of Rotary Position</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2644</Index>
+								<Name>P0644 Unit Of Rotary Velocity</Name>
+								<Comment>Unit Of Rotary Velocity</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2649</Index>
+								<Name>P0649 Serial Buffered Position Command 1</Name>
+								<Comment>Serial Buffered Position Command 1</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x264A</Index>
+								<Name>P064A Serial Buffered Position Command 2</Name>
+								<Comment>Serial Buffered Position Command 2</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x264B</Index>
+								<Name>P064B Serial Buffered Velocity Command 1</Name>
+								<Comment>Serial Buffered Velocity Command 1</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x264C</Index>
+								<Name>P064C Serial Buffered Velocity Command 2</Name>
+								<Comment>Serial Buffered Velocity Command 2</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x264D</Index>
+								<Name>P064D Serial Buffered Position Move Times</Name>
+								<Comment>Serial Buffered Position Move Times</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x264E</Index>
+								<Name>P064E Serial Buffered Position Move Delay Time</Name>
+								<Comment>Serial Buffered Position Move Delay Time</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x264F</Index>
+								<Name>P064F Serial Buffered Position Move Mode</Name>
+								<Comment>Serial Buffered Position Move Mode</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x266C</Index>
+								<Name>P066C Interpolation Time Index</Name>
+								<Comment>Interpolation Time Index</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x266D</Index>
+								<Name>P066D Interpolation Time Period Value</Name>
+								<Comment>Interpolation Time Period Value</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2670</Index>
+								<Name>P0670 Ecat Communication State</Name>
+								<Comment>Ecat Communication State</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2672</Index>
+								<Name>P0672 AL Code</Name>
+								<Comment>AL Code</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2675</Index>
+								<Name>P0675 EtherCAT Position Command Compensation Delay</Name>
+								<Comment>EtherCAT Position Command Compensation Delay</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2676</Index>
+								<Name>P0676 EtherCAT Position Command Compensation Mode</Name>
+								<Comment>EtherCAT Position Command Compensation Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2677</Index>
+								<Name>P0677 EtherCAT Redundancy Enable</Name>
+								<Comment>EtherCAT Redundancy Enable</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2678</Index>
+								<Name>P0678 EtherCAT Mainloop Run Mode</Name>
+								<Comment>EtherCAT Mainloop Run Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2679</Index>
+								<Name>P0679 EtherCAT Eeprom Modify Mode</Name>
+								<Comment>EtherCAT Eeprom Modify Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x267A</Index>
+								<Name>P067A Enable Object 0x6076</Name>
+								<Comment>Enable Object 0x6076</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x26A0</Index>
+								<Name>P06A0 Can Id</Name>
+								<Comment>Can Id</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x26A1</Index>
+								<Name>P06A1 Can Buadrate</Name>
+								<Comment>Can Buadrate</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x26A2</Index>
+								<Name>P06A2 Reduction Ratio Numerator</Name>
+								<Comment>Reduction Ratio Numerator</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x26A3</Index>
+								<Name>P06A3 Reduction Ratio Denominator</Name>
+								<Comment>Reduction Ratio Denominator</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2706</Index>
+								<Name>P0706 Drive Enable Status</Name>
+								<Comment>Drive Enable Status</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2707</Index>
+								<Name>P0707 Position Motion Ended</Name>
+								<Comment>Position Motion Ended</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2708</Index>
+								<Name>P0708 Control Mode</Name>
+								<Comment>Control Mode</Comment>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2709</Index>
+								<Name>P0709 System State Machine State</Name>
+								<Comment>System State Machine State</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x270A</Index>
+								<Name>P070A Motor Run Loop State</Name>
+								<Comment>Motor Run Loop State</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x270B</Index>
+								<Name>P070B Application State Machine State</Name>
+								<Comment>Application State Machine State</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x270C</Index>
+								<Name>P070C System Run Time</Name>
+								<Comment>System Run Time</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x270D</Index>
+								<Name>P070D Initial Position Identification Status</Name>
+								<Comment>Initial Position Identification Status</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2710</Index>
+								<Name>P0710 Drive Sync0 Task Realtime Load</Name>
+								<Comment>Drive Sync0 Task Realtime Load</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2711</Index>
+								<Name>P0711 Drive 1ms Task Realtime Load</Name>
+								<Comment>Drive 1ms Task Realtime Load</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2712</Index>
+								<Name>P0712 Drive 10ms Task Realtime Load</Name>
+								<Comment>Drive 10ms Task Realtime Load</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2735</Index>
+								<Name>P0735 Positive Current Limit Actual Value</Name>
+								<Comment>Positive Current Limit Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2736</Index>
+								<Name>P0736 Negative Current Limit Actual Value</Name>
+								<Comment>Negative Current Limit Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x276F</Index>
+								<Name>P076F Encoder Single Turn Position</Name>
+								<Comment>Encoder Single Turn Position</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2770</Index>
+								<Name>P0770 Encoder Multi Turn Position</Name>
+								<Comment>Encoder Multi Turn Position</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2771</Index>
+								<Name>P0771 Encoder Multi-Turn Original Value</Name>
+								<Comment>Encoder Multi-Turn Original Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2777</Index>
+								<Name>P0777 Vbus</Name>
+								<Comment>Vbus</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x2779</Index>
+								<Name>P0779 Drive Temperature</Name>
+								<Comment>Drive Temperature</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x277A</Index>
+								<Name>P077A Power Module Temperature</Name>
+								<Comment>Power Module Temperature</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B0</Index>
+								<Name>P07B0 Position Loop Gain Actual Value</Name>
+								<Comment>Position Loop Gain Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B1</Index>
+								<Name>P07B1 Position Loop Velocity Feedforward Gain Actual Value</Name>
+								<Comment>Position Loop Velocity Feedforward Gain Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B2</Index>
+								<Name>P07B2 Position Loop Velocity Feedforward Filter Frequency Actual Value</Name>
+								<Comment>Position Loop Velocity Feedforward Filter Frequency Actual Value</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B3</Index>
+								<Name>P07B3 Torque Feedforward Gain Actual Value</Name>
+								<Comment>Torque Feedforward Gain Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B4</Index>
+								<Name>P07B4 Torque Feedforward Filter Frequency Actual Value</Name>
+								<Comment>Torque Feedforward Filter Frequency Actual Value</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B5</Index>
+								<Name>P07B5 Velocity Proportional Gain Actual Value</Name>
+								<Comment>Velocity Proportional Gain Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B6</Index>
+								<Name>P07B6 Velocity Integral Gain Actual Value</Name>
+								<Comment>Velocity Integral Gain Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B7</Index>
+								<Name>P07B7 Velocity Feedforward Gain</Name>
+								<Comment>Velocity Feedforward Gain</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B8</Index>
+								<Name>P07B8 Velocity To Current Feedforward Gain Actual Value</Name>
+								<Comment>Velocity To Current Feedforward Gain Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27B9</Index>
+								<Name>P07B9 Velocity To Current Feedforward Lpf Actual Value</Name>
+								<Comment>Velocity To Current Feedforward Lpf Actual Value</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27BA</Index>
+								<Name>P07BA Torque Command First Filter Actual Value</Name>
+								<Comment>Torque Command First Filter Actual Value</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27BB</Index>
+								<Name>P07BB Velocity Filter Frequency Actual Value</Name>
+								<Comment>Velocity Filter Frequency Actual Value</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27BC</Index>
+								<Name>P07BC Torque Reference Cmd</Name>
+								<Comment>Torque Reference Cmd</Comment>
+								<Type>REAL</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x27BD</Index>
+								<Name>P07BD Torque Value</Name>
+								<Comment>Torque Value</Comment>
+								<Type>REAL</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x5000</Index>
+								<Name>Parameter Read And Write</Name>
+								<Type>DT5000</Type>
+								<BitSize>2064</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x5001</Index>
+								<Name>Parameter Dump Access</Name>
+								<Type>DT5001</Type>
+								<BitSize>1056</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x603F</Index>
+								<Name>Error Code</Name>
+								<Comment>Error Code</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6040</Index>
+								<Name>Controlword</Name>
+								<Comment>Controlword</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6041</Index>
+								<Name>Statusword</Name>
+								<Comment>Statusword</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x605A</Index>
+								<Name>Quick Stop Option Code</Name>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>FFFF</MinData>
+									<MaxData>0100</MaxData>
+									<DefaultData>FFFF</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x605B</Index>
+								<Name>Shutdown Option Code</Name>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>FFFF</MinData>
+									<MaxData>0100</MaxData>
+									<DefaultData>FFFF</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x605C</Index>
+								<Name>Disable Operation Option Code</Name>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>FFFF</MinData>
+									<MaxData>0100</MaxData>
+									<DefaultData>FFFF</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x605D</Index>
+								<Name>Haltp Option Code</Name>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0100</MinData>
+									<MaxData>0300</MaxData>
+									<DefaultData>0100</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x605E</Index>
+								<Name>Fault Response Options</Name>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>FFFF</MinData>
+									<MaxData>0100</MaxData>
+									<DefaultData>FFFF</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6060</Index>
+								<Name>Modes Of Operation</Name>
+								<Comment>Modes of Operation</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Info>
+									<MinData>80</MinData>
+									<MaxData>0A</MaxData>
+									<DefaultData>08</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6061</Index>
+								<Name>Modes Of Operation Display</Name>
+								<Comment>Modes of Operation Display</Comment>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Info>
+									<MinData>80</MinData>
+									<MaxData>0A</MaxData>
+									<DefaultData>08</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6062</Index>
+								<Name>Position Demand Value</Name>
+								<Comment>Position Demand Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6063</Index>
+								<Name>Position Actual Internal Value</Name>
+								<Comment>Position Actual Internal Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6064</Index>
+								<Name>Position Actual Value</Name>
+								<Comment>Position Actual Value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6065</Index>
+								<Name>Following Error Window</Name>
+								<Comment>Following Error Window</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>01000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6066</Index>
+								<Name>Following Error Time Out</Name>
+								<Comment>Following Error Time Out</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6067</Index>
+								<Name>Position Window</Name>
+								<Comment>Position Window</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6068</Index>
+								<Name>Position Window Time</Name>
+								<Comment>Position Window Time</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0A00</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x606B</Index>
+								<Name>Velocity Demand Value</Name>
+								<Comment>This object shall provide the output value of the trajectory generator. The value shall be given in the user-defined velocity units</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x606C</Index>
+								<Name>Velocity Actual Value</Name>
+								<Comment>This object shall provide the actual velocity value derived either from the velocity sensor or the position sensor. The value shall be given in user-defined velocity units. Mandatory if pv supported. Recommended if csv is supported.</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x606D</Index>
+								<Name>Velocity Window</Name>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x606E</Index>
+								<Name>Velocity Window Time</Name>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x606F</Index>
+								<Name>Velocity Threshold</Name>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6070</Index>
+								<Name>Velocity Threshold Time</Name>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6071</Index>
+								<Name>Target Torque</Name>
+								<Comment>This object shall indicate the configured input value for the torque controller in profile torque mode. The value shall be given per thousand of rated torque.</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0080</MinData>
+									<MaxData>FF7F</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6072</Index>
+								<Name>Maxt Torque</Name>
+								<Comment>max torque limit</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>8813</MaxData>
+									<DefaultData>8813</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6073</Index>
+								<Name>Maximum Current</Name>
+								<Comment>This object shall indicate the configured maximum permissible torque creating current in the motor.</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0000</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6074</Index>
+								<Name>Torque Demand Value</Name>
+								<Comment>This object shall provide the output value of the trajectory generator</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0080</MinData>
+									<MaxData>FF7F</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6075</Index>
+								<Name>Motor Rated Current</Name>
+								<Comment>This object shall indicate the configured motor rated current</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6076</Index>
+								<Name>Motor Rated Torque</Name>
+								<Comment>This object shall indicate the configured motor rated torque</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6077</Index>
+								<Name>Torque Actual Value</Name>
+								<Comment>This object shall provide the actual value of the torque</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0080</MinData>
+									<MaxData>FF7F</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6078</Index>
+								<Name>Current Actual Value</Name>
+								<Comment>This object shall provide the actual value of the current</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0080</MinData>
+									<MaxData>FF7F</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6079</Index>
+								<Name>DC Link Circuit Voltage</Name>
+								<Comment>This object shall provide the instantaneous DC link current voltage at the drive device. The value shall be given in mV</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x607A</Index>
+								<Name>Target Position</Name>
+								<Comment>Mandatory if csp is supported</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x607C</Index>
+								<Name>Home Offset</Name>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x607D</Index>
+								<Name>Software Position Limit</Name>
+								<Type>DT607D</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Min Software Position Limit</Name>
+										<Info>
+											<MinData>00000080</MinData>
+											<MaxData>FFFFFF7F</MaxData>
+											<DefaultData>00000000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Max Software Position Limit</Name>
+										<Info>
+											<MinData>00000080</MinData>
+											<MaxData>FFFFFF7F</MaxData>
+											<DefaultData>00000000</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x607E</Index>
+								<Name>Polarity</Name>
+								<Type>USINT</Type>
+								<BitSize>8</BitSize>
+								<Info>
+									<MinData>00</MinData>
+									<MaxData>C0</MaxData>
+									<DefaultData>00</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x607F</Index>
+								<Name>Maximum Profile Velocity</Name>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>01000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>01000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6080</Index>
+								<Name>Motor Maximum Speed</Name>
+								<Comment>This object shall indicate the configured maximal allowed speed for the motor in either direction</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6081</Index>
+								<Name>Profile Velocity</Name>
+								<Comment>Mandatory if pp or pv supported</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6083</Index>
+								<Name>Profile Acceleration</Name>
+								<Comment>This object shall indicate the configured acceleration</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>01000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>E8030000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6084</Index>
+								<Name>Profile Deceleration</Name>
+								<Comment>This object shall indicate the configured deceleration</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>01000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>E8030000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6085</Index>
+								<Name>Quick Stop Deceleration</Name>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>01000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>01000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6087</Index>
+								<Name>Torque Slope</Name>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>01000000</MinData>
+									<MaxData>80C3C901</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x608F</Index>
+								<Name>Position Encoder Resolution</Name>
+								<Type>DT608F</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Position Encoder Resolution Encoder Increments</Name>
+										<Info>
+											<MinData>10000000</MinData>
+											<MaxData>80969800</MaxData>
+											<DefaultData>00080000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Position Encoder Resolution Motor Revolutions</Name>
+										<Info>
+											<MinData>01000000</MinData>
+											<MaxData>01000000</MaxData>
+											<DefaultData>01000000</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x6091</Index>
+								<Name>Gear Ratio</Name>
+								<Type>DT6091</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Gear Ratio Motor Revolutions</Name>
+										<Info>
+											<MinData>01000000</MinData>
+											<MaxData>FFFFFFFF</MaxData>
+											<DefaultData>01000000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Gear Ratio Shaft Revolutions</Name>
+										<Info>
+											<MinData>01000000</MinData>
+											<MaxData>FFFFFFFF</MaxData>
+											<DefaultData>01000000</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x6092</Index>
+								<Name>Feed Constant</Name>
+								<Type>DT6092</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Feed</Name>
+										<Info>
+											<MinData>01000000</MinData>
+											<MaxData>FFFFFFFF</MaxData>
+											<DefaultData>01000000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Shaft Revolutions</Name>
+										<Info>
+											<MinData>01000000</MinData>
+											<MaxData>FFFFFFFF</MaxData>
+											<DefaultData>01000000</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x6098</Index>
+								<Name>Homing Method</Name>
+								<Type>SINT</Type>
+								<BitSize>8</BitSize>
+								<Info>
+									<MinData>C0</MinData>
+									<MaxData>24</MaxData>
+									<DefaultData>01</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6099</Index>
+								<Name>Homing Speeds</Name>
+								<Type>DT6099</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Homing Speeds Speed For Switch Search</Name>
+										<Info>
+											<MinData>01000000</MinData>
+											<MaxData>FFFFFFFF</MaxData>
+											<DefaultData>01000000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Homing Speeds Speed For Zero Search</Name>
+										<Info>
+											<MinData>01000000</MinData>
+											<MaxData>FFFFFFFF</MaxData>
+											<DefaultData>01000000</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x609A</Index>
+								<Name>Homing Acceleration</Name>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>01000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>01000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60B0</Index>
+								<Name>Position Offset</Name>
+								<Comment>This object shall provide the offset of the target position</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60B1</Index>
+								<Name>Velocity Offset</Name>
+								<Comment>This object shall provide the offset for the velocity value</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60B2</Index>
+								<Name>Torque Offset</Name>
+								<Comment>This object shall provide the offset for the torque value.</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0080</MinData>
+									<MaxData>FF7F</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60C0</Index>
+								<Name>Interpolation Type</Name>
+								<Comment>This object shall indicate the interpolation type of position command.</Comment>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>0080</MinData>
+									<MaxData>FF7F</MaxData>
+									<DefaultData>0000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60C2</Index>
+								<Name>Interpolation Time Period</Name>
+								<Type>DT60C2</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Interpolation Time Period Value</Name>
+										<Info>
+											<MinData>01</MinData>
+											<MaxData>19</MaxData>
+											<DefaultData>01</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Interpolation Time Index</Name>
+										<Info>
+											<MinData>FB</MinData>
+											<MaxData>FD</MaxData>
+											<DefaultData>FD</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x60C5</Index>
+								<Name>Max Acceleration</Name>
+								<Comment>This object shall indicate the configured maximal acceleration.</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>01000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>FFFFFFFF</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60C6</Index>
+								<Name>Max Deceleration</Name>
+								<Comment>This object shall indicate the configured maximal deceleration.</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>01000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>FFFFFFFF</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60E0</Index>
+								<Name>Positive Torque Limit Value</Name>
+								<Comment>This object shall indicate the positive torque limit value.</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>FFFF</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>8813</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60E1</Index>
+								<Name>Negative Torque Limit Value</Name>
+								<Comment>This object shall indicate the negative torque limit value.</Comment>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Info>
+									<MinData>FFFF</MinData>
+									<MaxData>FFFF</MaxData>
+									<DefaultData>8813</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60F4</Index>
+								<Name>Following Error Actual Value</Name>
+								<Comment>This object shall provide the actual value of the following error.</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60FC</Index>
+								<Name>Position Demand Internal Value</Name>
+								<Comment>This object shall provide the output of the trajectory generator in profile position mode. This value shall given in increments of the position encoder.</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60FD</Index>
+								<Name>Digital Inputs</Name>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000000</MinData>
+									<MaxData>FFFFFFFF</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+									<PdoMapping>t</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x60FE</Index>
+								<Name>Digital Outputs</Name>
+								<Type>DT60FE</Type>
+								<BitSize>80</BitSize>
+								<Info>
+									<SubItem>
+										<Name>SubIndex 000</Name>
+										<Info>
+											<DefaultData>02</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Digital Outputs Physical Outputs</Name>
+										<Info>
+											<MinData>00000000</MinData>
+											<MaxData>FFFFFFFF</MaxData>
+											<DefaultData>00000000</DefaultData>
+										</Info>
+									</SubItem>
+									<SubItem>
+										<Name>Digital Outputs Output Mask</Name>
+										<Info>
+											<MinData>00000000</MinData>
+											<MaxData>FFFFFFFF</MaxData>
+											<DefaultData>00000000</DefaultData>
+										</Info>
+									</SubItem>
+								</Info>
+							</Object>
+							<Object>
+								<Index>#x60FF</Index>
+								<Name>Target Velocity</Name>
+								<Comment>Mandatory if pv or csv is supported</Comment>
+								<Type>DINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<MinData>00000080</MinData>
+									<MaxData>FFFFFF7F</MaxData>
+									<DefaultData>00000000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>rw</Access>
+									<PdoMapping>r</PdoMapping>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6502</Index>
+								<Name>Supported Drive Modes</Name>
+								<Comment>This object shall provide information on the supported drive modes.</Comment>
+								<Type>UDINT</Type>
+								<BitSize>32</BitSize>
+								<Info>
+									<DefaultData>AD030000</DefaultData>
+								</Info>
+								<Flags>
+									<Access>ro</Access>
+								</Flags>
+							</Object>
+						</Objects>
+					</Dictionary>
+				</Profile>
+				<Fmmu>Outputs</Fmmu>
+				<Fmmu>Inputs</Fmmu>
+				<Fmmu>MBoxState</Fmmu>
+				<Sm MinSize="#x24" MaxSize="#x80" DefaultSize="#x80" StartAddress="#x1000" ControlByte="#x26" Enable="1">MBoxOut</Sm>
+				<Sm MinSize="#x24" MaxSize="#x80" DefaultSize="#x80" StartAddress="#x1080" ControlByte="#x22" Enable="1">MBoxIn</Sm>
+				<Sm DefaultSize="33" StartAddress="#x1100" ControlByte="#x64" Enable="1">Outputs</Sm>
+				<Sm DefaultSize="29" StartAddress="#x1400" ControlByte="#x20" Enable="1">Inputs</Sm>
+				<RxPdo Fixed="false" Mandatory="false" Sm="2">
+					<Index>#x1600</Index>
+					<Name>RxPDO1</Name>
+					<Entry>
+						<Index>#x6040</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Controlword</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6060</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>8</BitLen>
+						<Name>Modes Of Operation</Name>
+						<DataType>SINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x607A</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Target Position</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6081</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Profile Velocity</Name>
+						<DataType>UDINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x60FF</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Target Velocity</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x240D</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>P040D Torque Mode Velocity Limit</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6071</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Target Torque</Name>
+						<DataType>INT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6083</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Profile Acceleration</Name>
+						<DataType>UDINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6084</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Profile Deceleration</Name>
+						<DataType>UDINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6087</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Torque Slope</Name>
+						<DataType>UDINT</DataType>
+					</Entry>
+				</RxPdo>
+				<RxPdo Fixed="false" Mandatory="false">
+					<Index>#x1601</Index>
+					<Name>RxPDO2</Name>
+					<Entry>
+						<Index>#x6040</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Controlword</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x607A</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Target Position</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+				</RxPdo>
+				<RxPdo Fixed="false" Mandatory="false">
+					<Index>#x1602</Index>
+					<Name>RxPDO3</Name>
+					<Entry>
+						<Index>#x6040</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Controlword</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x60FF</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Target Velocity</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+				</RxPdo>
+				<RxPdo Fixed="false" Mandatory="false">
+					<Index>#x1603</Index>
+					<Name>RxPDO4</Name>
+					<Entry>
+						<Index>#x6040</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Controlword</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6071</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Target Torque</Name>
+						<DataType>INT</DataType>
+					</Entry>
+				</RxPdo>
+				<TxPdo Fixed="false" Mandatory="false" Sm="3">
+					<Index>#x1A00</Index>
+					<Name>TxPDO1</Name>
+					<Entry>
+						<Index>#x6041</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Statusword</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6061</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>8</BitLen>
+						<Name>Modes Of Operation Display</Name>
+						<DataType>SINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x603F</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Error Code</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6064</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Position Actual Value</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x606C</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Velocity Actual Value</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6077</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Torque Actual Value</Name>
+						<DataType>INT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6074</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Torque Demand Value</Name>
+						<DataType>INT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x60F4</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Following Error Actual Value</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6079</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>DC Link Circuit Voltage</Name>
+						<DataType>UDINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x60FD</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Digital Inputs</Name>
+						<DataType>UDINT</DataType>
+					</Entry>
+				</TxPdo>
+				<TxPdo Fixed="false" Mandatory="false">
+					<Index>#x1A01</Index>
+					<Name>TxPDO2</Name>
+					<Entry>
+						<Index>#x6041</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Statusword</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6064</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Position Actual Value</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+				</TxPdo>
+				<TxPdo Fixed="false" Mandatory="false">
+					<Index>#x1A02</Index>
+					<Name>TxPDO3</Name>
+					<Entry>
+						<Index>#x6041</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Statusword</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x606C</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>32</BitLen>
+						<Name>Velocity Actual Value</Name>
+						<DataType>DINT</DataType>
+					</Entry>
+				</TxPdo>
+				<TxPdo Fixed="false" Mandatory="false">
+					<Index>#x1A03</Index>
+					<Name>TxPDO4</Name>
+					<Entry>
+						<Index>#x6041</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Statusword</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6077</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>Torque Actual Value</Name>
+						<DataType>INT</DataType>
+					</Entry>
+				</TxPdo>
+				<Mailbox DataLinkLayer="true">
+					<CoE SdoInfo="true" PdoAssign="true" PdoConfig="true" CompleteAccess="true" SegmentedSdo="true" />
+					<FoE />
+				</Mailbox>
+				<Dc>
+					<OpMode>
+						<Name>Synchron</Name>
+						<Desc>SM-Synchron</Desc>
+						<AssignActivate>#x0</AssignActivate>
+					</OpMode>
+					<OpMode>
+						<Name>DC</Name>
+						<Desc>DC-Synchron</Desc>
+						<AssignActivate>#x300</AssignActivate>
+						<CycleTimeSync0 Factor="1">0</CycleTimeSync0>
+						<CycleTimeSync1 Factor="1">0</CycleTimeSync1>
+					</OpMode>
+				</Dc>
+				<Eeprom>
+					<ByteSize>2048</ByteSize>
+					<ConfigData>050E03440A0000000000</ConfigData>
+					<BootStrap>0010800080108000</BootStrap>
+				</Eeprom>
+			</Device>
+		</Devices>
+	</Descriptions>
+</EtherCATInfo>
