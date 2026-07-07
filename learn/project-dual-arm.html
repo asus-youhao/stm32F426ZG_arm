@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>專案 A · 雙臂 CANopen 主站 — STM32 學習手冊</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><span class="em">🤖</span>STM32 學習手冊</div>
+    <div class="tag">F7 雙臂機器人 · 從點燈到 14 軸</div>
+    <div class="navtitle">學習里程碑</div>
+    <a class="nav" href="index.html"><span class="dot d-basic"></span>學習樹總覽</a>
+    <a class="nav" href="l1-basic.html"><span class="dot d-basic"></span>L1 初階<span class="lv">6 節</span></a>
+    <a class="nav" href="l2-mid.html"><span class="dot d-mid"></span>L2 中階<span class="lv">6 節</span></a>
+    <a class="nav" href="l3-adv.html"><span class="dot d-adv"></span>L3 高階<span class="lv">6 節</span></a>
+    <div class="navtitle">🎯 最終專案</div>
+    <a class="nav here" href="project-dual-arm.html"><span class="dot d-proj"></span>A · 雙臂 CANopen 主站</a>
+    <a class="nav" href="project-ecat-master.html"><span class="dot d-proj"></span>B · EtherCAT 1kHz 主站</a>
+    <div class="navtitle">🧭 職涯</div>
+    <a class="nav" href="career-skills.html"><span class="dot d-career"></span>職涯技能地圖</a>
+    <div class="navtitle">本頁小節</div>
+    <a class="nav" href="#arch"><span class="dot d-proj"></span>系統架構</a>
+    <a class="nav" href="#hw"><span class="dot d-proj"></span>硬體清單 · 接線</a>
+    <a class="nav" href="#ms"><span class="dot d-proj"></span>里程碑 WP2→WP7</a>
+    <a class="nav" href="#code"><span class="dot d-proj"></span>程式碼導覽</a>
+    <a class="nav" href="#done"><span class="dot d-proj"></span>完成定義</a>
+  </aside>
+
+  <main>
+    <div class="crumb"><a href="index.html">學習樹總覽</a> ／ 🦾 專案 A · 雙臂 CANopen 主站</div>
+    <header class="top">
+      <h1>🦾 專案 A — 雙臂 CANopen 主站（本 repo 主線）</h1>
+      <div class="sub">STM32F746ZG 當主站，雙路 bxCAN 各帶一臂 7 顆 EYOU PHU 關節，CANopen CiA 301/402 · CSP 模式 · <b>500 Hz</b> 全棧控制。這就是 <code>firmware/</code> 目錄的完整內容。</div>
+      <span class="pill">STM32F746ZG</span><span class="pill">bxCAN ×2 @1Mbps</span><span class="pill">CiA 301/402</span>
+      <span class="pill">CSP @500Hz</span><span class="pill">14 軸 PHU</span>
+    </header>
+
+    <!-- ===== ARCH ===== -->
+    <section id="arch">
+      <h2 class="proj"><span class="em">🗺️</span>系統架構</h2>
+      <p class="lead">一顆 MCU、兩條獨立匯流排、十四顆整合式諧波關節。左右臂各自一條 bus：頻寬夠用、故障隔離。</p>
+      <div class="card" style="overflow-x:auto;padding:6px 0">
+        <svg viewBox="0 0 960 400" width="100%" role="img" aria-label="雙臂 CANopen 系統架構圖">
+          <defs>
+            <marker id="ar2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#9aa3c4"/>
+            </marker>
+            <style>
+              .bx{fill:#1a1f36;stroke:#2c3458}
+              .t1{font:600 14px "Noto Sans TC",sans-serif;fill:#e8ecf8}
+              .t2{font:11px "Noto Sans TC",sans-serif;fill:#9aa3c4}
+              .bus{stroke-width:3;fill:none;marker-end:url(#ar2)}
+            </style>
+          </defs>
+          <!-- host -->
+          <rect class="bx" x="20" y="150" width="150" height="90" rx="14" stroke="#6ea8fe"/>
+          <text class="t1" x="40" y="185">🖥️ 上位機</text>
+          <text class="t2" x="40" y="207">UART 命令/狀態</text>
+          <text class="t2" x="40" y="223">host_if.c</text>
+          <path class="bus" stroke="#6ea8fe" d="M170,195 L230,195"/>
+          <!-- mcu -->
+          <rect class="bx" x="232" y="120" width="220" height="150" rx="14" stroke="#7ee0c2"/>
+          <text class="t1" x="252" y="152">⚙️ STM32F746ZG 主站</text>
+          <text class="t2" x="252" y="176">TIM6 500Hz tick</text>
+          <text class="t2" x="252" y="194">L4 協同 · L3 IK · L2 軌跡</text>
+          <text class="t2" x="252" y="212">L1 CANopen (NMT/SDO/PDO)</text>
+          <text class="t2" x="252" y="236">safety: 看門狗50ms · 急停</text>
+          <!-- left bus -->
+          <path class="bus" stroke="#ffcc66" d="M452,160 L540,110"/>
+          <text class="t2" x="470" y="118">CAN1 @1Mbps</text>
+          <rect class="bx" x="542" y="60" width="390" height="100" rx="14" stroke="#ffcc66"/>
+          <text class="t1" x="562" y="90">🦾 左臂 · Node 1..7</text>
+          <text class="t2" x="562" y="112">J1 J2 肩 PHU20 · J3 J4 肘 PHU17 · J5 J6 J7 腕 PHU14</text>
+          <text class="t2" x="562" y="134">菊鏈 CAN In/Out · 終端 120Ω · RPDO1/TPDO1 每軸每週期</text>
+          <!-- right bus -->
+          <path class="bus" stroke="#ffcc66" d="M452,230 L540,280"/>
+          <text class="t2" x="470" y="278">CAN2 @1Mbps</text>
+          <rect class="bx" x="542" y="240" width="390" height="100" rx="14" stroke="#ffcc66"/>
+          <text class="t1" x="562" y="270">🦾 右臂 · Node 1..7</text>
+          <text class="t2" x="562" y="292">同左臂構型（PHU20 ×2 · PHU17 ×2 · PHU14 ×3）</text>
+          <text class="t2" x="562" y="314">獨立匯流排：頻寬獨立 · 故障隔離</text>
+        </svg>
+      </div>
+      <div class="note"><b>為什麼 500 Hz 而不是 1 kHz：</b>L2-11 算過 — 單臂 7 軸每週期 14 frame，500 Hz = 7000 frame/s 已到 Classic CAN 上限的 ~90%。要 1 kHz 就是<a href="project-ecat-master.html">專案 B（EtherCAT）</a>的事。</div>
+    </section>
+
+    <!-- ===== HW ===== -->
+    <section id="hw">
+      <h2 class="proj"><span class="em">🔩</span>硬體清單 · 接線要點</h2>
+      <table>
+        <tr><th>項目</th><th>規格</th><th>備註</th></tr>
+        <tr><td>主控板</td><td>STM32F746ZG（Nucleo-144 可）</td><td>雙 bxCAN 是選型關鍵（L1-1）</td></tr>
+        <tr><td>CAN 收發器 ×2</td><td>TJA1051 / SN65HVD230 等 3.3V 款</td><td>MCU 只有控制器，<b>沒有</b>收發器</td></tr>
+        <tr><td>關節 ×14</td><td>EYOU PHU20 ×4、PHU17 ×4、PHU14 ×6</td><td>24–48V 供電、菊鏈 CAN In/Out、STO 接點</td></tr>
+        <tr><td>電源</td><td>48V 主電 + 邏輯電分開</td><td>大關節煞停回灌，電源要能吸收</td></tr>
+      </table>
+      <ul class="chk">
+        <li>腳位（依板調整）：CAN1 <code>PD0=RX / PD1=TX</code>；CAN2 <code>PB12=RX / PB13=TX</code>（<code>firmware/README.md</code>）</li>
+        <li>每條 bus 兩端 120Ω；量 CAN_H–CAN_L 靜態約 60Ω 驗證</li>
+        <li>節點 ID / 波特率用 SDO 組態（<code>0x26A1</code> 預設 1Mbps，見 PHU 手冊）</li>
+        <li>STO 迴路先接常閉急停鈕再上 48V — L3-16 不是選配</li>
+      </ul>
+    </section>
+
+    <!-- ===== MILESTONES ===== -->
+    <section id="ms">
+      <h2 class="proj"><span class="em">🏁</span>里程碑 — 本 repo 實際走過的 WP2 → WP7</h2>
+      <p class="lead">每個里程碑都有對應的設計文件與測試，照順序打勾。這份順序（單軸 → 關節空間 → 任務空間 → 雙臂 → 安全 → 上位機）就是伺服整合的標準教科書流程。</p>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M1</span><h3 class="topic">WP2 · 單軸 bring-up</h3></div>
+        <div class="goal">🎯 一顆關節：SDO 讀得到 → NMT 進 OP → CiA402 使能 → CSP 微動。</div>
+        <ul class="chk">
+          <li>candump/邏輯分析儀看得到 heartbeat（L2-8）</li>
+          <li>SDO 讀 0x1000/0x6041 成功（L2-9）</li>
+          <li><code>cia402_enable_step()</code> 交握到 OPERATION_ENABLED（L3-13）</li>
+          <li>手轉一圈驗證 counts↔rad 換算（L3-14 的教訓）</li>
+          <li>CSP 下發 ±1000 counts 小步階，軸有跟</li>
+        </ul>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp2-single-axis-bringup.md</code></div>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M2</span><h3 class="topic">WP3 · joint-space 控制</h3></div>
+        <div class="goal">🎯 7 軸同 bus：500Hz tick 下平滑軌跡點到點，無 following error。</div>
+        <ul class="chk">
+          <li>TIM6 2ms tick 掛上 <code>app_main_tick()</code>（L1-6）</li>
+          <li>trajectory 層限速限加速度生效（L3-15）</li>
+          <li>bus 載荷實測，<code>dual_arm_tx_drops()</code> = 0</li>
+        </ul>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp3-joint-space.md</code>；測試 <code>test_trajectory.c</code></div>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M3</span><h3 class="topic">WP4 · task-space（IK）</h3></div>
+        <div class="goal">🎯 給末端位姿，手臂走直線；IK 在 2ms 預算內收斂。</div>
+        <ul class="chk">
+          <li>FK 與機構圖對照無誤（<code>test_kinematics.c</code>）</li>
+          <li>IK 誤差/迭代數在預算內（<code>test_ik.c</code>）</li>
+          <li>末端畫直線/圓弧，實測軌跡貼合</li>
+        </ul>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp4-task-space.md</code></div>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M4</span><h3 class="topic">WP5 · 雙臂整合</h3></div>
+        <div class="goal">🎯 14 軸雙 bus 同時跑；獨立/鏡像/協同三模式；防撞生效。</div>
+        <ul class="chk">
+          <li>CAN1/CAN2 同 tick 內都完成 PDO 交換</li>
+          <li><code>da_ctrl</code> 三模式切換正常</li>
+          <li>兩臂末端逼近到 5cm，防撞 hold 觸發（<code>app_safety_hold()</code>）</li>
+        </ul>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp5-dual-arm-integration.md</code></div>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M5</span><h3 class="topic">WP6 · 安全</h3></div>
+        <div class="goal">🎯 拔線、報 Fault、按急停 — 每一種都要在 50ms 級別內安全停下。</div>
+        <ul class="chk">
+          <li>拔任一軸 CAN 線 → 看門狗觸發安全停止（L3-16 的 fb_fresh 教訓）</li>
+          <li>estop API + STO 實測</li>
+          <li><code>test_safety.c</code> 全綠</li>
+        </ul>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp6-safety-wp7-host.md</code></div>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M6</span><h3 class="topic">WP7 · 上位機介面</h3></div>
+        <div class="goal">🎯 UART 文字協定：設定模式/目標位姿、讀狀態 — 系統可被外部指揮。</div>
+        <ul class="chk">
+          <li><code>host_if.c</code> 命令解析 → <code>app_set_left_pose()</code> 等 API</li>
+          <li>狀態回報含 <code>app_sys_state()</code>、雙臂實際位姿</li>
+          <li>PC 端腳本連續下目標，跑 10 分鐘無失步</li>
+        </ul>
+        <div class="note"><b>📄 文件：</b><code>docs/design/wp6-safety-wp7-host.md</code>；測試 <code>test_hostif.c</code></div>
+      </div>
+    </section>
+
+    <!-- ===== CODE ===== -->
+    <section id="code">
+      <h2 class="proj"><span class="em">🧭</span>程式碼導覽 — 從哪裡開始讀</h2>
+      <div class="codecap">建議閱讀順序（由外而內）</div>
+      <pre><code>firmware/README.md              # 架構總覽 + 頻寬警告(必讀)
+firmware/app/app_main.c         # 101 行看懂整個系統: init + 500Hz tick
+firmware/app/control_rate.h     # 為什麼 500Hz(附計算)
+firmware/canopen/canopen.h      # 共用型別/COB-ID 定義
+firmware/canopen/cia402.h       # 狀態機(先讀 .h 再讀 .c)
+firmware/control/dual_arm_ctrl.h# L4 協同層介面
+firmware/sim/sim_main.c         # 免硬體跑起來的入口</code></pre>
+      <div class="codecap">動手：先在 PC 上全部跑起來（不用板子）</div>
+      <pre><code>cd firmware/tests && make          # 單元測試全綠
+cd ../.. && cmake -S firmware -B build && cmake --build build
+./build/phu_sim_demo               # 假 PHU 關節 + 完整控制棧</code></pre>
+    </section>
+
+    <!-- ===== DONE ===== -->
+    <section id="done">
+      <h2 class="proj"><span class="em">✅</span>完成定義（Definition of Done）</h2>
+      <ul class="chk">
+        <li class="ok">單元測試全綠（tests/）、HOST 模擬跑通（sim/）— repo 現狀已達成</li>
+        <li>真機：14 軸同時使能，task-space 直線 @500Hz，示波器驗 tick 抖動</li>
+        <li>安全：拔線/急停/Fault 三情境實測都停得下來</li>
+        <li>連續 1 小時運行無丟幀（<code>dual_arm_tx_drops()==0</code>）、無看門狗誤觸發</li>
+        <li>每項改動有 <code>docs/changes/</code> 紀錄（本 repo 的文件紀律）</li>
+      </ul>
+      <div class="note tip"><b>作品集價值：</b>做完這個專案，你手上有「多軸伺服整合 + fieldbus 主站 + 安全設計 + 可測試架構」四樣硬貨 — 對照<a href="career-skills.html">職涯技能地圖</a>，這是機器人韌體「中階」職缺的完整命中。</div>
+    </section>
+
+    <div class="pager">
+      <a href="l3-adv.html"><small>← 上一頁</small>🟣 L3 高階</a>
+      <a class="next" href="project-ecat-master.html"><small>下一頁 →</small>⚡ 專案 B · EtherCAT 1kHz</a>
+    </div>
+    <footer>專案 A · STM32 學習手冊 · 說明見 <code>learn/docs/05-project-dual-arm.md</code></footer>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>專案 B · EtherCAT 1kHz 主站 — STM32 學習手冊</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><span class="em">🤖</span>STM32 學習手冊</div>
+    <div class="tag">F7 雙臂機器人 · 從點燈到 14 軸</div>
+    <div class="navtitle">學習里程碑</div>
+    <a class="nav" href="index.html"><span class="dot d-basic"></span>學習樹總覽</a>
+    <a class="nav" href="l1-basic.html"><span class="dot d-basic"></span>L1 初階<span class="lv">6 節</span></a>
+    <a class="nav" href="l2-mid.html"><span class="dot d-mid"></span>L2 中階<span class="lv">6 節</span></a>
+    <a class="nav" href="l3-adv.html"><span class="dot d-adv"></span>L3 高階<span class="lv">6 節</span></a>
+    <div class="navtitle">🎯 最終專案</div>
+    <a class="nav" href="project-dual-arm.html"><span class="dot d-proj"></span>A · 雙臂 CANopen 主站</a>
+    <a class="nav here" href="project-ecat-master.html"><span class="dot d-proj"></span>B · EtherCAT 1kHz 主站</a>
+    <div class="navtitle">🧭 職涯</div>
+    <a class="nav" href="career-skills.html"><span class="dot d-career"></span>職涯技能地圖</a>
+    <div class="navtitle">本頁小節</div>
+    <a class="nav" href="#arch"><span class="dot d-proj"></span>系統架構</a>
+    <a class="nav" href="#ms"><span class="dot d-proj"></span>里程碑 M1→M6</a>
+    <a class="nav" href="#war"><span class="dot d-proj"></span>實戰紀錄（本 repo）</a>
+    <a class="nav" href="#done"><span class="dot d-proj"></span>完成定義</a>
+  </aside>
+
+  <main>
+    <div class="crumb"><a href="index.html">學習樹總覽</a> ／ ⚡ 專案 B · EtherCAT 1kHz 主站</div>
+    <header class="top">
+      <h1>⚡ 專案 B — Linux RT EtherCAT 1kHz 主站</h1>
+      <div class="sub">把主站從 MCU 搬上 <b>Linux PREEMPT_RT PC</b>，用 SOEM / IgH 走 EtherCAT CoE，突破 Classic CAN 的頻寬天花板，達成 <b>14 軸 @1kHz</b> DC 同步控制。這是本 repo <code>feature/linux-*-ethercat-master</code> 系列分支的實戰內容。</div>
+      <span class="pill">PREEMPT_RT</span><span class="pill">SOEM / IgH</span><span class="pill">CoE + CiA402</span>
+      <span class="pill">DC 同步</span><span class="pill">CSP @1kHz</span>
+    </header>
+
+    <!-- ===== ARCH ===== -->
+    <section id="arch">
+      <h2 class="proj"><span class="em">🗺️</span>系統架構</h2>
+      <p class="lead">跟專案 A 是「同一套控制腦、換一條脊椎」：CiA402/CSP 邏輯不變，載體從雙路 CAN 換成一條 EtherCAT 菊鏈，同步從無到 DC 硬體級。</p>
+      <div class="card" style="overflow-x:auto;padding:6px 0">
+        <svg viewBox="0 0 960 330" width="100%" role="img" aria-label="Linux RT EtherCAT 主站架構圖">
+          <defs>
+            <marker id="ar3" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#9aa3c4"/>
+            </marker>
+            <style>
+              .bx3{fill:#1a1f36;stroke:#2c3458}
+              .t1{font:600 14px "Noto Sans TC",sans-serif;fill:#e8ecf8}
+              .t2{font:11px "Noto Sans TC",sans-serif;fill:#9aa3c4}
+              .bus3{stroke-width:3;fill:none;marker-end:url(#ar3)}
+            </style>
+          </defs>
+          <rect class="bx3" x="20" y="70" width="280" height="190" rx="14" stroke="#7ee0c2"/>
+          <text class="t1" x="40" y="102">🖥️ Linux PC（PREEMPT_RT）</text>
+          <text class="t2" x="40" y="128">SCHED_FIFO 90 · mlockall · isolcpus</text>
+          <text class="t2" x="40" y="148">SOEM 或 IgH 主站（third_party/）</text>
+          <text class="t2" x="40" y="168">1ms 迴圈：send/receive processdata</text>
+          <text class="t2" x="40" y="188">CiA402 使能 + CSP 目標（同 L3-13/14）</text>
+          <text class="t2" x="40" y="216">🔧 診斷：cyclictest · wireshark(ecat)</text>
+          <text class="t2" x="40" y="236">ethercat 工具(IgH) · slaveinfo(SOEM)</text>
+          <path class="bus3" stroke="#ffcc66" d="M300,165 L370,165"/>
+          <text class="t2" x="308" y="152">100Mbps 全雙工</text>
+          <rect class="bx3" x="372" y="60" width="560" height="210" rx="14" stroke="#ffcc66"/>
+          <text class="t1" x="392" y="92">⛓️ EtherCAT 菊鏈 · PHU 關節從站 ×14</text>
+          <text class="t2" x="392" y="118">ECAT In → ECAT Out 一路串下去，線路即拓樸（不需終端電阻）</text>
+          <text class="t2" x="392" y="142">每站 on-the-fly 讀寫同一個 frame → 14 軸資料 &lt; 1 個 frame</text>
+          <text class="t2" x="392" y="166">DC 分散時鐘：SYNC0 對時 &lt;1µs，全臂同拍取樣/生效</text>
+          <text class="t2" x="392" y="190">CoE：SDO 組態 + PDO 過程資料 + CiA402 狀態機（L2/L3 原樣沿用）</text>
+          <text class="t2" x="392" y="222">ESM：INIT → PREOP(SDO 可用) → SAFEOP(TPDO 有效) → OP(RPDO 生效)</text>
+          <text class="t2" x="392" y="246">ESI XML 描述 PDO 佈局 — 對不上就卡 SAFEOP（見實戰紀錄）</text>
+        </svg>
+      </div>
+      <table>
+        <tr><th></th><th>專案 A（CANopen）</th><th>專案 B（EtherCAT）</th></tr>
+        <tr><td>主站硬體</td><td>STM32F746（裸機）</td><td>Linux PC + RT kernel</td></tr>
+        <tr><td>控制頻率</td><td>500 Hz（頻寬上限）</td><td><b>1 kHz+</b>（頻寬剩餘極大）</td></tr>
+        <tr><td>同步品質</td><td>無硬體同步，靠主站節拍</td><td>DC 硬體同步 &lt;1µs</td></tr>
+        <tr><td>佈線</td><td>2× 雙絞線 + 終端電阻</td><td>1× 網路線菊鏈</td></tr>
+        <tr><td>難點</td><td>頻寬預算、雙 bus 排程</td><td>RT 調校、ESM/ESI 除錯、廠商生態</td></tr>
+      </table>
+    </section>
+
+    <!-- ===== MILESTONES ===== -->
+    <section id="ms">
+      <h2 class="proj"><span class="em">🏁</span>里程碑 M1 → M6</h2>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M1</span><h3 class="topic">主站機建置 — RT kernel + 主站庫</h3></div>
+        <div class="goal">🎯 一台可重現建置的即時主站機，cyclictest 過關。</div>
+        <ul class="chk">
+          <li>裝 PREEMPT_RT kernel，<code>uname -a</code> 帶 <code>-rt</code></li>
+          <li>編譯 SOEM 與 IgH（本 repo 收錄於 <code>third_party/</code>，建置腳本 <code>setup_master_host.sh</code>）</li>
+          <li><code>cyclictest -m -p90 -i1000</code> 跑 10 分鐘，max latency &lt; 100µs 級</li>
+          <li>專用網卡一張（主站要 raw socket 獨占）</li>
+        </ul>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M2</span><h3 class="topic">從站掃描 — 看見你的關節</h3></div>
+        <div class="goal">🎯 slaveinfo 列出 14 站，讀懂 ESI/EEPROM 的 PDO 佈局。</div>
+        <ul class="chk">
+          <li>SOEM <code>slaveinfo enp2s0</code> / IgH <code>ethercat slaves</code> 列出全部從站</li>
+          <li>對照 EYOU 提供的 ESI XML，確認 RxPDO/TxPDO 內容與 SM 配置</li>
+          <li>把每站的 Vendor ID / Product Code 記進組態檔</li>
+        </ul>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M3</span><h3 class="topic">PREOP — CoE SDO 組態</h3></div>
+        <div class="goal">🎯 用 CoE SDO 讀寫 OD：模式、限位、插補週期 — L2-9 原樣重演。</div>
+        <ul class="chk">
+          <li>讀 <code>0x1000</code>/<code>0x6041</code>；寫 <code>0x6060=8</code>（CSP）</li>
+          <li>設插補週期物件（0x60C2）= 1ms，與 DC 週期一致</li>
+          <li><b>只碰手冊寫明的物件</b>（見實戰紀錄的 0x2100 教訓）</li>
+        </ul>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M4</span><h3 class="topic">SAFEOP → OP + DC 同步</h3></div>
+        <div class="goal">🎯 全部從站進 OP，過程資料開始 1kHz 流動，DC 對時生效。</div>
+        <ul class="chk">
+          <li>PDO 映射進 IOmap，SAFEOP 下 TPDO 讀得到 statusword/位置</li>
+          <li><code>ec_configdc()</code> 啟用 DC，量測從站間對時誤差</li>
+          <li>進 OP 後 working counter 穩定 — 卡 SAFEOP 就去讀 AL status code（實戰紀錄有除錯工具）</li>
+        </ul>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M5</span><h3 class="topic">單軸 CSP @1kHz</h3></div>
+        <div class="goal">🎯 一顆關節在 1kHz 下使能並跟隨正弦軌跡。</div>
+        <ul class="chk">
+          <li>1ms 迴圈內完成：收 TPDO → <code>cia402_enable_step()</code> → 發 RPDO（L3-18 骨架）</li>
+          <li>counts 換算：EYOU 介面組態實測為馬達端 19-bit × 減速比 101 = <b>52953088 counts/輸出圈</b>（與專案 A 的輸出端 524288 不同 — 先驗證再動）</li>
+          <li>記錄 following error，確認無週期性尖峰（尖峰 = RT 或 DC 沒調好）</li>
+        </ul>
+      </div>
+
+      <div class="topicblk">
+        <div class="th"><span class="num n-proj">M6</span><h3 class="topic">14 軸整臂 + 抖動報告</h3></div>
+        <div class="goal">🎯 雙臂 14 站同鏈 @1kHz，出一份抖動/延遲量測報告收尾。</div>
+        <ul class="chk">
+          <li>14 站全 OP，1kHz 下 working counter 零錯誤連續 1 小時</li>
+          <li>移植專案 A 的 L2~L4 控制棧（joint/task-space 程式碼直接重用）</li>
+          <li>量測並比較：cycle 抖動、DC 對時誤差、end-to-end 延遲 vs 專案 A</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===== WAR STORIES ===== -->
+    <section id="war">
+      <h2 class="proj"><span class="em">📓</span>實戰紀錄 — 本 repo 真實踩過的坑</h2>
+      <p class="lead">這條路線本 repo 真的走過（見 git log 與 EtherCAT 系列分支），教科書不會寫的部分在這裡：</p>
+      <table>
+        <tr><th>事件</th><th>經過</th><th>帶走的教訓</th></tr>
+        <tr>
+          <td>卡 SAFEOP</td>
+          <td>從站不肯進 OP。自製診斷工具（<code>wd_read</code>、<code>phu_state</code>）讀 AL status / watchdog 逐項排查</td>
+          <td>ESM 除錯要靠讀暫存器講證據，不是重開機碰運氣；診斷工具要進 repo</td>
+        </tr>
+        <tr>
+          <td>0x2100 廠商物件</td>
+          <td>誤觸廠商自定義物件造成行為異常；後來在廠商參考主站（gallop_ws 的 pysoem 腳本 + ESI）比對出正確組態序列，「不碰 0x2100」坐實為根因</td>
+          <td>有原廠參考實作就先抄流量：跑一次官方工具、錄 packet、照著做</td>
+        </tr>
+        <tr>
+          <td>EtherCAT 寫入被鎖</td>
+          <td>第四輪驗證發現關節的 EtherCAT 寫入被內建控制器的「控制權」鎖死，外部主站無法取得寫入權 → 專案定案改走 CANopen（= 專案 A 成為主線）</td>
+          <td><b>技術選型輸給生態整合是常態</b>：協定再好，廠商韌體不開權限就是不行。預研階段就要驗「寫得進去」而不只是「讀得出來」</td>
+        </tr>
+      </table>
+      <div class="note tip"><b>這一段的價值：</b>面試講「我做過 EtherCAT」人人會；講得出「AL status 怎麼讀、SAFEOP 卡住怎麼系統性排查、廠商物件與控制權怎麼驗證」才是高階工程師的證據。失敗的分支也是作品集。</div>
+    </section>
+
+    <!-- ===== DONE ===== -->
+    <section id="done">
+      <h2 class="proj"><span class="em">✅</span>完成定義（Definition of Done）</h2>
+      <ul class="chk">
+        <li>M1–M4：可重現腳本建置 + 14 站進 OP + DC 同步量測數據</li>
+        <li>M5–M6：1kHz CSP 跟隨 + 抖動/延遲報告（與專案 A 的 500Hz 對照表）</li>
+        <li>所有診斷工具與組態檔進 repo，換一台機器照 README 能重來</li>
+        <li>若被廠商權限擋住（如本 repo 的遭遇）：把驗證證據寫成設計文件，選型結論有數據支撐 — 這也算完成</li>
+      </ul>
+    </section>
+
+    <div class="pager">
+      <a href="project-dual-arm.html"><small>← 上一頁</small>🦾 專案 A · 雙臂 CANopen</a>
+      <a class="next" href="career-skills.html"><small>下一頁 →</small>🧭 職涯技能地圖</a>
+    </div>
+    <footer>專案 B · STM32 學習手冊 · 說明見 <code>learn/docs/06-project-ecat-master.md</code></footer>
+  </main>
+</div>
+</body>
+</html>
