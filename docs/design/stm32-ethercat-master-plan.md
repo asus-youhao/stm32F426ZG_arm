@@ -84,8 +84,8 @@ EYOU PHU 的 EtherCAT 走 **CoE（CANopen over EtherCAT）**：應用層物件�
 | --- | --- | --- | --- |
 | **SE0 資產整併** | 開分支、併 DC PLL、衝突解掉、全套 HOST 測試 | WSL ctest 5102 PASS | ✅ 本次完成 |
 | **SE1 SIL 基線報告** | `pc_master --bus ethercat @1kHz`（sim 後端）＋ trace ring 報表：p99、四相位 WCET、escalation 演練（掉軸/WKC 短少/DC 漂移注入） | SIL-B 報告一份（docs/changes），數字進 §8 預算表 | ✅ 2026-07-07（四相位 p99≈14µs；RT 數字見 07-06 報告） |
-| **SE2 vendor 搬入** | 從 linux-rt 分支帶 `third_party/SOEM`、`third_party/eyou_esi`、SAFEOP 工具（✅ 2026-07-07）；SOEM core 以 **arm-none-eabi 編過**（osal/oshw 先 stub） | arm build 連結成功（.map 檢視 Flash/RAM footprint） | ◐ vendor 已入庫 |
-| **SE3 nicdrv_stm32f7** | F746 ETH MAC 驅動：RMII+LAN8742A 初始化、DMA descriptor ring 放 **MPU non-cacheable region**（D-cache 一致性）、raw frame（EtherType 0x88A4）零拷貝送收、**不經 LwIP** | HIL-0：直連 PC NIC，Wireshark 看到板子送的 EtherCAT 幀；board→PC→board 迴環延遲量測 | ⬜ |
+| **SE2 vendor 搬入** | 從 linux-rt 分支帶 `third_party/SOEM`、`third_party/eyou_esi`、SAFEOP 工具（✅）；SOEM core 以 **arm-none-eabi 編過** | arm build 連結成功（.map 檢視 Flash/RAM footprint） | ✅ 2026-07-07（38KB Flash / 62KB RAM） |
+| **SE3 nicdrv_stm32f7** | F746 ETH MAC 驅動：RMII+LAN8742A 初始化、DMA descriptor ring 放 **MPU non-cacheable region**（D-cache 一致性）、raw frame（EtherType 0x88A4）送收、**不經 LwIP** | HIL-0：直連 PC NIC，Wireshark 看到板子送的 EtherCAT 幀；board→PC→board 迴環延遲量測 | ◐ 程式完成（`ecat/f7/` + `make ecat-probe` 可燒），HIL-0 待接線 |
 | **SE4 osal_baremetal + 1 kHz tick** | SOEM osal（tick 計時、無 RTOS busy-wait/中斷混合）、TIM 1 kHz 週期源、`ec_dc_pll` 接真 `ec_DCtime`（`ec_master_dc_error_us()` 由 SOEM 導出） | 板端空鏈掃描不當機；tick 抖動 VCP trace 報表 p99 < 20 µs | ⬜ |
 | **SE5 ec_master_soem 後端** | 寫 `firmware/ecat/ec_master_soem.c` 接門面（PC 端先開發：Linux raw socket 跑同一份 .c，**先在 PC 對假從站全驗，再上板**——延續「同套韌體多後端」模式） | SIL-C：PC 上 SOEM 後端對 `ecat_slave.py` 走完 init→OP→CSP 點動 | ⬜ |
 | **SE6 板端單軸 OP** | SE3+SE4+SE5 合體上板：板端對「假從站或 ESC 評估板」PREOP 重映射（≤6 entries）→SAFEOP→OP→CiA402 使能→CSP 點動 | HIL-1 驗收；E404/E405 清零 | ⬜ |

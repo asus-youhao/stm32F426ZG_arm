@@ -138,6 +138,66 @@ probe:
 	STM32_Programmer_CLI -c port=SWD mode=UR
 
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD) $(ECAT_BUILD)
 
-.PHONY: all clean flash probe
+# =================================================================
+# WP-SE3：EtherCAT 探測韌體（獨立 target,不動 bring-up 主韌體）
+#   make ecat-probe   → build-ecat/ecat_probe_f746.elf/.hex
+#   make flash-ecat   → 燒錄
+# =================================================================
+SOEM_DIR     = ../third_party/SOEM
+ECAT_TARGET  = ecat_probe_f746
+ECAT_BUILD   = build-ecat
+ECAT_INC     = -Iecat/f7 -I$(SOEM_DIR)/include -I$(SOEM_DIR)/osal $(C_INCLUDES)
+ECAT_SOURCES = \
+  board/ecat_probe_main.c \
+  board/system_stm32f7xx.c \
+  ecat/f7/osal.c \
+  ecat/f7/oshw.c \
+  ecat/f7/nicdrv.c \
+  $(SOEM_DIR)/src/ec_base.c \
+  $(SOEM_DIR)/src/ec_main.c \
+  $(SOEM_DIR)/src/ec_coe.c \
+  $(SOEM_DIR)/src/ec_config.c \
+  $(SOEM_DIR)/src/ec_dc.c \
+  $(SOEM_DIR)/src/ec_print.c \
+  $(SOEM_DIR)/src/ec_eoe.c \
+  $(SOEM_DIR)/src/ec_foe.c \
+  $(SOEM_DIR)/src/ec_soe.c \
+  $(HAL_SRC)/stm32f7xx_hal.c \
+  $(HAL_SRC)/stm32f7xx_hal_cortex.c \
+  $(HAL_SRC)/stm32f7xx_hal_rcc.c \
+  $(HAL_SRC)/stm32f7xx_hal_rcc_ex.c \
+  $(HAL_SRC)/stm32f7xx_hal_gpio.c \
+  $(HAL_SRC)/stm32f7xx_hal_pwr.c \
+  $(HAL_SRC)/stm32f7xx_hal_pwr_ex.c \
+  $(HAL_SRC)/stm32f7xx_hal_eth.c \
+  $(HAL_SRC)/stm32f7xx_hal_uart.c
+
+ECAT_OBJECTS  = $(addprefix $(ECAT_BUILD)/,$(notdir $(ECAT_SOURCES:.c=.o)))
+ECAT_OBJECTS += $(ECAT_BUILD)/startup_stm32f746xx.o
+vpath %.c $(sort $(dir $(ECAT_SOURCES)))
+
+ecat-probe: $(ECAT_BUILD)/$(ECAT_TARGET).elf $(ECAT_BUILD)/$(ECAT_TARGET).hex
+
+$(ECAT_BUILD)/%.o: %.c | $(ECAT_BUILD)
+	$(CC) -c $(MCU) $(C_DEFS) $(ECAT_INC) $(OPT) -Wall -fdata-sections -ffunction-sections $< -o $@
+
+$(ECAT_BUILD)/startup_stm32f746xx.o: board/startup_stm32f746xx.s | $(ECAT_BUILD)
+	$(AS) -c $(ASFLAGS) $< -o $@
+
+$(ECAT_BUILD)/$(ECAT_TARGET).elf: $(ECAT_OBJECTS)
+	$(CC) $(ECAT_OBJECTS) $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) \
+	  -Wl,-Map=$(ECAT_BUILD)/$(ECAT_TARGET).map,--cref -Wl,--gc-sections -lc -lm -o $@
+	$(SZ) $@
+
+$(ECAT_BUILD)/$(ECAT_TARGET).hex: $(ECAT_BUILD)/$(ECAT_TARGET).elf
+	$(CP) -O ihex $< $@
+
+$(ECAT_BUILD):
+	mkdir -p $@
+
+flash-ecat: $(ECAT_BUILD)/$(ECAT_TARGET).hex
+	STM32_Programmer_CLI -c port=SWD mode=UR -w $(ECAT_BUILD)/$(ECAT_TARGET).hex -rst
+
+.PHONY: all clean flash probe ecat-probe flash-ecat

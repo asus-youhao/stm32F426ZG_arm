@@ -29,7 +29,7 @@
 ENTRY(Reset_Handler)
 
 /* Highest address of the user mode stack */
-_estack = 0x20050000;    /* end of RAM */
+_estack = 0x2004C000;    /* end of RAM(SRAM1 段);0x2004C000 起 16K 割給 ETH DMA（.EthNoCache） */
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Heap_Size = 0x200;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
@@ -38,12 +38,21 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
 FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 1024K
-RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 320K
+RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 304K    /* SRAM1（前段;後 16K 割給 ETH） */
+ETHRAM (xrw)   : ORIGIN = 0x2004C000, LENGTH = 16K     /* SRAM2：ETH DMA 描述符/緩衝,MPU non-cacheable */
 }
 
 /* Define output sections */
 SECTIONS
 {
+  /* ETH DMA 區（WP-SE3）：oshw.c 的 .EthNoCache 全放 SRAM2,MPU region 7 關快取 */
+  .EthNoCache (NOLOAD) :
+  {
+    . = ALIGN(32);
+    *(.EthNoCache)
+    . = ALIGN(32);
+  } >ETHRAM
+
   /* The startup code goes first into FLASH */
   .isr_vector :
   {

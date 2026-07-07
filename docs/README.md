@@ -70,6 +70,7 @@
 | 2026-07-07 | [STM32 板端 EtherCAT 主站規劃](./changes/2026-07-07-stm32-ethercat-master-plan.md) | 開 feature/stm32-ethercat-master(h-sdo ⊕ dc-pll,5102 測試 PASS)；WP-SE 分解 + SIL×3/HIL×4 分層 + harness 復用評估 |
 | 2026-07-07 | [EtherCAT 假從站 + SIL-C](./changes/2026-07-07-ecat-slave-sim-sil-c.md) | ecat_slave.py(ESC/SII/ESM/CoE/FMMU,phu_motor 復用)；selftest 26 全過；真 SOEM veth 對打 2 軸 19/19、14 軸 67/67 PASS |
 | 2026-07-07 | [SE1 SIL-B 基線](./changes/2026-07-07-se1-silb-baseline.md) | 1kHz×60s：四相位 p99≈14µs(負載極輕)；late 是 WSL 非 RT 所致(RT 真機 27µs PASS)；miss 壓力演練 escalation |
+| 2026-07-07 | [SE3 F746 SOEM port](./changes/2026-07-07-se3-f746-soem-port.md) | ecat/f7 bare-metal port(osal DWT/nicdrv/ETH RMII+MPU non-cacheable)+ecat_probe 探測韌體;arm 38KB/62KB 可編可燒 |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件
