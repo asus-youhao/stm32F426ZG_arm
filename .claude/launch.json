@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sim-ws",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-u", "firmware/sim_py/ws_server.py", "8765", "8095"],
+      "port": 8095
+    }
+  ]
+}

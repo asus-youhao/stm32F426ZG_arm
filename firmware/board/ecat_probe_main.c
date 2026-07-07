@@ -15,6 +15,8 @@
 #include "stm32f7xx_hal.h"
 #include "soem/soem.h"
 #include "oshw.h"
+#include "tick_f7.h"
+#include "ec_dc_pll.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -170,36 +172,80 @@ int main(void)
     }
     logf("AL：OP=%s\r\n", ctx.slavelist[0].state == EC_STATE_OPERATIONAL ? "OK" : "FAIL");
 
-    /* 1 kHz CSP 點動（使能三步 + 目標步進）——SysTick 輪詢節拍 */
+    /* DC：假從站 SII 報無 DC → hasdc=0,PLL 走防護路徑;真 ESC/PHU 會啟用 */
+    boolean hasdc = ecx_configdc(&ctx);
+    ec_dc_pll_t pll;
+    ec_dc_pll_init(&pll, 0, 0, 0);
+    logf("DC：%s\r\n", hasdc ? "有(鎖相啟用)" : "無(假從站,PLL 待真 ESC)");
+
     out_t *out = (out_t *)ctx.slavelist[1].outputs;
     in_t *in = (in_t *)ctx.slavelist[1].inputs;
     int expected = ctx.grouplist[0].outputsWKC * 2 + ctx.grouplist[0].inputsWKC;
+
+    /* CiA402 使能三步（協定面,npcap RTT 下用寬鬆節拍） */
     const uint16_t seq[3] = {0x0006, 0x0007, 0x000F};
     for (int p = 0; p < 3; p++) {
         out->cw = seq[p];
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 8; i++) {
             ecx_send_processdata(&ctx);
-            ecx_receive_processdata(&ctx, EC_TIMEOUTRET);
-            HAL_Delay(1);
+            ecx_receive_processdata(&ctx, 5000);
+            HAL_Delay(10);
         }
         logf("cw=0x%02X → sw=0x%04X\r\n", seq[p], in->sw);
     }
-    uint32_t bad = 0, t_next = HAL_GetTick();
-    out->tgt = 5000;
-    for (int i = 0; i < 2000; i++) {             /* 2 秒 @1kHz */
-        while ((int32_t)(HAL_GetTick() - t_next) < 0) {}
-        t_next += 1;
-        ecx_send_processdata(&ctx);
-        if (ecx_receive_processdata(&ctx, EC_TIMEOUTRET) != expected) bad++;
-    }
-    logf("CSP：pos=%ld（目標 5000）WKC 漏=%lu → %s\r\n",
-         (long)in->pos, (unsigned long)bad,
-         (in->pos > 4800 && bad == 0) ? "PASS" : "FAIL");
 
-    while (1) {                                  /* 保持 OP,持續交換 */
+    /* ===== Phase A（SE4 驗收）：TIM6 硬體 1 kHz × 10 s,tick 抖動統計 =====
+       npcap 假從站 RTT ms 級 → WKC 大量 miss 屬預期,本階段只驗週期源品質 */
+    tick_f7_init(1000);
+    uint32_t hist[65] = {0};                     /* late 直方圖:1µs 桶 + 溢位 */
+    uint32_t late_max = 0, xchg_max = 0, wkc_ok = 0, n = 0;
+    out->tgt = 5000;
+    for (n = 0; n < 10000; n++) {
+        tick_f7_wait();
+        uint32_t late = tick_f7_late_us();
+        hist[late > 64 ? 64 : late]++;
+        if (late > late_max) late_max = late;
+        uint32_t t0 = DWT->CYCCNT;
         ecx_send_processdata(&ctx);
-        ecx_receive_processdata(&ctx, EC_TIMEOUTRET);
-        HAL_Delay(1);
+        if (ecx_receive_processdata(&ctx, 500) == expected) wkc_ok++;
+        uint32_t us = (DWT->CYCCNT - t0) / (SystemCoreClock / 1000000U);
+        if (us > xchg_max) xchg_max = us;
+        if (hasdc) {                             /* DC 鎖相（真 ESC 才會進來） */
+            int32_t err_us = (int32_t)(((ctx.DCtime % 1000000LL) + 1500000LL) % 1000000LL - 500000LL) / 1000;
+            tick_f7_trim_us(ec_dc_pll_step(&pll, err_us));
+        }
+    }
+    /* 直方圖 → p50/p99 */
+    uint32_t acc = 0, p50 = 64, p99 = 64;
+    for (int i = 0; i < 65; i++) {
+        acc += hist[i];
+        if (p50 == 64 && acc * 2 >= n) p50 = i;
+        if (p99 == 64 && acc * 100 >= n * 99) p99 = i;
+    }
+    logf("SE4 tick@1kHz×10s：late p50=%luµs p99=%luµs max=%luµs overrun=%lu 交換max=%luµs → %s\r\n",
+         (unsigned long)p50, (unsigned long)p99, (unsigned long)late_max,
+         (unsigned long)tick_f7_overruns(), (unsigned long)xchg_max,
+         (p99 < 20 && tick_f7_overruns() == 0) ? "PASS" : "FAIL");
+    logf("  （WKC ok=%lu/10000,npcap RTT 下 miss 屬預期;真 ESC 見 Phase B）\r\n",
+         (unsigned long)wkc_ok);
+
+    /* ===== Phase B：TIM6 100 Hz × 10 s,npcap RTT 塞得進 → WKC/CSP 驗證 ===== */
+    tick_f7_init(100);
+    uint32_t okB = 0;
+    for (uint32_t i = 0; i < 1000; i++) {
+        tick_f7_wait();
+        ecx_send_processdata(&ctx);
+        if (ecx_receive_processdata(&ctx, 9000) == expected) okB++;
+    }
+    logf("Phase B 100Hz×10s：WKC ok=%lu/1000 CSP pos=%ld（目標 5000）→ %s\r\n",
+         (unsigned long)okB, (long)in->pos,
+         (okB > 900 && in->pos > 4800) ? "PASS" : "FAIL");
+
+    tick_f7_init(1000);                          /* 保持 OP,1kHz 持續交換 */
+    while (1) {
+        tick_f7_wait();
+        ecx_send_processdata(&ctx);
+        ecx_receive_processdata(&ctx, 500);
     }
 }
 

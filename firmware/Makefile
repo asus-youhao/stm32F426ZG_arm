@@ -148,13 +148,15 @@ clean:
 SOEM_DIR     = ../third_party/SOEM
 ECAT_TARGET  = ecat_probe_f746
 ECAT_BUILD   = build-ecat
-ECAT_INC     = -Iecat/f7 -I$(SOEM_DIR)/include -I$(SOEM_DIR)/osal $(C_INCLUDES)
+ECAT_INC     = -Iecat/f7 -Iecat -I$(SOEM_DIR)/include -I$(SOEM_DIR)/osal $(C_INCLUDES)
 ECAT_SOURCES = \
   board/ecat_probe_main.c \
   board/system_stm32f7xx.c \
   ecat/f7/osal.c \
   ecat/f7/oshw.c \
   ecat/f7/nicdrv.c \
+  ecat/f7/tick_f7.c \
+  ecat/ec_dc_pll.c \
   $(SOEM_DIR)/src/ec_base.c \
   $(SOEM_DIR)/src/ec_main.c \
   $(SOEM_DIR)/src/ec_coe.c \
