@@ -49,6 +49,7 @@
 | 2026-07-04 | [EtherCAT 主站遷移規劃](./changes/2026-07-04-ethercat-migration-plan.md) | CANopen→EtherCAT(CoE) 深度規劃：F746 直接當主站、SOEM、DC 1kHz |
 | 2026-07-04 | [Linux RT EtherCAT 主站規劃](./changes/2026-07-04-linux-rt-ethercat-master-plan.md) | 主站改 Ubuntu 22.04 Pro PREEMPT_RT；STM32 暫緩；WP-L0~L7 工作分解 |
 | 2026-07-05 | [WP-L0.4 rt_setup.sh](./changes/2026-07-05-wp-l0-4-rt-setup.md) | RT 調校一鍵腳本：grub 隔離核/IRQ 綁核/governor/dma_latency/--check 驗收,A/B/C 共用 |
+| 2026-07-07 | [PHU17 真機枚舉+SDO 特性化](./changes/2026-07-07-phu17-real-enumeration.md) | WP-L0.6/L1.2：真馬達 EtherCAT 枚舉、Has DC、19-bit/101:1 確認、出廠 PDO 圖、CSP 就緒 |
 
 ## 設計文件
 
