@@ -67,6 +67,7 @@
 | 2026-07-05 | [設定檔外部化](./changes/2026-07-05-config-file.md) | 項目 7：軸表/DH/IK key=value 覆寫,--config 兩趟制不半套用;WP0.4 量測值免重編譯 |
 | 2026-07-05 | [DC 鎖相 PI(SIL)](./changes/2026-07-05-dc-pll-sil.md) | ec_dc_pll + sim 漂移模型：±200/-500ppm 收斂 \|err\|≤3µs；WP-L2.2 拍板點預演 |
 | 2026-07-06 | [24.04 RT 真機驗證](./changes/2026-07-06-u24-rt-verification.md) | H3 抖動 PASS(1kHz p99=27µs)、IgH 1.6.9 對 6.8-rt 建置+掛載(I0.4 退役)、SOEM OK、vcan SIL 全流程 |
+| 2026-07-07 | [STM32 板端 EtherCAT 主站規劃](./changes/2026-07-07-stm32-ethercat-master-plan.md) | 開 feature/stm32-ethercat-master(h-sdo ⊕ dc-pll,5102 測試 PASS)；WP-SE 分解 + SIL×3/HIL×4 分層 + harness 復用評估 |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件
@@ -81,6 +82,7 @@
 | [Linux RT EtherCAT 主站](./design/linux-rt-ethercat-master-plan.md) | Ubuntu 22.04 Pro PREEMPT_RT 主站：RT 調校、SOEM/IgH、1kHz DC 鎖相、WP-L 工作分解 |
 | [IgH EtherCAT 主站](./design/linux-igh-ethercat-master-plan.md) | Ubuntu 24.04 Pro + IgH kernel-space 主站：ecrt API 對映、DKMS、CLI/FoE、WP-I 工作分解 |
 | [Linux CANopen 主站（真機）](./design/linux-canopen-master-plan.md) | 方案 C：pc_master 驅動真實 14 軸；CAN 卡選型、SYNC 鎖存、佈建 SOP、WP-C 工作分解 |
+| [STM32 板端 EtherCAT 主站](./design/stm32-ethercat-master-plan.md) | WP-SE：F746 bare-metal SOEM 移植（nicdrv/osal/DC PLL）、SIL 三層×HIL 四級、CoE↔CANopen 資產對照、0x2100 前置 |
 | [Harness/Agent/Loop Engine 架構](./design/harness-agent-loop-engine-plan.md) | 橫切架構：RT loop engine 相位化強化、agent 模型、非 RT harness 監督層；CANopen/EtherCAT/F746 三平台共用 |
 | [Dual-Arm Control Plan](./design/dual-arm-control-plan.md) | 雙臂控制工作分解（joint/task-space 1kHz、整合） |
 | [CubeMX 整合說明](./design/firmware-cubemx-integration.md) | F746 CubeMX 設定與韌體接線 |
