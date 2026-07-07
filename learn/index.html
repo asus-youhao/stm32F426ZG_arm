@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STM32 學習手冊 — 從點燈到 14 軸雙臂</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside>
+    <div class="brand"><span class="em">🤖</span>STM32 學習手冊</div>
+    <div class="tag">F7 雙臂機器人 · 從點燈到 14 軸</div>
+
+    <div class="navtitle">學習里程碑</div>
+    <a class="nav here" href="index.html"><span class="dot d-basic"></span>學習樹總覽</a>
+    <a class="nav" href="l1-basic.html"><span class="dot d-basic"></span>L1 初階<span class="lv">6 節</span></a>
+    <a class="nav" href="l2-mid.html"><span class="dot d-mid"></span>L2 中階<span class="lv">6 節</span></a>
+    <a class="nav" href="l3-adv.html"><span class="dot d-adv"></span>L3 高階<span class="lv">6 節</span></a>
+
+    <div class="navtitle">🎯 最終專案（本 repo）</div>
+    <a class="nav" href="project-dual-arm.html"><span class="dot d-proj"></span>A · 雙臂 CANopen 主站</a>
+    <a class="nav" href="project-ecat-master.html"><span class="dot d-proj"></span>B · EtherCAT 1kHz 主站</a>
+    <div class="navtitle">🧭 職涯</div>
+    <a class="nav" href="career-skills.html"><span class="dot d-career"></span>職涯技能地圖</a>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+    <header class="top">
+      <h1>🤖 STM32 學習手冊</h1>
+      <div class="sub">一條龍路線：從點亮一顆 LED，到用 CANopen / EtherCAT 驅動 <b>14 軸 EYOU PHU 雙臂機器人</b>。所有範例直接取自本 repo 的真實程式碼。</div>
+      <div>
+        <span class="pill">🟢 L1 初階</span>
+        <span class="pill">🔵 L2 中階</span>
+        <span class="pill">🟣 L3 高階</span>
+        <span class="pill">🎯 兩條專案路線</span>
+      </div>
+    </header>
+
+    <!-- ===== OVERVIEW TREE ===== -->
+    <section id="overview">
+      <h2 class="basic"><span class="em">🌳</span>學習樹總覽</h2>
+      <p class="lead">三層階梯往上長，最後分岔成兩個實戰專案（都是本 repo 真實做過的路線）。點卡片或左側里程碑進入各層教學。</p>
+      <div class="card" style="overflow-x:auto;padding:6px 0">
+        <svg viewBox="0 0 940 470" width="100%" role="img" aria-label="STM32 學習樹狀圖">
+          <defs>
+            <marker id="arrow" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#9aa3c4"/>
+            </marker>
+            <style>
+              .lbl{font:600 14px "Segoe UI","Noto Sans TC",sans-serif;fill:#e8ecf8}
+              .sub{font:11px "Segoe UI","Noto Sans TC",sans-serif;fill:#9aa3c4}
+              .lv{font:700 12px "Segoe UI",sans-serif}
+              .edge{stroke:#9aa3c4;stroke-width:2;fill:none;marker-end:url(#arrow)}
+            </style>
+          </defs>
+          <path class="edge" d="M160,110 L160,150"/>
+          <path class="edge" d="M160,230 L160,270"/>
+          <a href="l1-basic.html"><rect x="40" y="40" width="240" height="70" rx="14" fill="#182a26" stroke="#7ee0c2"/>
+            <text x="60" y="70" class="lv" fill="#7ee0c2">🟢 L1 初階</text>
+            <text x="60" y="92" class="sub">Cortex-M · 工具鏈 · GPIO/UART · 時脈/中斷</text></a>
+          <a href="l2-mid.html"><rect x="40" y="150" width="240" height="80" rx="14" fill="#182238" stroke="#6ea8fe"/>
+            <text x="60" y="182" class="lv" fill="#6ea8fe">🔵 L2 中階</text>
+            <text x="60" y="204" class="sub">CAN 匯流排 · bxCAN 驅動</text>
+            <text x="60" y="220" class="sub">CANopen(NMT/SDO/PDO) · 頻寬預算 · 模擬測試</text></a>
+          <a href="l3-adv.html"><rect x="40" y="270" width="240" height="80" rx="14" fill="#221838" stroke="#c69cff"/>
+            <text x="60" y="302" class="lv" fill="#c69cff">🟣 L3 高階</text>
+            <text x="60" y="324" class="sub">CiA402 狀態機 · CSP/CSV/CST</text>
+            <text x="60" y="340" class="sub">運動學/軌跡 · 安全 · EtherCAT · Linux RT</text></a>
+          <a href="project-dual-arm.html"><rect x="540" y="80" width="360" height="70" rx="14" fill="#2a2416" stroke="#ffcc66"/>
+            <text x="560" y="110" class="lbl">🦾 專案 A — 雙臂 CANopen 主站</text>
+            <text x="560" y="132" class="sub">STM32F746 + 雙路 bxCAN → 14 軸 PHU @500Hz</text></a>
+          <a href="project-ecat-master.html"><rect x="540" y="300" width="360" height="70" rx="14" fill="#2a2416" stroke="#ffcc66"/>
+            <text x="560" y="330" class="lbl">⚡ 專案 B — EtherCAT 1kHz 主站</text>
+            <text x="560" y="352" class="sub">Linux PREEMPT_RT + SOEM/IgH → CoE CSP 同步</text></a>
+          <path class="edge" d="M280,310 C420,300 470,150 538,120"/>
+          <path class="edge" d="M280,320 C420,330 470,330 538,335"/>
+        </svg>
+      </div>
+      <div class="note">
+        <b>怎麼用：</b>每一層都是前一層的地基。建議照 L1→L2→L3 順序做完最小練習，再挑一條專案路線收尾。
+        兩條專案共用 L1/L2 的 MCU 與匯流排基本功，差別在 L3 的重點：A 走 <b>MCU 上的 CANopen 主站</b>（本 repo <code>firmware/</code>），B 走 <b>PC 上的即時 EtherCAT 主站</b>（本 repo <code>feature/linux-*-ethercat-master</code> 系列分支）。
+      </div>
+    </section>
+
+    <!-- ===== WHY THIS REPO ===== -->
+    <section>
+      <h2 class="mid"><span class="em">📦</span>教材 = 這個 repo 本身</h2>
+      <p class="lead">這不是抄書的教學，每一節都對到 repo 裡實際存在、實際跑過的程式碼與設計文件。</p>
+      <table>
+        <tr><th>學習主題</th><th>repo 對照</th><th>層級</th></tr>
+        <tr><td>硬體平台與雙臂關節配置（PHU14/17/20 ×14 軸）</td><td><code>CLAUDE.md</code> 關節對應表、<code>doc_EYOU/</code> 原廠 datasheet</td><td>🟢 L1</td></tr>
+        <tr><td>bxCAN 硬體層（CAN1=左臂、CAN2=右臂 @1Mbps）</td><td><code>firmware/canopen/co_bxcan.h/.c</code></td><td>🔵 L2</td></tr>
+        <tr><td>CANopen 主站：NMT / Heartbeat / SDO / PDO</td><td><code>firmware/canopen/co_nmt.c</code>、<code>co_sdo.c</code>、<code>co_pdo.c</code></td><td>🔵 L2</td></tr>
+        <tr><td>CiA 402 狀態機與 CSP 模式</td><td><code>firmware/canopen/cia402.h/.c</code></td><td>🟣 L3</td></tr>
+        <tr><td>運動學 / IK / 軌跡 / 雙臂協同</td><td><code>firmware/control/</code>（kinematics、ik、trajectory、dual_arm_ctrl）</td><td>🟣 L3</td></tr>
+        <tr><td>安全：通訊看門狗、急停、使能門檻</td><td><code>firmware/safety/</code> 與 <code>app/app_main.c</code> WP6 段落</td><td>🟣 L3</td></tr>
+        <tr><td>500 Hz 控制迴圈與 CAN 頻寬預算</td><td><code>firmware/app/control_rate.h</code>、<code>docs/design/can-bus-architecture.md</code></td><td>🔵 L2</td></tr>
+        <tr><td>免硬體驗證：PHU 模擬器 + 單元測試 + SocketCAN 對打</td><td><code>firmware/sim/</code>、<code>firmware/tests/</code>、<code>firmware/pc/</code></td><td>🔵 L2</td></tr>
+        <tr><td>EtherCAT 主站（SOEM / IgH）、SAFEOP 除錯實錄</td><td>分支 <code>feature/linux-rt-ethercat-master</code> 等、<code>docs/design/canopen-vs-ethercat.md</code></td><td>🟣 L3</td></tr>
+      </table>
+    </section>
+
+    <!-- ===== QUICK CARDS ===== -->
+    <section>
+      <h2 class="mid"><span class="em">🚀</span>快速進入</h2>
+      <div class="grid g3">
+        <a class="nav" href="l1-basic.html" style="display:block;padding:18px;border-radius:14px;background:var(--card2);border:1px solid var(--line)">
+          <b style="color:var(--basic)">🟢 L1 初階</b><br><small style="color:var(--muted)">6 節 · 工具鏈 → 點燈 → 中斷節拍</small></a>
+        <a class="nav" href="l2-mid.html" style="display:block;padding:18px;border-radius:14px;background:var(--card2);border:1px solid var(--line)">
+          <b style="color:var(--mid)">🔵 L2 中階</b><br><small style="color:var(--muted)">6 節 · CAN → CANopen → 模擬測試</small></a>
+        <a class="nav" href="l3-adv.html" style="display:block;padding:18px;border-radius:14px;background:var(--card2);border:1px solid var(--line)">
+          <b style="color:var(--adv)">🟣 L3 高階</b><br><small style="color:var(--muted)">6 節 · CiA402 / 運動學 / EtherCAT / RT</small></a>
+      </div>
+    </section>
+
+    <!-- ===== CAREER CALLOUT ===== -->
+    <section>
+      <h2 class="adv"><span class="em">🧭</span>學完之後：職涯技能地圖</h2>
+      <div class="lead">把這棵學習樹對應到真實世界的<b>機器人 / 馬達控制韌體工程師</b>職缺 — 深度技能樹、初/中/高階要會什麼、國內外實際要求對照。</div>
+      <a class="nav" href="career-skills.html" style="display:block;padding:20px;border-radius:14px;background:var(--card2);border:1px solid var(--line)">
+        <b style="color:#ff9e6d">🧭 職涯技能地圖 →</b><br>
+        <small style="color:var(--muted)">6 大技能主幹 · 初階/中階/高階分級 · 國內外職缺對照 · 資料來源</small></a>
+    </section>
+
+    <footer>
+      STM32 學習手冊 · 教學用 · 分支 <code>feature/stm32-learn-tree</code><br>
+      每份改動皆有對應 <code>learn/docs/*.md</code> 說明。
+    </footer>
+  </main>
+</div>
+</body>
+</html>
