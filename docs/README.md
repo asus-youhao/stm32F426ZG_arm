@@ -44,6 +44,7 @@
 | 2026-07-02 | [P3/P4 網格+設定](./changes/2026-07-02-p3-p4-mesh-and-settings.md) | CAD 網格載入 fallback + 零位校正面板（home offset） |
 | 2026-07-02 | [整體架構總覽 HTML](./changes/2026-07-02-architecture-overview-html.md) | 一頁式離線架構圖（資料流/TF/協定/路線圖） |
 | 2026-07-03 | [P5 3D×真實CAN整合](./changes/2026-07-03-p5-canopen-realbus-integration.md) | ws_server 真實 CAN 模式：PC 當假 CiA402 從站測 F746，3D 反映 |
+| 2026-07-07 | [STM32 學習樹教學站](./changes/2026-07-07-stm32-learn-tree-site.md) | learn/ 靜態教學站：L1~L3 + 專案 A/B 里程碑 + 職涯職缺地圖 |
 
 ## 設計文件
 
