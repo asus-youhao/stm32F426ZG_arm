@@ -94,6 +94,32 @@ taskset 核7 FIFO 80。
 - **EYOU 詢問單三題升級為關鍵路徑**：ESI、AL 0x0022 觸發條件、
   TwinCAT 參考組態（FMMU/DC/SM 逐字節）。
 
+## 第三輪（同日）：真正根因——0x2100 = 2（控制權在 CANopen）
+
+使用者問「轉 CANopen 有沒有機會」,順手用 CoE 讀切換參數,結果：
+
+| 物件 | 讀回值 | 意義 |
+| --- | --- | --- |
+| **0x2100 控制權** | **2 = CANopen** | 非文件預設的 1=EtherCAT！ |
+| 0x26A0 node-id | 1 | CANopen 佈建態 |
+| 0x26A1 CAN 波特率 | 1,000,000 | 1 Mbps |
+
+**全部症狀就位**：控制權不在 EtherCAT → 從站應用層在 SAFEOP 入口
+檢查（0.5 ms、AL 0x0022 自貶）;mailbox/SDO 不受控制權管制（枚舉/
+讀寫全正常）;CLI 裸 SAFEOP 不建 process data＝不主張控制權＝放行;
+SOEM/IgH 寫 FMMU＋process data＝主張控制＝被拒。FMMU LogAddr 與
+USB 時序皆為配角（後者仍影響 ML1 量測品質）。
+
+**更正**：前份文件（e5be5fb）「能在 EtherCAT 枚舉 → 0x2100 出廠即 1」
+的推論**錯誤**——CoE mailbox 與控制權無關。
+
+**解法（二選一,皆已就緒）**：
+- 走 EtherCAT：CoE 寫 `0x2100=1` + `0x2130=1` 存檔 + 重上電 →
+  預期 SAFEOP/OP 直通,igh_jog 可直接重跑。
+- 走 CANopen：**馬達現在就是 CANopen 模式（node 1@1Mbps）**,
+  接 CANable(slcan→socketcan) + 終端電阻即可用既有
+  `pc_master --left <can-if> --right none` 全棧直跑（方案 C）。
+
 ## 關聯
 
 - 前置：`2026-07-07-phu17-real-enumeration.md`、
