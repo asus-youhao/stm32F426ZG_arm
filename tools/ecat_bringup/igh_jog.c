@@ -10,7 +10,7 @@
 
 #define VID 0x00001097
 #define PID 0x00010002
-#define CYCLE_NS  4000000L
+#define CYCLE_NS  10000000L
 #define MAX_CNT   2900
 #define JOG_PERIOD 4.0
 #define JOG_SECS   8.0
@@ -52,7 +52,8 @@ int main(int argc,char**argv){
     if(!master){printf("request_master fail\n");return 1;}
     domain = ecrt_master_create_domain(master);
     ec_slave_config_t *sc = ecrt_master_slave_config(master,0,0,VID,PID);
-    if(!sc||ecrt_slave_config_pdos(sc,EC_END,syncs)){printf("pdo cfg fail\n");return 1;}
+    if(!sc){printf("slave cfg fail\n");return 1;}
+    /* 不呼叫 ecrt_slave_config_pdos:此 drive 不接受重映射,用預設(等同 --no-remap-pdo) */
     ec_pdo_entry_reg_t regs[] = {
         {0,0,VID,PID,0x6040,0,&off_cw,NULL},
         {0,0,VID,PID,0x6060,0,&off_mode,NULL},
@@ -64,9 +65,7 @@ int main(int argc,char**argv){
         {0,0,VID,PID,0x6079,0,&off_dcv,NULL},
         {}};
     if(ecrt_domain_reg_pdo_entry_list(domain,regs)){printf("reg fail\n");return 1;}
-    ecrt_slave_config_sdo32(sc,0x1C32,2,4000000);   /* 同步窗 4ms */
-    ecrt_slave_config_sdo32(sc,0x1C33,2,4000000);
-    ecrt_slave_config_sdo8 (sc,0x60C2,1,4);          /* 插補週期 4ms */
+    ecrt_slave_config_sdo8 (sc,0x60C2,1,10);         /* 插補週期 10ms=cycle */
     if(use_dc){
         ecrt_slave_config_dc(sc,0x0300,4000000,1000000,0,0);
         printf("DC-Synchron 已配置(4ms)\n");
