@@ -29,3 +29,37 @@
 **P0 全鏈閉環**：`0x2100=1`（控制權）+ 不重映射 PDO（drive 相容）+
 NIC 速率匹配（≤100 Hz on r8152）→ 到 OperationEnabled、CSP 可控。
 剩餘僅 STO 24V（實際出力）與 Intel NIC（1 kHz）。
+
+## 第六輪（2026-07-08）：更正——真阻塞是「缺 DC」不是 STO，馬達實際轉動 ✅
+
+第五輪「軸不動＝STO 無扭矩」的結論**錯誤**。真因在使用者 ROS2 專案的
+`COMMISSIONING_RUNBOOK.md`（2026-06-05 發現，一開始漏看）：
+
+> **EYOU CSP（mode 8）嚴格依賴 SYNC0（DC）**。free-run（`assign_activate=0x0`）
+> 下 drive 進 OperationEnabled（sw `0x1337`）、`0x607A` target ramp，但內部
+> position demand（0x6062）凍住、`0x6064` actual 不動、**無 fault**——收到目標
+> 卻不執行，因為沒有同步時鐘。開 DC（`assign_activate=0x300`）後 demand 立刻
+> 跟上、**馬達實際轉動**。
+
+我先前所有測試都是 free-run/SM-sync（早先 `0x2100=2` 時 DC 上不去,遂關掉),
+症狀（`0x1337`、target 動 actual 不動、foll≈0、無故障）與 runbook 描述**一字
+不差**,卻被我誤判為 STO 硬體閘。
+
+**開 DC 重測（gx701 RT kernel、`0x2100=1`、no-remap、SYNC0=10ms 對齊 100Hz）：
+馬達實際以 100 rpm 轉 10 秒 = 16.6 馬達圈（≈59° 輸出）**,命令 16.67 圈/實際
+16.58 圈、穩定追隨誤差 ~18k counts（等速滯後,正常）。**且是在 STO 未接
+（`0x60FD=0`）下轉的 → `0x253B=0` 確實旁路了 STO 扭矩閘（手冊為真,前述「STO
+硬體閘無法軟體繞過」的推論作廢）。**
+
+### ✅ 單軸 EtherCAT 可動的完整配方（gx701 實證）
+
+| 項 | 值 | 說明 |
+| --- | --- | --- |
+| `0x2100` | 1 | 控制權在 EtherCAT（原為 2=CANopen,由使用者切回） |
+| PDO 映射 | **預設,不重寫** | 呼叫 `ecrt_slave_config_pdos` 會 wc=0 上不了 OP |
+| **DC** | **`assign_activate=0x300`,SYNC0=控制週期** | **CSP 動作的必要條件**;每 cycle `sync_reference_clock`+`sync_slave_clocks` |
+| `0x253B` | 0 | STO 調試模式,免接 STO 即出力 |
+| 週期 | 100 Hz（r8152 上限） | ≥250Hz UNMATCHED;1kHz 需 Intel NIC |
+| 內核 | PREEMPT_RT | 非 RT 撐不住 DC（runbook 記載） |
+
+工具：`tools/ecat_bringup/igh_spin.c`（`dc` 參數啟 DC;此版實測轉動）。
