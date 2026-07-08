@@ -35,9 +35,10 @@ static int be_init(void)
     int n = ec_master_init(NJ);
     if (n < 1) return -1;
 
-    /* PREOP 組態：CSP 模式（PDO 佈局由後端內建/啟動 SDO 處理） */
-    for (int a = 0; a < n; a++)
-        if (ec_coe_write(a, 0x6060, 0, 8)) return -1;
+    /* CSP 模式（0x6060=8）**不走 SDO**：mode 在出廠預設 PDO 內,PDO-mapped
+       物件 SDO 寫回 0x06010000（實測於 PHU17）→ 改由後端每週期於 RxPDO 寫
+       mode=8（見 ec_master_igh/soem 的 ec_axis_set_output + ec_config.h §4）。
+       ec_master_op() 內含 SAFEOP→OP + DC(SYNC0) 啟用（CSP 動作必要,§3）。 */
     if (ec_master_op()) return -1;
 
     /* 首次交換：目標初值 = 實際位置（避免使能瞬間跳動,同 dual_arm_init 步驟5） */
