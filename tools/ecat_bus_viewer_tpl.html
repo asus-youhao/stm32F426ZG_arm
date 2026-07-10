@@ -1,0 +1,297 @@
+<meta charset="utf-8">
+<title>EtherCAT 匯流排分析 — F746 主站 ↔ 假 PHU 從站</title>
+<style>
+:root{
+  --bg:#F6F7F8; --surface:#FFFFFF; --surface2:#EEF1F2; --line:#D8DEE1;
+  --ink:#1B2228; --ink2:#5A6870; --ink3:#8C99A1;
+  --master:#0F7E85; --master-bg:#E3F1F2; --slave:#A9761C; --slave-bg:#F6EEDD;
+  --ok:#2E9E44; --bad:#C0393E; --sel:#DCEBEC; --hexhl:#FFE9BF;
+  --mono:ui-monospace,"Cascadia Code","JetBrains Mono","SF Mono",Consolas,Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#14181C; --surface:#1B2126; --surface2:#232A30; --line:#323C43;
+  --ink:#E3E9EC; --ink2:#9AA8B0; --ink3:#6B7982;
+  --master:#3FB3BA; --master-bg:#12333637; --slave:#D9A64A; --slave-bg:#3a2e1437;
+  --ok:#4BC163; --bad:#E06068; --sel:#1E3A3D; --hexhl:#5a4a1e;
+}}
+:root[data-theme="dark"]{
+  --bg:#14181C; --surface:#1B2126; --surface2:#232A30; --line:#323C43;
+  --ink:#E3E9EC; --ink2:#9AA8B0; --ink3:#6B7982;
+  --master:#3FB3BA; --master-bg:#12333637; --slave:#D9A64A; --slave-bg:#3a2e1437;
+  --ok:#4BC163; --bad:#E06068; --sel:#1E3A3D; --hexhl:#5a4a1e;
+}
+:root[data-theme="light"]{
+  --bg:#F6F7F8; --surface:#FFFFFF; --surface2:#EEF1F2; --line:#D8DEE1;
+  --ink:#1B2228; --ink2:#5A6870; --ink3:#8C99A1;
+  --master:#0F7E85; --master-bg:#E3F1F2; --slave:#A9761C; --slave-bg:#F6EEDD;
+  --ok:#2E9E44; --bad:#C0393E; --sel:#DCEBEC; --hexhl:#FFE9BF;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45}
+header{padding:14px 18px 10px;border-bottom:1px solid var(--line);background:var(--surface)}
+header h1{margin:0;font:600 17px/1.3 var(--mono);letter-spacing:.02em}
+header h1 .dim{color:var(--ink3);font-weight:400}
+.meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;color:var(--ink2);font:12px var(--mono)}
+.meta b{color:var(--ink);font-weight:600}
+.legend{display:inline-flex;align-items:center;gap:5px}
+.dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.toolbar input{flex:1 1 220px;min-width:160px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);
+  border-radius:6px;padding:7px 10px;font:13px var(--mono)}
+.toolbar input:focus{outline:2px solid var(--master);outline-offset:-1px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface2);color:var(--ink2);border-radius:14px;
+  padding:4px 12px;font:12px var(--mono);cursor:pointer;user-select:none}
+.chip:focus-visible{outline:2px solid var(--master)}
+.chip.on{background:var(--master);border-color:var(--master);color:#fff}
+.chip.on.sl{background:var(--slave);border-color:var(--slave)}
+#tlwrap{padding:8px 18px 4px;background:var(--surface);border-bottom:1px solid var(--line)}
+#tl{width:100%;height:96px;display:block;cursor:crosshair}
+.tl-cap{display:flex;justify-content:space-between;color:var(--ink3);font:11px var(--mono);padding:2px 2px 6px}
+main{display:grid;grid-template-columns:minmax(430px,58%) 1fr;gap:0;height:calc(100vh - 232px);min-height:420px}
+@media (max-width:900px){main{grid-template-columns:1fr;height:auto}}
+#listwrap{overflow:auto;border-right:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font:12.5px var(--mono);font-variant-numeric:tabular-nums}
+thead th{position:sticky;top:0;background:var(--surface2);color:var(--ink2);text-align:left;font-weight:600;
+  padding:6px 8px;border-bottom:1px solid var(--line);letter-spacing:.04em;font-size:11px;text-transform:uppercase}
+tbody td{padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0}
+tbody td.no,tbody td.t,tbody td.len{max-width:none;width:1%}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--surface2)}
+tbody tr.sel{background:var(--sel)}
+tbody tr td:first-child{border-left:3px solid transparent}
+tbody tr.m td:first-child{border-left-color:var(--master)}
+tbody tr.r td:first-child{border-left-color:var(--slave)}
+.badge{display:inline-block;border-radius:4px;padding:0 6px;font-size:11px;font-weight:600}
+.badge.m{background:var(--master-bg);color:var(--master)}
+.badge.r{background:var(--slave-bg);color:var(--slave)}
+tr.cycrow td{color:var(--ink2)}
+#detail{overflow:auto;padding:12px 16px;background:var(--surface)}
+#detail h2{margin:0 0 8px;font:600 13px var(--mono);color:var(--ink2);letter-spacing:.05em;text-transform:uppercase}
+.tree{font:12.5px/1.7 var(--mono);margin:0 0 14px;padding:10px 12px;background:var(--surface2);border-radius:8px;overflow-x:auto}
+.tree div{white-space:pre-wrap}
+.tree .lv1{padding-left:1.4em;color:var(--ink2)}
+.tree .hl-ok{color:var(--ok);font-weight:600}
+.tree .hl-bad{color:var(--bad);font-weight:600}
+.tree .hl-m{color:var(--master);font-weight:600}
+.hex{font:12px/1.75 var(--mono);background:var(--surface2);border-radius:8px;padding:10px 12px;overflow-x:auto;
+  color:var(--ink2);white-space:pre}
+.hex .off{color:var(--ink3)}
+.hex .eth{background:var(--hexhl);border-radius:2px}
+.hex .asc{color:var(--ink3)}
+.empty{color:var(--ink3);padding:30px 10px;text-align:center;font:13px var(--mono)}
+footer{display:flex;flex-wrap:wrap;gap:8px 18px;padding:10px 18px;border-top:1px solid var(--line);
+  background:var(--surface);color:var(--ink2);font:12px var(--mono)}
+footer b{color:var(--ink)}
+</style>
+
+<header>
+  <h1>EtherCAT 匯流排分析 <span class="dim">— Nucleo-F746 主站 ⇄ 假 PHU 從站（ecat_sniff.py 實抓）</span></h1>
+  <div class="meta" id="meta"></div>
+</header>
+
+<div class="toolbar">
+  <input id="q" type="search" placeholder="過濾：輸入文字比對摘要/解碼（如 0x6060、SAFEOP、EnableOp）" aria-label="過濾封包">
+  <div class="chips" id="dirchips">
+    <button class="chip on" data-dir="all">雙向</button>
+    <button class="chip" data-dir="master">板端主站 ➜</button>
+    <button class="chip sl" data-dir="reply">➜ 假從站回幀</button>
+  </div>
+  <div class="chips" id="protochips">
+    <button class="chip on" data-p="all">全部</button>
+    <button class="chip" data-p="sdo">CoE SDO</button>
+    <button class="chip" data-p="al">AL 狀態機</button>
+    <button class="chip" data-p="sii">SII/EEPROM</button>
+    <button class="chip" data-p="cfg">FMMU/SM/DC</button>
+    <button class="chip" data-p="pd">過程資料 LRW</button>
+  </div>
+</div>
+
+<div id="tlwrap">
+  <svg id="tl" role="img" aria-label="時間軸：封包密度與軸0位置曲線"></svg>
+  <div class="tl-cap"><span id="tl0"></span><span>上=主站幀密度 · 下=回幀密度 · 折線=軸0 位置（點擊跳轉）</span><span id="tl1"></span></div>
+</div>
+
+<main>
+  <div id="listwrap">
+    <table>
+      <thead><tr><th>#</th><th>時間 s</th><th>方向</th><th>長度</th><th>摘要</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>沒有符合過濾條件的封包</div>
+  </div>
+  <div id="detail"><div class="empty">點選左側封包查看解碼樹與 hex dump（↑↓ 可鍵盤導覽）</div></div>
+</main>
+
+<footer id="stats"></footer>
+
+<script>
+const CAP = /*__DATA__*/null;
+const P = CAP.packets;
+P.forEach((p,i)=>p.i=i);
+const $ = s=>document.querySelector(s);
+
+/* ---- meta ---- */
+const t9 = P.filter(p=>p.cyc&&p.dir==='reply');
+$('#meta').innerHTML =
+  `<span>介面 <b>${CAP.meta.iface}</b></span>`+
+  `<span>抓取 <b>${CAP.meta.captured}</b> 幀 / 顯示 <b>${CAP.meta.kept}</b>（週期幀僅留變化,略 ${CAP.meta.cyclic_dropped}）</span>`+
+  `<span>時長 <b>${CAP.meta.duration_s}s</b></span>`+
+  `<span class="legend"><i class="dot" style="background:var(--master)"></i>板端 F746 主站</span>`+
+  `<span class="legend"><i class="dot" style="background:var(--slave)"></i>PC 假 PHU 從站（wkc 已加）</span>`;
+
+/* ---- 分類 ---- */
+function cls(p){
+  const s = p.info + ' ' + p.tree.join(' ');
+  return { sdo:/SDO |Mailbox CoE/.test(s), al:/AL (Control|Status)/.test(s),
+           sii:/SII/.test(s), cfg:/FMMU|SyncManager|DC 時鐘/.test(s), pd:p.cyc };
+}
+P.forEach(p=>p.c=cls(p));
+
+/* ---- 過濾狀態 ---- */
+let fDir='all', fProto='all', fQ='', sel=-1, view=[];
+function apply(){
+  const q=fQ.toLowerCase();
+  view = P.filter(p =>
+    (fDir==='all'||p.dir===fDir) &&
+    (fProto==='all'||p.c[fProto]) &&
+    (!q || p.info.toLowerCase().includes(q) || p.tree.join('\n').toLowerCase().includes(q)));
+  renderRows();
+}
+
+/* ---- 列表 ---- */
+function renderRows(){
+  const tb=$('#rows'); tb.innerHTML='';
+  const frag=document.createDocumentFragment();
+  for(const p of view){
+    const tr=document.createElement('tr');
+    tr.className=(p.dir==='master'?'m':'r')+(p.cyc?' cycrow':'')+(p.i===sel?' sel':'');
+    tr.dataset.i=p.i;
+    tr.innerHTML=`<td class="no">${p.i}</td><td class="t">${p.t.toFixed(4)}</td>`+
+      `<td><span class="badge ${p.dir==='master'?'m':'r'}">${p.dir==='master'?'主站':'回幀'}</span></td>`+
+      `<td class="len">${p.len}</td><td>${esc(p.info)}</td>`;
+    frag.appendChild(tr);
+  }
+  tb.appendChild(frag);
+  $('#empty').hidden = view.length>0;
+}
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+
+$('#rows').addEventListener('click',e=>{
+  const tr=e.target.closest('tr'); if(!tr)return;
+  select(+tr.dataset.i,true);
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
+  e.preventDefault();
+  const idx=view.findIndex(p=>p.i===sel);
+  const nx=view[Math.min(view.length-1,Math.max(0,idx+(e.key==='ArrowDown'?1:-1)))];
+  if(nx)select(nx.i,true);
+});
+
+/* ---- 詳細窗格 ---- */
+function select(i,scroll){
+  sel=i; const p=P[i];
+  document.querySelectorAll('#rows tr.sel').forEach(t=>t.classList.remove('sel'));
+  const tr=document.querySelector(`#rows tr[data-i="${i}"]`);
+  if(tr){tr.classList.add('sel'); if(scroll)tr.scrollIntoView({block:'nearest'});}
+  const treeHtml=p.tree.map(l=>{
+    let h=esc(l);
+    h=h.replace(/OperationEnabled|=OK|OP\)/g,m=>`<span class="hl-ok">${m}</span>`)
+       .replace(/Fault|ABORT|\+ERR/g,m=>`<span class="hl-bad">${m}</span>`)
+       .replace(/^(datagram idx=\d+ \w+)/,m=>`<span class="hl-m">${m}</span>`);
+    const lv=/^(EtherCAT|datagram)/.test(l)?'':'lv1';
+    return `<div class="${lv}">${h}</div>`;
+  }).join('');
+  $('#detail').innerHTML=
+    `<h2>封包 #${p.i} · t=${p.t.toFixed(6)}s · ${p.dir==='master'?'板端主站 ➜ 從站':'假從站 ➜ 主站（回幀）'} · ${p.len}B</h2>`+
+    `<div class="tree">${treeHtml}</div>`+
+    `<h2>Hex dump（前 14B=乙太網頭,黃底）</h2><div class="hex">${hexdump(p.hex)}</div>`;
+}
+function hexdump(hx){
+  let out='';
+  for(let o=0;o<hx.length;o+=32){
+    const line=hx.slice(o,o+32);
+    let hexs='',asc='';
+    for(let k=0;k<line.length;k+=2){
+      const byteIdx=(o+k)/2;
+      const b=line.slice(k,k+2);
+      const sp=(k===16)?'  ':' ';
+      hexs+= (byteIdx<14?`<span class="eth">${b}</span>`:b)+sp;
+      const v=parseInt(b,16);
+      asc+=(v>=32&&v<127)?esc(String.fromCharCode(v)):'·';
+    }
+    out+=`<span class="off">${(o/2).toString(16).padStart(4,'0')}</span>  ${hexs.padEnd(50)} <span class="asc">${asc}</span>\n`;
+  }
+  return out;
+}
+
+/* ---- 時間軸 ---- */
+function timeline(){
+  const svg=$('#tl'); const W=svg.clientWidth||900, H=96;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const tMax=Math.max(...P.map(p=>p.t)), NB=Math.min(240,W>>2), bw=W/NB;
+  const bm=new Array(NB).fill(0), br=new Array(NB).fill(0);
+  P.forEach(p=>{const b=Math.min(NB-1,p.t/tMax*NB|0); (p.dir==='master'?bm:br)[b]++;});
+  const mMax=Math.max(...bm,1), rMax=Math.max(...br,1), mid=H/2;
+  let el='';
+  for(let b=0;b<NB;b++){
+    if(bm[b])el+=`<rect x="${b*bw}" y="${mid-bm[b]/mMax*(mid-6)}" width="${Math.max(1,bw-1)}" height="${bm[b]/mMax*(mid-6)}" fill="var(--master)" opacity=".75"/>`;
+    if(br[b])el+=`<rect x="${b*bw}" y="${mid}" width="${Math.max(1,bw-1)}" height="${br[b]/rMax*(mid-6)}" fill="var(--slave)" opacity=".75"/>`;
+  }
+  el+=`<line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="var(--line)"/>`;
+  /* 軸0 位置曲線（回幀） */
+  const pts=[];
+  P.forEach(p=>{ if(!p.cyc||p.dir!=='reply')return;
+    const m=p.tree.join(' ').match(/軸0 輸入[^|]*pos=(-?\d+)/); if(m)pts.push([p.t,+m[1]]); });
+  if(pts.length>1){
+    const pmin=Math.min(...pts.map(p=>p[1])), pmax=Math.max(...pts.map(p=>p[1]))||1;
+    const path=pts.map((p,i)=>`${i?'L':'M'}${(p[0]/tMax*W).toFixed(1)},${(H-8-(p[1]-pmin)/(pmax-pmin||1)*(H-20)).toFixed(1)}`).join('');
+    el+=`<path d="${path}" fill="none" stroke="var(--ok)" stroke-width="1.8"/>`;
+    const last=pts[pts.length-1];
+    el+=`<circle cx="${(last[0]/tMax*W).toFixed(1)}" cy="${(H-8-(last[1]-pmin)/(pmax-pmin||1)*(H-20)).toFixed(1)}" r="3" fill="var(--ok)"/>`;
+  }
+  svg.innerHTML=el;
+  $('#tl0').textContent='0s'; $('#tl1').textContent=tMax.toFixed(1)+'s';
+  svg.onclick=e=>{
+    const t=(e.offsetX/svg.clientWidth)*tMax;
+    let best=P[0];
+    for(const p of P) if(Math.abs(p.t-t)<Math.abs(best.t-t))best=p;
+    fDir='all';fProto='all';fQ='';$('#q').value='';
+    syncChips(); apply(); select(best.i,true);
+  };
+}
+
+/* ---- chips / 過濾接線 ---- */
+function syncChips(){
+  document.querySelectorAll('#dirchips .chip').forEach(c=>c.classList.toggle('on',c.dataset.dir===fDir));
+  document.querySelectorAll('#protochips .chip').forEach(c=>c.classList.toggle('on',c.dataset.p===fProto));
+}
+$('#dirchips').addEventListener('click',e=>{
+  const c=e.target.closest('.chip'); if(!c)return; fDir=c.dataset.dir; syncChips(); apply();
+});
+$('#protochips').addEventListener('click',e=>{
+  const c=e.target.closest('.chip'); if(!c)return; fProto=c.dataset.p; syncChips(); apply();
+});
+let deb; $('#q').addEventListener('input',e=>{clearTimeout(deb);deb=setTimeout(()=>{fQ=e.target.value;apply();},120);});
+
+/* ---- 統計 ---- */
+(function stats(){
+  const cnt={};
+  P.forEach(p=>{const m=p.info.match(/^(\w+)/); if(m)cnt[m[1]]=(cnt[m[1]]||0)+1;});
+  const nm=P.filter(p=>p.dir==='master').length;
+  $('#stats').innerHTML=
+    `<span>主站幀 <b>${nm}</b> / 回幀 <b>${P.length-nm}</b></span>`+
+    Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,9)
+      .map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join('')+
+    `<span>CoE SDO <b>${P.filter(p=>p.c.sdo).length}</b></span>`+
+    `<span>AL <b>${P.filter(p=>p.c.al).length}</b></span>`;
+})();
+
+apply(); timeline();
+addEventListener('resize',()=>timeline());
+/* 開場選中第一筆 AL Control（掃鏈起點）,說故事 */
+const first=P.find(p=>p.c.al)||P[0]; if(first)select(first.i,true);
+</script>
