@@ -32,12 +32,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 header{padding:14px 18px 10px;border-bottom:1px solid var(--line);background:var(--surface)}
 header h1{margin:0;font:600 17px/1.3 var(--mono);letter-spacing:.02em}
 header h1 .dim{color:var(--ink3);font-weight:400}
+header h1 .live{color:var(--bad);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){header h1 .live{animation:none}}
 .meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;color:var(--ink2);font:12px var(--mono)}
 .meta b{color:var(--ink);font-weight:600}
 .legend{display:inline-flex;align-items:center;gap:5px}
 .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-.toolbar input{flex:1 1 220px;min-width:160px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);
+.toolbar input{flex:1 1 200px;min-width:150px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);
   border-radius:6px;padding:7px 10px;font:13px var(--mono)}
 .toolbar input:focus{outline:2px solid var(--master);outline-offset:-1px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
@@ -46,17 +49,20 @@ header h1 .dim{color:var(--ink3);font-weight:400}
 .chip:focus-visible{outline:2px solid var(--master)}
 .chip.on{background:var(--master);border-color:var(--master);color:#fff}
 .chip.on.sl{background:var(--slave);border-color:var(--slave)}
+#viewtabs .chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 #tlwrap{padding:8px 18px 4px;background:var(--surface);border-bottom:1px solid var(--line)}
 #tl{width:100%;height:96px;display:block;cursor:crosshair}
 .tl-cap{display:flex;justify-content:space-between;color:var(--ink3);font:11px var(--mono);padding:2px 2px 6px}
-main{display:grid;grid-template-columns:minmax(430px,58%) 1fr;gap:0;height:calc(100vh - 232px);min-height:420px}
+main{display:grid;grid-template-columns:minmax(430px,58%) 1fr;gap:0;height:calc(100vh - 236px);min-height:420px}
 @media (max-width:900px){main{grid-template-columns:1fr;height:auto}}
 #listwrap{overflow:auto;border-right:1px solid var(--line)}
+#canwrap{overflow:auto;height:calc(100vh - 236px);min-height:420px}
 table{border-collapse:collapse;width:100%;font:12.5px var(--mono);font-variant-numeric:tabular-nums}
 thead th{position:sticky;top:0;background:var(--surface2);color:var(--ink2);text-align:left;font-weight:600;
-  padding:6px 8px;border-bottom:1px solid var(--line);letter-spacing:.04em;font-size:11px;text-transform:uppercase}
+  padding:6px 8px;border-bottom:1px solid var(--line);letter-spacing:.04em;font-size:11px;text-transform:uppercase;z-index:1}
 tbody td{padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0}
-tbody td.no,tbody td.t,tbody td.len{max-width:none;width:1%}
+tbody td.no,tbody td.t,tbody td.len,tbody td.cid,tbody td.nd{max-width:none;width:1%}
+tbody td.dat{max-width:none;width:1%;letter-spacing:.03em}
 tbody tr{cursor:pointer}
 tbody tr:hover{background:var(--surface2)}
 tbody tr.sel{background:var(--sel)}
@@ -66,6 +72,7 @@ tbody tr.r td:first-child{border-left-color:var(--slave)}
 .badge{display:inline-block;border-radius:4px;padding:0 6px;font-size:11px;font-weight:600}
 .badge.m{background:var(--master-bg);color:var(--master)}
 .badge.r{background:var(--slave-bg);color:var(--slave)}
+.badge.id{background:var(--surface2);color:var(--ink);font-weight:700}
 tr.cycrow td{color:var(--ink2)}
 #detail{overflow:auto;padding:12px 16px;background:var(--surface)}
 #detail h2{margin:0 0 8px;font:600 13px var(--mono);color:var(--ink2);letter-spacing:.05em;text-transform:uppercase}
@@ -87,12 +94,16 @@ footer b{color:var(--ink)}
 </style>
 
 <header>
-  <h1>EtherCAT 匯流排分析 <span class="dim">— Nucleo-F746 主站 ⇄ 假 PHU 從站（ecat_sniff.py 實抓）</span></h1>
+  <h1>EtherCAT 匯流排分析 <span class="dim">— Nucleo-F746 主站 ⇄ 假 PHU 從站</span> <span id="livedot"></span></h1>
   <div class="meta" id="meta"></div>
 </header>
 
 <div class="toolbar">
-  <input id="q" type="search" placeholder="過濾：輸入文字比對摘要/解碼（如 0x6060、SAFEOP、EnableOp）" aria-label="過濾封包">
+  <div class="chips" id="viewtabs">
+    <button class="chip on" data-v="ecat">EtherCAT 封包</button>
+    <button class="chip" data-v="can">CAN 對照（CiA402）</button>
+  </div>
+  <input id="q" type="search" placeholder="過濾：0x6060、SAFEOP、EnableOp、0x601…" aria-label="過濾封包">
   <div class="chips" id="dirchips">
     <button class="chip on" data-dir="all">雙向</button>
     <button class="chip" data-dir="master">板端主站 ➜</button>
@@ -104,7 +115,7 @@ footer b{color:var(--ink)}
     <button class="chip" data-p="al">AL 狀態機</button>
     <button class="chip" data-p="sii">SII/EEPROM</button>
     <button class="chip" data-p="cfg">FMMU/SM/DC</button>
-    <button class="chip" data-p="pd">過程資料 LRW</button>
+    <button class="chip" data-p="pd">過程資料 LRW（=PDO）</button>
   </div>
 </div>
 
@@ -113,7 +124,7 @@ footer b{color:var(--ink)}
   <div class="tl-cap"><span id="tl0"></span><span>上=主站幀密度 · 下=回幀密度 · 折線=軸0 位置（點擊跳轉）</span><span id="tl1"></span></div>
 </div>
 
-<main>
+<main id="ecatview">
   <div id="listwrap">
     <table>
       <thead><tr><th>#</th><th>時間 s</th><th>方向</th><th>長度</th><th>摘要</th></tr></thead>
@@ -124,22 +135,25 @@ footer b{color:var(--ink)}
   <div id="detail"><div class="empty">點選左側封包查看解碼樹與 hex dump（↑↓ 可鍵盤導覽）</div></div>
 </main>
 
+<div id="canwrap" hidden>
+  <table>
+    <thead><tr><th>時間 s</th><th>方向</th><th>COB-ID</th><th>名稱</th><th>Node</th><th>Len</th><th>Data</th><th>解碼</th></tr></thead>
+    <tbody id="canrows"></tbody>
+  </table>
+  <div class="empty" id="canempty" hidden>沒有符合過濾條件的 CAN 對照列</div>
+  <div class="empty">EtherCAT→CANopen 對照：CoE SDO 的 8B payload 原生就是 CANopen SDO 幀（0x600/0x580+node）;
+    LRW 過程資料的每軸輸出/輸入 ≙ RPDO1(0x200+n)/TPDO1(0x180+n);AL 狀態機 ≈ NMT/Heartbeat。點列可跳回封包解碼。</div>
+</div>
+
 <footer id="stats"></footer>
 
 <script>
-const CAP = /*__DATA__*/null;
+let CAP = /*__DATA__*/null;
+const LIVE = !CAP;
+if (LIVE) CAP = {meta:{iface:"(live)",captured:0,kept:0,cyclic_dropped:0,duration_s:0},packets:[]};
 const P = CAP.packets;
-P.forEach((p,i)=>p.i=i);
 const $ = s=>document.querySelector(s);
-
-/* ---- meta ---- */
-const t9 = P.filter(p=>p.cyc&&p.dir==='reply');
-$('#meta').innerHTML =
-  `<span>介面 <b>${CAP.meta.iface}</b></span>`+
-  `<span>抓取 <b>${CAP.meta.captured}</b> 幀 / 顯示 <b>${CAP.meta.kept}</b>（週期幀僅留變化,略 ${CAP.meta.cyclic_dropped}）</span>`+
-  `<span>時長 <b>${CAP.meta.duration_s}s</b></span>`+
-  `<span class="legend"><i class="dot" style="background:var(--master)"></i>板端 F746 主站</span>`+
-  `<span class="legend"><i class="dot" style="background:var(--slave)"></i>PC 假 PHU 從站（wkc 已加）</span>`;
+const esc = s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 /* ---- 分類 ---- */
 function cls(p){
@@ -147,20 +161,45 @@ function cls(p){
   return { sdo:/SDO |Mailbox CoE/.test(s), al:/AL (Control|Status)/.test(s),
            sii:/SII/.test(s), cfg:/FMMU|SyncManager|DC 時鐘/.test(s), pd:p.cyc };
 }
-P.forEach(p=>p.c=cls(p));
+P.forEach((p,i)=>{p.i=i;p.c=cls(p);});
 
-/* ---- 過濾狀態 ---- */
-let fDir='all', fProto='all', fQ='', sel=-1, view=[];
-function apply(){
-  const q=fQ.toLowerCase();
-  view = P.filter(p =>
-    (fDir==='all'||p.dir===fDir) &&
-    (fProto==='all'||p.c[fProto]) &&
-    (!q || p.info.toLowerCase().includes(q) || p.tree.join('\n').toLowerCase().includes(q)));
-  renderRows();
+/* ---- meta / stats ---- */
+function renderMeta(){
+  $('#livedot').innerHTML = LIVE ? '<span class="live">● LIVE</span>' : '<span class="dim">（ecat_sniff.py 實抓）</span>';
+  $('#meta').innerHTML =
+    `<span>介面 <b>${esc(String(CAP.meta.iface))}</b></span>`+
+    `<span>抓取 <b>${CAP.meta.captured}</b> 幀 / 顯示 <b>${P.length}</b>（週期幀僅留變化,略 ${CAP.meta.cyclic_dropped}）</span>`+
+    `<span>時長 <b>${LIVE?'進行中':CAP.meta.duration_s+'s'}</b></span>`+
+    `<span class="legend"><i class="dot" style="background:var(--master)"></i>板端 F746 主站</span>`+
+    `<span class="legend"><i class="dot" style="background:var(--slave)"></i>PC 假 PHU 從站（wkc 已加）</span>`;
+}
+function renderStats(){
+  const cnt={};
+  P.forEach(p=>{const m=p.info.match(/^(\w+)/); if(m)cnt[m[1]]=(cnt[m[1]]||0)+1;});
+  const nm=P.filter(p=>p.dir==='master').length;
+  $('#stats').innerHTML=
+    `<span>主站幀 <b>${nm}</b> / 回幀 <b>${P.length-nm}</b></span>`+
+    Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,8)
+      .map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join('')+
+    `<span>CoE SDO <b>${P.filter(p=>p.c.sdo).length}</b></span>`+
+    `<span>AL <b>${P.filter(p=>p.c.al).length}</b></span>`;
 }
 
-/* ---- 列表 ---- */
+/* ---- 過濾狀態 ---- */
+let fDir='all', fProto='all', fQ='', sel=-1, view=[], curView='ecat';
+function cob(id){ return '0x'+id.toString(16).toUpperCase().padStart(3,'0'); }
+function match(p,q){
+  return (fDir==='all'||p.dir===fDir) && (fProto==='all'||p.c[fProto]) &&
+    (!q || p.info.toLowerCase().includes(q) || p.tree.join('\n').toLowerCase().includes(q) ||
+     (p.can||[]).some(r=>(r.name+r.note+cob(r.id)).toLowerCase().includes(q)));
+}
+function apply(){
+  const q=fQ.toLowerCase();
+  view = P.filter(p=>match(p,q));
+  if(curView==='ecat') renderRows(); else renderCan();
+}
+
+/* ---- EtherCAT 列表 ---- */
 function renderRows(){
   const tb=$('#rows'); tb.innerHTML='';
   const frag=document.createDocumentFragment();
@@ -176,14 +215,54 @@ function renderRows(){
   tb.appendChild(frag);
   $('#empty').hidden = view.length>0;
 }
-function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 
+/* ---- CAN 對照（SavvyCAN 式）---- */
+function renderCan(){
+  const tb=$('#canrows'); tb.innerHTML='';
+  const frag=document.createDocumentFragment();
+  let n=0;
+  for(const p of view){
+    for(const r of (p.can||[])){
+      const tr=document.createElement('tr');
+      tr.className=(p.dir==='master'?'m':'r');
+      tr.dataset.i=p.i;
+      tr.innerHTML=`<td class="t">${p.t.toFixed(4)}</td>`+
+        `<td><span class="badge ${p.dir==='master'?'m':'r'}">${p.dir==='master'?'主站':'回幀'}</span></td>`+
+        `<td class="cid"><span class="badge id">${cob(r.id)}</span></td>`+
+        `<td>${esc(r.name)}</td><td class="nd">${r.node}</td><td class="len">${r.len}</td>`+
+        `<td class="dat">${esc(r.data)}</td><td>${esc(r.note)}</td>`;
+      frag.appendChild(tr); n++;
+      if(n>=4000) break;
+    }
+    if(n>=4000) break;
+  }
+  tb.appendChild(frag);
+  $('#canempty').hidden = n>0;
+}
+$('#canrows').addEventListener('click',e=>{
+  const tr=e.target.closest('tr'); if(!tr)return;
+  setView('ecat'); select(+tr.dataset.i,true);
+});
+
+/* ---- 檢視切換 ---- */
+function setView(v){
+  curView=v;
+  document.querySelectorAll('#viewtabs .chip').forEach(c=>c.classList.toggle('on',c.dataset.v===v));
+  $('#ecatview').style.display = v==='ecat'?'':'none';
+  $('#canwrap').hidden = v!=='can';
+  apply();
+}
+$('#viewtabs').addEventListener('click',e=>{
+  const c=e.target.closest('.chip'); if(c) setView(c.dataset.v);
+});
+
+/* ---- 事件 ---- */
 $('#rows').addEventListener('click',e=>{
   const tr=e.target.closest('tr'); if(!tr)return;
   select(+tr.dataset.i,true);
 });
 document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT')return;
+  if(e.target.tagName==='INPUT'||curView!=='ecat')return;
   if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
   e.preventDefault();
   const idx=view.findIndex(p=>p.i===sel);
@@ -193,7 +272,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---- 詳細窗格 ---- */
 function select(i,scroll){
-  sel=i; const p=P[i];
+  sel=i; const p=P[i]; if(!p)return;
   document.querySelectorAll('#rows tr.sel').forEach(t=>t.classList.remove('sel'));
   const tr=document.querySelector(`#rows tr[data-i="${i}"]`);
   if(tr){tr.classList.add('sel'); if(scroll)tr.scrollIntoView({block:'nearest'});}
@@ -205,9 +284,12 @@ function select(i,scroll){
     const lv=/^(EtherCAT|datagram)/.test(l)?'':'lv1';
     return `<div class="${lv}">${h}</div>`;
   }).join('');
+  const canHtml=(p.can&&p.can.length)?
+    `<h2>CAN 對照</h2><div class="tree">${p.can.map(r=>
+      `<div>${cob(r.id)} ${esc(r.name)} n${r.node} [${esc(r.data)}] ${esc(r.note)}</div>`).join('')}</div>`:'';
   $('#detail').innerHTML=
     `<h2>封包 #${p.i} · t=${p.t.toFixed(6)}s · ${p.dir==='master'?'板端主站 ➜ 從站':'假從站 ➜ 主站（回幀）'} · ${p.len}B</h2>`+
-    `<div class="tree">${treeHtml}</div>`+
+    `<div class="tree">${treeHtml}</div>`+canHtml+
     `<h2>Hex dump（前 14B=乙太網頭,黃底）</h2><div class="hex">${hexdump(p.hex)}</div>`;
 }
 function hexdump(hx){
@@ -231,8 +313,9 @@ function hexdump(hx){
 /* ---- 時間軸 ---- */
 function timeline(){
   const svg=$('#tl'); const W=svg.clientWidth||900, H=96;
+  if(!P.length){svg.innerHTML='';return;}
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  const tMax=Math.max(...P.map(p=>p.t)), NB=Math.min(240,W>>2), bw=W/NB;
+  const tMax=Math.max(...P.map(p=>p.t))||1, NB=Math.min(240,W>>2), bw=W/NB;
   const bm=new Array(NB).fill(0), br=new Array(NB).fill(0);
   P.forEach(p=>{const b=Math.min(NB-1,p.t/tMax*NB|0); (p.dir==='master'?bm:br)[b]++;});
   const mMax=Math.max(...bm,1), rMax=Math.max(...br,1), mid=H/2;
@@ -242,12 +325,11 @@ function timeline(){
     if(br[b])el+=`<rect x="${b*bw}" y="${mid}" width="${Math.max(1,bw-1)}" height="${br[b]/rMax*(mid-6)}" fill="var(--slave)" opacity=".75"/>`;
   }
   el+=`<line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="var(--line)"/>`;
-  /* 軸0 位置曲線（回幀） */
   const pts=[];
   P.forEach(p=>{ if(!p.cyc||p.dir!=='reply')return;
     const m=p.tree.join(' ').match(/軸0 輸入[^|]*pos=(-?\d+)/); if(m)pts.push([p.t,+m[1]]); });
   if(pts.length>1){
-    const pmin=Math.min(...pts.map(p=>p[1])), pmax=Math.max(...pts.map(p=>p[1]))||1;
+    const pmin=Math.min(...pts.map(p=>p[1])), pmax=Math.max(...pts.map(p=>p[1]));
     const path=pts.map((p,i)=>`${i?'L':'M'}${(p[0]/tMax*W).toFixed(1)},${(H-8-(p[1]-pmin)/(pmax-pmin||1)*(H-20)).toFixed(1)}`).join('');
     el+=`<path d="${path}" fill="none" stroke="var(--ok)" stroke-width="1.8"/>`;
     const last=pts[pts.length-1];
@@ -260,7 +342,7 @@ function timeline(){
     let best=P[0];
     for(const p of P) if(Math.abs(p.t-t)<Math.abs(best.t-t))best=p;
     fDir='all';fProto='all';fQ='';$('#q').value='';
-    syncChips(); apply(); select(best.i,true);
+    syncChips(); setView('ecat'); select(best.i,true);
   };
 }
 
@@ -277,21 +359,24 @@ $('#protochips').addEventListener('click',e=>{
 });
 let deb; $('#q').addEventListener('input',e=>{clearTimeout(deb);deb=setTimeout(()=>{fQ=e.target.value;apply();},120);});
 
-/* ---- 統計 ---- */
-(function stats(){
-  const cnt={};
-  P.forEach(p=>{const m=p.info.match(/^(\w+)/); if(m)cnt[m[1]]=(cnt[m[1]]||0)+1;});
-  const nm=P.filter(p=>p.dir==='master').length;
-  $('#stats').innerHTML=
-    `<span>主站幀 <b>${nm}</b> / 回幀 <b>${P.length-nm}</b></span>`+
-    Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,9)
-      .map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join('')+
-    `<span>CoE SDO <b>${P.filter(p=>p.c.sdo).length}</b></span>`+
-    `<span>AL <b>${P.filter(p=>p.c.al).length}</b></span>`;
-})();
+/* ---- live 模式（本機 ecat_live.py,SSE 串流）---- */
+if(LIVE){
+  const MAXP=6000;
+  let dirty=false;
+  const es=new EventSource('/stream');
+  es.onmessage=e=>{
+    const o=JSON.parse(e.data);
+    if(o.meta){Object.assign(CAP.meta,o.meta); dirty=true; return;}
+    if(P.length>=MAXP){es.close(); CAP.meta.iface+='（已達 '+MAXP+' 幀顯示上限,停止追加）'; dirty=true; return;}
+    o.i=P.length; o.c=cls(o); P.push(o); dirty=true;
+  };
+  es.onerror=()=>{ $('#livedot').innerHTML='<span class="dim">（串流中斷,重連中…）</span>'; };
+  setInterval(()=>{ if(!dirty)return; dirty=false;
+    renderMeta(); renderStats(); apply(); timeline();
+  },700);
+}
 
-apply(); timeline();
+renderMeta(); renderStats(); apply(); timeline();
 addEventListener('resize',()=>timeline());
-/* 開場選中第一筆 AL Control（掃鏈起點）,說故事 */
-const first=P.find(p=>p.c.al)||P[0]; if(first)select(first.i,true);
+if(!LIVE){ const first=P.find(p=>p.c.al)||P[0]; if(first)select(first.i,true); }
 </script>

@@ -53,7 +53,13 @@ def cia402_sw(sw):
     return "?"
 
 
-def decode_mbx(data, tree):
+def hexsp(bs):
+    return " ".join("%02X" % x for x in bs)
+
+
+def decode_mbx(data, tree, can, node, is_write, is_reply):
+    """CoE mailbox。CAN 對照：CoE SDO payload 即 8B CANopen SDO 幀 →
+    請求(主站寫 SM0)=0x600+node、回應(回幀讀 SM1)=0x580+node。"""
     if len(data) < 8:
         return
     mlen, _sta, _pri, typ = struct.unpack_from("<HHBB", data, 0)
@@ -71,15 +77,21 @@ def decode_mbx(data, tree):
         if ccs == 0x40: op = "讀 0x%04X:%02X" % (idx, sub)
         elif ccs == 0x20: op = "寫 0x%04X:%02X = 0x%08X" % (idx, sub, val)
         elif ccs == 0x60: op = "寫回應 0x%04X:%02X OK" % (idx, sub)
-        elif ccs == 0x40 or ccs == 0x43: op = "讀回應 0x%04X:%02X = 0x%08X" % (idx, sub, val)
         elif cs == 0x80: op = "ABORT 0x%04X:%02X code=0x%08X" % (idx, sub, val)
         elif ccs & 0x40: op = "讀回應 0x%04X:%02X = 0x%08X" % (idx, sub, val)
         else: op = "cs=0x%02X 0x%04X:%02X val=0x%08X" % (cs, idx, sub, val)
         tree.append("SDO " + op)
+        if is_write and not is_reply:               # 主站送出的 SDO 請求
+            can.append({"id": 0x600 + node, "name": "SDO 請求", "node": node,
+                        "len": 8, "data": hexsp(data[8:16]), "note": op})
+        elif not is_write and is_reply:             # 從站回的 SDO 回應
+            can.append({"id": 0x580 + node, "name": "SDO 回應", "node": node,
+                        "len": 8, "data": hexsp(data[8:16]), "note": op})
 
 
-def decode_pd(data, is_reply, tree, sig):
-    """LRW 過程資料（out 66B + in 58B,factory 佈局）。sig 收「變化偵測」欄位。"""
+def decode_pd(data, is_reply, tree, sig, can):
+    """LRW 過程資料（out 66B + in 58B,factory 佈局）。sig 收「變化偵測」欄位。
+    CAN 對照：主站幀輸出=RPDO1(0x200+node,cw+tgt)、回幀輸入=TPDO1(0x180+node,sw+pos)。"""
     if len(data) < AXES * (RX_SZ + TX_SZ):
         return
     for a in range(AXES):
@@ -90,6 +102,11 @@ def decode_pd(data, is_reply, tree, sig):
         tree.append("軸%d 輸出：cw=0x%04X(%s) mode=%d tgt=%d"
                     % (a, cw, CIA402_CW.get(cw, "?"), mode, tgt))
         sig += [cw, tgt]
+        if not is_reply:
+            can.append({"id": 0x200 + a + 1, "name": "RPDO1", "node": a + 1, "len": 6,
+                        "data": hexsp(data[o:o + 2] + data[o + 3:o + 7]),
+                        "note": "cw=0x%04X(%s) tgt=%d（mode=%d 走 PDO）"
+                                % (cw, CIA402_CW.get(cw, "?"), tgt, mode)})
     base = AXES * RX_SZ
     for a in range(AXES):
         i = base + a * TX_SZ
@@ -100,14 +117,25 @@ def decode_pd(data, is_reply, tree, sig):
                     % (a, sw, cia402_sw(sw), err, pos))
         if is_reply:
             sig += [sw, pos]
+            can.append({"id": 0x180 + a + 1, "name": "TPDO1", "node": a + 1, "len": 6,
+                        "data": hexsp(data[i:i + 2] + data[i + 5:i + 9]),
+                        "note": "sw=0x%04X(%s) pos=%d" % (sw, cia402_sw(sw), pos)})
+            if err:
+                can.append({"id": 0x080 + a + 1, "name": "EMCY", "node": a + 1, "len": 2,
+                            "data": hexsp(data[i + 3:i + 5]),
+                            "note": "err=0x%04X" % err})
+
+
+AL2HB = {1: (0x00, "INIT≈boot"), 2: (0x7F, "PREOP≈pre-op"),
+         4: (0x04, "SAFEOP≈stopped"), 8: (0x05, "OP≈operational")}
 
 
 def decode_frame(raw, is_reply):
-    """回 (info 摘要, tree 解碼行, sig 變化簽章, is_cyclic)。raw 含 14B eth 頭。"""
-    tree, sig = [], []
+    """回 (info, tree, sig, is_cyclic, can 對照列)。raw 含 14B eth 頭。"""
+    tree, sig, can = [], [], []
     b = raw[14:]
     if len(b) < 2:
-        return "短幀", tree, sig, False
+        return "短幀", tree, sig, False, can
     hdr, = struct.unpack_from("<H", b, 0)
     flen, ftyp = hdr & 0x7FF, hdr >> 12
     tree.append("EtherCAT frame：len=%d type=%d" % (flen, ftyp))
@@ -125,11 +153,13 @@ def decode_frame(raw, is_reply):
             laddr, = struct.unpack_from("<I", b, off + 2)
             info = "%s L:0x%08X len=%d wkc=%d" % (name, laddr, dlen, wkc)
             tree.append("datagram idx=%d %s" % (idx, info))
-            decode_pd(data, is_reply, tree, sig)
+            decode_pd(data, is_reply, tree, sig, can)
             cyclic = True
         else:
             adp, ado = struct.unpack_from("<HH", b, off + 2)
             rn = reg_name(ado)
+            node = adp - 0x1000 if 0x1000 < adp <= 0x1000 + 16 else 0
+            is_write = cmd in (2, 5, 8)                 # APWR/FPWR/BWR
             info = "%s slave=0x%04X reg=0x%04X%s len=%d wkc=%d" \
                    % (name, adp, ado, " [%s]" % rn if rn else "", dlen, wkc)
             tree.append("datagram idx=%d %s" % (idx, info))
@@ -140,13 +170,24 @@ def decode_frame(raw, is_reply):
                                v, AL_STATES.get(v & 0x0F, "?"),
                                "+ERR" if v & 0x10 else ""))
                 sig.append(("al", ado, v))
+                st = AL_STATES.get(v & 0x0F, "?")
+                if ado == 0x0120 and is_write and not is_reply:
+                    can.append({"id": 0x000, "name": "NMT≈AL", "node": node, "len": 2,
+                                "data": hexsp(data[:2]),
+                                "note": "AL Control → %s（node %d,0=全體）" % (st, node)})
+                elif ado == 0x0130 and is_reply and wkc > 0:
+                    hb = AL2HB.get(v & 0x0F)
+                    if hb:
+                        can.append({"id": 0x700 + max(node, 1), "name": "HB≈AL",
+                                    "node": node, "len": 1, "data": "%02X" % hb[0],
+                                    "note": "AL Status %s" % hb[1]})
             if 0x1000 <= ado < 0x1100 and dlen >= 8:
-                decode_mbx(data, tree)
+                decode_mbx(data, tree, can, max(node, 1), is_write, is_reply)
         infos.append(info)
         off += 10 + dlen + 2
         if not more:
             break
-    return " | ".join(infos), tree, sig, cyclic
+    return " | ".join(infos), tree, sig, cyclic, can
 
 
 def main():
@@ -177,7 +218,7 @@ def main():
     pkts, last_sig, kept_cyc, drop_cyc = [], {}, 0, 0
     for t, ptype, raw in raws:
         is_reply = (ptype == socket.PACKET_OUTGOING)
-        info, tree, sig, cyclic = decode_frame(raw, is_reply)
+        info, tree, sig, cyclic, can = decode_frame(raw, is_reply)
         key = ("cyc", is_reply)
         if cyclic:
             if last_sig.get(key) == sig:
@@ -187,7 +228,7 @@ def main():
             kept_cyc += 1
         pkts.append({"t": round(t, 6), "dir": "reply" if is_reply else "master",
                      "len": len(raw), "info": info, "tree": tree, "cyc": cyclic,
-                     "hex": raw.hex()})
+                     "can": can, "hex": raw.hex()})
     if len(pkts) > a.max:                               # 均勻抽稀（保頭尾）
         step = len(pkts) / a.max
         pkts = [pkts[int(i * step)] for i in range(a.max)]
