@@ -11,11 +11,19 @@
  *
  * 使用序列（對映 ESM）：
  *   ec_master_init(n)             掃鏈 → PREOP;回實際軸數
- *   ec_coe_write/read(...)        PREOP 組態（0x6060=8、PDO 映射、0x60C2）
  *   ec_master_op()                SAFEOP→OP + DC 啟用（SYNC0）
  *   每週期: ec_axis_set_output×N → ec_master_exchange() → ec_axis_get_input×N
  *   （一拍延遲：本週期 set 的輸出於 exchange 送出,讀到的輸入是
  *     從站上次 SYNC/DC 鎖存的回授）
+ *
+ * ⚠️ EYOU PHU 實機血淚配方（2026-07-08 於 gx701 實測轉動;細節+證據見
+ *    ec_config.h 與 docs/changes/2026-07-07-phu17-safeop-diagnosis.md）：
+ *   - **DC(SYNC0) 是 CSP 動作的必要條件**,ec_master_op() 內務必啟用
+ *     （assign_activate=0x300、SYNC0=控制週期、每 cycle sync 時鐘）;
+ *     free-run 下 drive 會到 OperationEnabled 但內部 demand 凍住不動。
+ *   - **不可重映射 PDO**（此 drive 會 wc=0）→ 後端用出廠預設佈局。
+ *   - mode(0x6060) 在預設 PDO 內 → 後端每週期於 RxPDO 寫,**不能 SDO 寫**。
+ *   - 前提：控制權 0x2100=1（EtherCAT）。
  */
 #ifndef EC_MASTER_H
 #define EC_MASTER_H

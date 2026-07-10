@@ -52,10 +52,32 @@ TARGET = pc_master
 
 all: $(TARGET)
 
+# 預設 = sim 後端（免硬體 SIL）
 $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) $(INC) $(SRC) -o $(TARGET) -lm -lpthread
 
+# ── 真硬體後端（gx701 等有 IgH/SOEM 的機器）──
+# 用出廠 PDO + DC(assign_activate 0x300) 配方（見 ../ecat/ec_config.h）。
+# 換掉 ec_master_sim.c → ec_master_{igh,soem}.c,鏈接對應庫。
+# 路徑用變數,請依機器覆寫:
+#   make pc_master_igh  IGH_DIR=$HOME/robot_test/ethercat
+#   make pc_master_soem SOEM_DIR=$HOME/robot_test/SOEM
+# 執行:sudo LD_LIBRARY_PATH=$IGH_DIR/lib/.libs ./pc_master_igh --bus ethercat --rate 100
+# SOEM 需 EC_IFNAME=<nic>（或程式呼叫 ec_soem_set_ifname）。
+SRC_NOSIM = $(filter-out ../ecat/ec_master_sim.c,$(SRC))
+IGH_DIR  ?= $(HOME)/robot_test/ethercat
+SOEM_DIR ?= $(HOME)/robot_test/SOEM
+
+pc_master_igh: $(SRC_NOSIM) ../ecat/ec_master_igh.c
+	$(CC) $(CFLAGS) $(INC) -I$(IGH_DIR)/include $^ -o $@ \
+	  -L$(IGH_DIR)/lib/.libs -lethercat -lm -lpthread -lrt
+
+pc_master_soem: $(SRC_NOSIM) ../ecat/ec_master_soem.c
+	$(CC) $(CFLAGS) $(INC) -I$(SOEM_DIR)/include -I$(SOEM_DIR)/build/include \
+	  -I$(SOEM_DIR)/osal -I$(SOEM_DIR)/osal/linux -I$(SOEM_DIR)/oshw/linux \
+	  $^ -o $@ -L$(SOEM_DIR)/build -lsoem -lm -lpthread -lrt
+
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) pc_master_igh pc_master_soem
 
 .PHONY: all clean

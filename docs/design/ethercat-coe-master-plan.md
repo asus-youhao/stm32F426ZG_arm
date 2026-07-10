@@ -228,7 +228,16 @@ EtherCAT 下不再有 NMT/Heartbeat/EMCY（`0x1016/0x1017/0x1014` 等物件明�
 
 ### 8.1 同步模式
 
-採 **DC-Synchron**（從站以 SYNC0 硬體事件鎖拍，參考時鐘 = 第一顆從站）。Free Run / SM-Synchron 僅用於早期 bring-up。
+採 **DC-Synchron**（從站以 SYNC0 硬體事件鎖拍，參考時鐘 = 第一顆從站）。
+
+> ⚠️ **更正（2026-07-08 實機證實）**：DC 不是「偏好」而是 **CSP 動作的硬性
+> 必要條件**。EYOU PHU 在 **free-run（`assign_activate=0`）下,drive 會進
+> OperationEnabled、`0x607A` target 會 ramp,但內部 position demand 凍住、
+> 實際位置完全不動、且無 fault**——過去 §5.3「先 free-run 再 DC」的 bring-up
+> 假設錯誤,務必**從一開始就開 DC**（`assign_activate=0x300`、SYNC0 週期=控制
+> 週期、每 cycle 由主站 sync reference/slave clocks）。開 DC 後馬達立即跟隨。
+> gx701 實測：100 rpm 連續轉 16.6 馬達圈、追隨誤差穩定。配方見 `firmware/ecat/
+> ec_config.h`,證據見 `../changes/2026-07-07-phu17-safeop-diagnosis.md`（六輪）。
 
 ### 8.2 主站週期漂移補償
 
@@ -241,6 +250,14 @@ F746 的 TIM 時基與從站 DC 時鐘會漂移。標準做法（SOEM 慣例）�
 F746 ETH MAC 具 IEEE 1588 硬體時戳，可作為進階選項（更精確的發幀時刻量測），第一版先用 SOEM 標準軟體補償即可。
 
 ### 8.3 板端執行模型（bare-metal，無 RTOS）
+
+> **F746 EtherCAT 控制流程（WP-H6;沿用 gx701 實證配方）**：TIM 觸發的每個
+> tick 必須**相位鎖定到 SYNC0**——TIM 週期 = SYNC0 週期,由 §8.2 的 DC PI
+> （對映 `firmware/engine` 的 `eng_phase_trim_us` + `ec_dc_pll`）微調 TIM
+> reload 把發幀時刻壓到 DC 柵格。每 tick：`ec_axis_set_output`（含 mode=8
+> 寫進 RxPDO,**不走 SDO**）→ `ec_master_exchange`（送 RxPDO+收 TxPDO+WKC）→
+> safety → 控制。init 時 `ec_master_op()` 內啟 DC（`assign_activate=0x300`）,
+> **不重映射 PDO**（用出廠佈局,見 `ec_config.h`）。無 DC 則馬達不動。
 
 - **TIM（1 kHz，最高優先權 ISR）**：觸發 `app_main_tick()`，內含 `ec_master_exchange()`。ETH DMA 收發都是 zero-copy descriptor 操作，單次交換（發幀+等回+解析）在 100 Mbps 下 < 100 µs
 - **主迴圈（背景）**：host 介面、1 Hz 狀態列印、LED
