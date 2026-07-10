@@ -73,6 +73,7 @@
 | 2026-07-07 | [SE3 F746 SOEM port](./changes/2026-07-07-se3-f746-soem-port.md) | ecat/f7 bare-metal port(osal DWT/nicdrv/ETH RMII+MPU non-cacheable)+ecat_probe 探測韌體;arm 38KB/62KB 可編可燒 |
 | 2026-07-08 | [HIL-0/HIL-1 板端真機通過](./changes/2026-07-08-hil0-hil1-board-ecat.md) | 板端 SOEM↔npcap 假從站全流程:掃鏈→OP→CSP WKC 零漏;修 DWT LAR 卡死/ReleaseTx;100M 不穩以 10M 繞道(HIL-2 前須解) |
 | 2026-07-10 | [G16 HIL 環境打通 + SE4 首驗](./changes/2026-07-10-g16-hil-env-f746-link.md) | Linux AF_PACKET 假從站↔F746 板端全流程重跑 PASS;SE4 1kHz tick p99=0µs/overrun=0 PASS;100Hz WKC 1000/1000;st-flash 燒錄鏈 |
+| 2026-07-10 | [SE5/SE6 板端 harness 正式路徑](./changes/2026-07-10-se5-se6-harness-board.md) | 併 h-sdo 配方分支;ecat-app=engine 四 agent+L1–L4+門面 SOEM 上板;對 --factory-pdo 假從站 OP+CSP PASS;motion 14 軸 max 115µs@M7 |
 | 2026-07-04 | [WP-H0 loop engine 核心](./changes/2026-07-04-wp-h0-loop-engine-core.md) | firmware/engine：相位排程、overrun SKIP、WCET 預算、SPSC ring；host+arm 雙編譯、單元測試 PASS |
 
 ## 設計文件

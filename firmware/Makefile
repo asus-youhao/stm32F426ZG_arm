@@ -202,4 +202,83 @@ $(ECAT_BUILD):
 flash-ecat: $(ECAT_BUILD)/$(ECAT_TARGET).hex
 	STM32_Programmer_CLI -c port=SWD mode=UR -w $(ECAT_BUILD)/$(ECAT_TARGET).hex -rst
 
-.PHONY: all clean flash probe ecat-probe flash-ecat
+# =================================================================
+# WP-SE5/SE6：harness 正式路徑韌體（engine+agents+bus_ecat+SOEM 門面）
+#   make ecat-app     → build-ecat-app/ecat_app_f746.elf/.hex
+#   EC_TIMEOUTRET=1500µs ≪ 4ms 週期（250Hz;AF_PACKET 假從站 RTT ~1ms）
+# =================================================================
+EAPP_TARGET  = ecat_app_f746
+EAPP_BUILD   = build-ecat-app
+EAPP_DEFS    = $(C_DEFS) -DEC_TIMEOUTRET=1500 -DEC_TIMEOUTSAFE=200000
+EAPP_SOURCES = \
+  board/ecat_app_main.c \
+  board/system_stm32f7xx.c \
+  ecat/f7/osal.c \
+  ecat/f7/oshw.c \
+  ecat/f7/nicdrv.c \
+  ecat/f7/tick_f7.c \
+  ecat/f7/eng_port_f7.c \
+  ecat/ec_dc_pll.c \
+  ecat/ec_master_soem.c \
+  app/app_main.c \
+  app/app_agents.c \
+  app/dual_arm.c \
+  app/bus_ecat.c \
+  app/sdo_bg.c \
+  app/robot_config.c \
+  canopen/cia402.c \
+  engine/loop_engine.c \
+  engine/eng_log.c \
+  engine/eng_trace.c \
+  engine/spsc_ring.c \
+  control/linalg.c \
+  control/trajectory.c \
+  control/joint_space.c \
+  control/kinematics.c \
+  control/ik.c \
+  control/task_space.c \
+  control/dual_arm_ctrl.c \
+  safety/safety.c \
+  $(SOEM_DIR)/src/ec_base.c \
+  $(SOEM_DIR)/src/ec_main.c \
+  $(SOEM_DIR)/src/ec_coe.c \
+  $(SOEM_DIR)/src/ec_config.c \
+  $(SOEM_DIR)/src/ec_dc.c \
+  $(SOEM_DIR)/src/ec_print.c \
+  $(SOEM_DIR)/src/ec_eoe.c \
+  $(SOEM_DIR)/src/ec_foe.c \
+  $(SOEM_DIR)/src/ec_soe.c \
+  $(HAL_SRC)/stm32f7xx_hal.c \
+  $(HAL_SRC)/stm32f7xx_hal_cortex.c \
+  $(HAL_SRC)/stm32f7xx_hal_rcc.c \
+  $(HAL_SRC)/stm32f7xx_hal_rcc_ex.c \
+  $(HAL_SRC)/stm32f7xx_hal_gpio.c \
+  $(HAL_SRC)/stm32f7xx_hal_pwr.c \
+  $(HAL_SRC)/stm32f7xx_hal_pwr_ex.c \
+  $(HAL_SRC)/stm32f7xx_hal_eth.c \
+  $(HAL_SRC)/stm32f7xx_hal_uart.c
+
+EAPP_OBJECTS  = $(addprefix $(EAPP_BUILD)/,$(notdir $(EAPP_SOURCES:.c=.o)))
+EAPP_OBJECTS += $(EAPP_BUILD)/startup_stm32f746xx.o
+vpath %.c $(sort $(dir $(EAPP_SOURCES)))
+
+ecat-app: $(EAPP_BUILD)/$(EAPP_TARGET).elf $(EAPP_BUILD)/$(EAPP_TARGET).hex
+
+$(EAPP_BUILD)/%.o: %.c | $(EAPP_BUILD)
+	$(CC) -c $(MCU) $(EAPP_DEFS) $(ECAT_INC) $(OPT) -Wall -fdata-sections -ffunction-sections $< -o $@
+
+$(EAPP_BUILD)/startup_stm32f746xx.o: board/startup_stm32f746xx.s | $(EAPP_BUILD)
+	$(AS) -c $(ASFLAGS) $< -o $@
+
+$(EAPP_BUILD)/$(EAPP_TARGET).elf: $(EAPP_OBJECTS)
+	$(CC) $(EAPP_OBJECTS) $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) \
+	  -Wl,-Map=$(EAPP_BUILD)/$(EAPP_TARGET).map,--cref -Wl,--gc-sections -lc -lm -o $@
+	$(SZ) $@
+
+$(EAPP_BUILD)/$(EAPP_TARGET).hex: $(EAPP_BUILD)/$(EAPP_TARGET).elf
+	$(CP) -O ihex $< $@
+
+$(EAPP_BUILD):
+	mkdir -p $@
+
+.PHONY: all clean flash probe ecat-probe flash-ecat ecat-app

@@ -95,6 +95,18 @@ void ec_axis_get_input(int axis, ec_in_t *i)
 
 int ec_axis_fresh(int axis) { (void)axis; return s_last_wkc >= ec_master_expected_wkc(); }
 
+/* 相對 SYNC0 柵格的相位誤差（µs,正=主站晚到）。ecx_receive_processdata 會更新
+   ctx.DCtime（從站參考時鐘）;無 DC（假從站 hasdc=0）時 DCtime 不動 → 恆 0,
+   PLL 走防護路徑。真 ESC 的收斂驗證屬 SE4/HIL-1′。 */
+int32_t ec_master_dc_error_us(void)
+{
+    int64_t cyc = (int64_t)EC_DC_SYNC0_NS;               /* ns */
+    int64_t t = (int64_t)s_ctx.DCtime % cyc;
+    if (t < 0) t += cyc;
+    if (t > cyc / 2) t -= cyc;                           /* → ±cyc/2 */
+    return (int32_t)(t / 1000);
+}
+
 int ec_coe_read(int axis, uint16_t idx, uint8_t sub, uint32_t *val)
 {
     int sz = 4;

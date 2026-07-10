@@ -71,6 +71,13 @@ DEFAULT_RXPDO = [0x60400010, 0x607A0020]   # controlword u16 + target position i
 DEFAULT_TXPDO = [0x60410010, 0x60640020]   # statusword u16 + position actual i32
 MAX_PDO_ENTRIES = 6                        # 真機限制：超過回 E405（手冊 0xFF33）
 
+# --factory-pdo：EYOU 真機出廠佈局（ec_config.h EC_RX/TX_OFF_*，33B/29B；
+# ec_master_soem/igh「不重映射」路徑依賴此佈局：mode@2、tgt@3 / pos@5）
+FACTORY_RXPDO = [0x60400010, 0x60600008, 0x607A0020, 0x60810020, 0x60FF0020,
+                 0x240D0020, 0x60710010, 0x60830020, 0x60840020, 0x60870020]
+FACTORY_TXPDO = [0x60410010, 0x60610008, 0x603F0010, 0x60640020, 0x606C0020,
+                 0x60770010, 0x60740010, 0x60F40020, 0x60790020, 0x60FD0020]
+
 SDO_ABORT_RO      = 0x06010002             # 寫唯讀物件
 SDO_ABORT_STATE   = 0x08000022             # 目前裝置狀態不允許（非 PREOP 改映射）
 SDO_ABORT_UNSUP   = 0x06010000             # 不支援的存取
@@ -759,8 +766,13 @@ def main():
     ap.add_argument("--model", default="PHU17")
     ap.add_argument("--cycle-ms", type=float, default=1.0, help="馬達步進週期（預設 1ms）")
     ap.add_argument("--wd-ms", type=int, default=100, help="過程資料看門狗（0=關）")
+    ap.add_argument("--factory-pdo", action="store_true",
+                    help="用 EYOU 真機出廠 PDO 佈局(33B/29B)——配「不重映射」後端")
     ap.add_argument("--verbose", action="store_true")
     a = ap.parse_args()
+    if a.factory_pdo:                    # EcSlave.__init__ 複製 DEFAULT_*，改基底即可
+        DEFAULT_RXPDO[:] = FACTORY_RXPDO
+        DEFAULT_TXPDO[:] = FACTORY_TXPDO
     if a.selftest:
         sys.exit(selftest())
     if not a.iface:
