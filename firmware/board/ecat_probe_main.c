@@ -198,9 +198,9 @@ int main(void)
        npcap 假從站 RTT ms 級 → WKC 大量 miss 屬預期,本階段只驗週期源品質 */
     tick_f7_init(1000);
     uint32_t hist[65] = {0};                     /* late 直方圖:1µs 桶 + 溢位 */
-    uint32_t late_max = 0, xchg_max = 0, wkc_ok = 0, n = 0;
+    uint32_t late_max = 0, xchg_max = 0, wkc_ok = 0, nA = 0;
     out->tgt = 5000;
-    for (n = 0; n < 10000; n++) {
+    for (nA = 0; nA < 10000; nA++) {
         tick_f7_wait();
         uint32_t late = tick_f7_late_us();
         hist[late > 64 ? 64 : late]++;
@@ -219,8 +219,8 @@ int main(void)
     uint32_t acc = 0, p50 = 64, p99 = 64;
     for (int i = 0; i < 65; i++) {
         acc += hist[i];
-        if (p50 == 64 && acc * 2 >= n) p50 = i;
-        if (p99 == 64 && acc * 100 >= n * 99) p99 = i;
+        if (p50 == 64 && acc * 2 >= nA) p50 = i;
+        if (p99 == 64 && acc * 100 >= nA * 99) p99 = i;
     }
     logf("SE4 tick@1kHz×10s：late p50=%luµs p99=%luµs max=%luµs overrun=%lu 交換max=%luµs → %s\r\n",
          (unsigned long)p50, (unsigned long)p99, (unsigned long)late_max,
